@@ -14,5 +14,5 @@ Usar unidades, necessidades, campanhas, agendamentos e históricos sintéticos. 
 
 ## Estado atual
 
-Somente sincronização/build e entrada técnica podem ser demonstrados. Fluxos, dados e Supabase estão pendentes.
+As 34 telas e a navegação visual podem ser demonstradas com dados fixos de protótipo, apresentados explicitamente como simulação. Auth, seleção funcional, persistência, disponibilidade real, Supabase e fluxos de dados continuam pendentes.
 

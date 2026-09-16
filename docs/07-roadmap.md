@@ -1,4 +1,6 @@
-# Roadmap
+# Roadmap — registro anterior
+
+> Plano anterior preservado para histórico. O roadmap vigente proposto para o MVP está em [07-desenvolvimento_roadmap_MVP.md](07-desenvolvimento_roadmap_MVP.md); suas etapas e decisões prevalecem sobre a sequência abaixo.
 
 1. **Base técnica — implementado:** projeto Compose, wrapper, tema mínimo e documentação.
 2. **Inventário visual — implementado:** Figma lido, 34 telas da versão 2, estados, ativos e tokens identificados sem editar o arquivo.

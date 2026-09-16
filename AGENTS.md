@@ -2,7 +2,7 @@
 
 ## Objetivo e estado
 
-Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose existe, mas telas e integrações ainda não. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica.
+Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose, 34 telas visuais e a navegação local existem; telas não consomem dados funcionais e integrações ainda não existem. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica.
 
 ## Stack e estrutura
 

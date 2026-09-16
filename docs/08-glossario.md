@@ -2,7 +2,7 @@
 
 | Termo | Definição adotada |
 | --- | --- |
-| Agendamento | Solicitação/reserva; não é prova de doação. |
+| Agendamento | Registro de planejamento/solicitação com estado explícito; reserva firme depende da política aprovada. Não é prova de doação. |
 | Campanha | Comunicação pública de incentivo ou necessidade. |
 | Doação | Evento operacional confirmado pelo serviço autorizado. |
 | Doador | Usuário do app; sua aptidão não é decidida pelo aplicativo. |

@@ -1,21 +1,23 @@
-# Regras de negócio
+# Doe Sangue — regras de negócio
 
-## Confirmado
+**Sprint 0 — proposta para revisão.** São invariantes do domínio propostos, não validações existentes no app. Onde falta autoridade externa ou decisão de produto, a regra registra explicitamente a pendência. Requisitos associados estão em [02](02-requisitos.md).
 
-- **RN-01:** agendamento não comprova comparecimento, coleta ou aptidão.
-- **RN-02:** somente operação autorizada confirma doação e altera dados operacionais.
-- **RN-03:** necessidade informa medida, origem e data; agendamento não atualiza estoque.
-- **RN-04:** o doador acessa apenas os próprios dados privados.
-- **RN-05:** dados públicos não expõem outros doadores.
-- **RN-06:** o aplicativo não diagnostica nem decide aptidão.
-- **RN-07:** histórico operacional e informação declarada têm origens distintas.
-- **RN-08:** dados de demonstração são identificados como sintéticos.
+| ID | Regra / restrição | Origem e decisão | RF |
+| --- | --- | --- | --- |
+| RN001 | Criar e consultar dados privados de agendamento requer identidade autenticada válida. A tela de login atual não cumpre isso. | Proposta de segurança; identidade futura via Supabase Auth. | RF001, RF005, RF007 |
+| RN002 | Um doador só lê/altera seu perfil e seus agendamentos; dados públicos não revelam dados pessoais de outros doadores. A restrição deve existir no servidor/RLS, não só na UI. | Proposta necessária à privacidade; matriz de permissões pendente. | RF001–RF003, RF007 |
+| RN003 | Unidade, horário de atendimento e disponibilidade só podem ser apresentados como publicados/atuais quando a fonte e a atualização forem conhecidas. Horário de atendimento **não** equivale a vaga de agendamento. | Proposta; **DECISÃO PENDENTE:** responsável pela publicação e validade. | RF003, RF004 |
+| RN004 | O horário escolhido deve pertencer à unidade escolhida e ainda estar ofertado no instante do envio. O servidor deve revalidar disponibilidade/capacidade conforme DP02; conflito não produz sucesso nem reserva implícita. | Proposta; **DECISÃO PENDENTE:** origem da agenda e capacidade/reserva. | RF004, RF005 |
+| RN005 | Persistir o agendamento e qualquer vínculo de rotina que compõe a mesma confirmação de modo consistente; não criar duplicidade por repetição de toque/requisição. | Proposta técnica de integridade; mecanismo idempotente e transação a definir. | RF005, RF009 |
+| RN006 | Agendamento inicial e rotina/preferência de recorrência são coisas distintas. Selecionar rotina não cria automaticamente agendamentos futuros nem prova elegibilidade futura. | Proposta; **DECISÃO PENDENTE:** cadências, início, término, mudança e autor da sugestão. | RF006, RF013 |
+| RN007 | Um agendamento é planejamento/solicitação; o sucesso de gravação informa apenas ID e estado persistidos, sem prometer reserva firme antes de DP02. Seu estado deve ser apresentado como tal. Não comprova presença, triagem, coleta ou aptidão, nem altera estoque. Vocabulário/transições dos estados: **DECISÃO PENDENTE**. | Distinção de domínio essencial. | RF005, RF007, RF008 |
+| RN008 | Alterar/cancelar só é permitido para agendamento próprio e segundo política da unidade; o resultado deve permanecer auditável. Cancelar uma ocorrência não encerra necessariamente a rotina. | Proposta pós-MVP; **DECISÃO PENDENTE:** prazo, estados permitidos e efeito sobre rotina/vaga. | RF009 |
+| RN009 | Uma doação efetiva só entra no histórico como confirmada por fonte operacional autorizada. Declaração do usuário, se existir, é outra origem e não se converte em confirmação. O doador não confirma coleta. | Proposta pós-MVP; **DECISÃO PENDENTE:** fonte e forma de conciliação. | RF008, RF010 |
+| RN010 | Campanhas consultáveis devem ter publicação autorizada, período e procedência; vínculo com unidade pode existir, mas sua cardinalidade depende do publicador. Uma campanha não garante vaga. | Proposta pós-MVP; **DECISÃO PENDENTE:** publicador. | RF011 |
+| RN011 | Informação de estoque/necessidade exige unidade, tipo, medida, fonte e instante de atualização. Agendamento ou cancelamento não modifica estoque. Um indicador visual sem esses metadados é demonstração, não dado atual. | Proposta pós-MVP; **DECISÃO PENDENTE:** medida, fonte, atualização e autorização. | RF012 |
+| RN012 | Lembrete é comunicação derivada de agendamento/rotina, não agendamento nem doação. Envio, consentimento e cancelamento devem respeitar a preferência do usuário e evitar duplicidade. | Proposta pós-MVP; **DECISÃO PENDENTE:** canal, momento e provedor. | RF013 |
+| RN013 | O app não calcula aptidão, intervalo mínimo ou “já pode doar” por sexo, idade, condição clínica ou qualquer outro critério sem política oficialmente validada. **Regra dependente de fonte oficial / pendente de validação.** Valores clínicos futuros devem ficar em política configurável/versionada, não espalhados pela UI. | Limite obrigatório antes de qualquer cálculo; triagem continua com o serviço competente. | RF004–RF006, RF013 |
 
-## Proposto
+## Observações sobre a interface atual
 
-Status iniciais de agendamento: `solicitado`, `confirmado`, `cancelado` e `concluido`. Validar antes da migração.
-
-## Pendente
-
-Definir recorrência, cancelamento, antecedência, papéis e transições definitivas.
-
+“Você já pode doar novamente”, “a cada 3 meses”, “agendamento confirmado”, “doação realizada” e “lembrete ativo” são **textos estáticos de protótipo**, não aplicação de RN013, confirmação operacional ou envio. Também há datas de 2026 e estoques fixos no código. Essas frases não autorizam transformar números/estados visuais em regra de negócio.
