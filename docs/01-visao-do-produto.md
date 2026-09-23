@@ -10,13 +10,17 @@ O doador precisa encontrar uma unidade, identificar um horário possível e acom
 
 O projeto também documenta a transição de Java/XML para Kotlin, Jetpack Compose e UI declarativa em um trabalho acadêmico/portfólio. Boa separação de responsabilidades importa; complexidade sem uso concreto, não.
 
+## Enquadramento acadêmico confirmado
+
+O professor aceitou o Doe Sangue no tema **Clínica/Hospital — atendimento humano** e sugeriu o uso do **Supabase** como backend. Essas decisões definem o enquadramento do projeto, mas não significam que a integração já exista. A entrega acadêmica deverá demonstrar o banco relacional, dados sintéticos, autenticação e operações reais descritos no enunciado da Aula 07; ver [banco de dados](09-banco-de-dados.md) e [roadmap](07-desenvolvimento_roadmap_MVP.md).
+
 ## Escopo proposto
 
 | Etapa | Conteúdo | Condição |
 | --- | --- | --- |
-| **MVP proposto** | Conta/autenticação mínima; unidades publicadas; disponibilidade de data/horário; selecionar unidade → horário → escolher preferência de recorrência somente se aprovada → revisar → persistir solicitação com estado explícito → consultar os próprios registros. | Exige definir origem/autoria dos horários, estados e permissões antes de implementar. A preferência de recorrência não reserva datas futuras automaticamente. |
+| **MVP proposto** | Conta/autenticação por e-mail/senha e Google; unidades publicadas; disponibilidade de data/horário; selecionar unidade → horário → escolher preferência de recorrência somente se aprovada → revisar → persistir solicitação com estado explícito → consultar os próprios registros. | Exige definir origem/autoria dos horários, estados e permissões antes de implementar. A preferência de recorrência não reserva datas futuras automaticamente. |
 | **Pós-MVP candidato** | Alterar/cancelar com política aprovada; histórico de doações efetivamente confirmadas por fonte autorizada; campanhas e estoques publicados com procedência; lembretes/notificações; informações úteis com revisão de conteúdo. | Cada item depende de dados, autorização e critérios próprios. Telas existentes não bastam como comprovação. |
-| **Fora do MVP** | Triagem/diagnóstico, cálculo automático de elegibilidade, confirmação de coleta pelo doador, atualização de estoque a partir de agendamento, painel operacional completo, social login, mapa/geolocalização e mensagens de contato. | Não ampliar o MVP apenas porque há elementos visuais correspondentes. |
+| **Fora do MVP** | Triagem/diagnóstico, cálculo automático de elegibilidade, confirmação de coleta pelo doador, atualização de estoque a partir de agendamento, painel operacional completo, mapa/geolocalização e mensagens de contato. | Não ampliar o MVP apenas porque há elementos visuais correspondentes. |
 
 ## Estado verificado no repositório
 

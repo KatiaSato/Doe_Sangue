@@ -6,7 +6,7 @@
 
 | ID | Etapa / estado atual | Requisito testável | Regras / caso |
 | --- | --- | --- | --- |
-| RF001 | MVP / PARCIAL/UI | Autenticar o doador por uma conta antes de criar ou consultar agendamentos privados; sessão inválida não acessa esses dados. | RN001, RN002 / CU001 |
+| RF001 | MVP / PARCIAL/UI | Autenticar o doador por e-mail/senha ou conta Google antes de criar ou consultar agendamentos privados; sessão inválida não acessa esses dados. A ativação dos dois provedores ainda não foi implementada. | RN001, RN002 / CU001 |
 | RF002 | MVP / PARCIAL/UI | Após autenticação, consultar e exibir os dados mínimos do próprio perfil, sem expor o de outra pessoa. Campos, criação do perfil e recuperação de falha após cadastro Auth: **DECISÃO PENDENTE**. | RN002 / CU001 |
 | RF003 | MVP / PARCIAL/UI | Listar apenas unidades publicadas com identidade, endereço e horário de atendimento informados pela fonte; abrir detalhe da unidade selecionada. | RN003 / CU002 |
 | RF004 | MVP / PARCIAL/UI | Após escolher uma unidade, apresentar datas e horários disponíveis recebidos de fonte autorizada; indisponibilidade/falha não pode aparecer como horário reservável. | RN003, RN004 / CU003 |
@@ -33,6 +33,7 @@ Em RF003–RF013 a interface oferece representações estáticas, não os compor
 | RNF005 | PARCIAL | Dados sintéticos devem ser rotulados como tais; a fonte demo contém esse marcador, mas os literais das telas não. Em produção, unidade, disponibilidade, campanha e estoque apresentam fonte/atualização ou não são mostrados como atuais. |
 | RNF006 | PLANEJADO | Testes cobrem regras de agendamento, autorização, conflito e mapeamento de dados, além do build/lint; o teste atual apenas verifica `2 + 2 = 4`. |
 | RNF007 | PLANEJADO | Armazenar apenas dados pessoais necessários, protegidos por Auth/RLS; política de retenção e textos legais: **DECISÃO PENDENTE**. |
+| RNF008 | PLANEJADO | No cadastro por e-mail/senha, exigir no mínimo 8 caracteres, incluindo ao menos uma letra maiúscula, uma minúscula, um número e um símbolo. Mostrar a regra na UI e configurá-la também no Supabase Auth; login Google não cria senha do aplicativo. Não armazenar senhas nas tabelas do domínio. |
 
 ## Restrições técnicas e escopo
 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -237,7 +238,13 @@ fun DsBottomBar(current: AppRoute, onNavigate: (AppRoute) -> Unit) {
         Triple("○", "Perfil", AppRoute.Profile),
     )
     Surface(color = Color.White, shadowElevation = 5.dp) {
-        Row(Modifier.fillMaxWidth().height(78.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .height(78.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
             items.forEach { (icon, label, route) ->
                 val selected = current == route || (route == AppRoute.DonationsHistory && current == AppRoute.DonationsAppointments)
                 Column(

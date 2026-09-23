@@ -18,14 +18,18 @@ flowchart LR
     vm --> repo
     repo -->|"Ambiente demo"| demo[Fonte demo sintética]
     repo -->|"Ambiente integrado"| supabase[Cliente Supabase futuro]
-    supabase --> auth[Supabase Auth]
-    supabase --> db[(PostgreSQL com RLS)]
+    supabase --> api[API HTTPS do Supabase]
+    api --> auth[Supabase Auth]
+    api --> rest[PostgREST e operações server-side]
+    rest --> db[(PostgreSQL com RLS)]
     repo --> state[Resultado tipado]
     state --> vm
     vm --> ui
 ```
 
 As setas de retorno representam a resposta da mesma operação, não um segundo canal de dados. Na implementação, a UI envia intenção/seleção ao ViewModel; ele expõe estado imutável, chama repository e usa caso de uso **apenas** quando houver regra real (por exemplo, revalidação/consistência da solicitação). O repository coordena fonte de agenda e persistência; conversão DTO ↔ domínio fica na fronteira `data`, sem espalhar JSON/PostgREST nas telas. Corrotinas realizam I/O fora da UI e podem ser canceladas pelo ciclo de vida.
+
+O uso do Supabase foi sugerido pelo professor. A API HTTPS é a camada intermediária entre Android e PostgreSQL; o app não contém credencial do banco nem abre conexão SQL direta. RLS e operações server-side continuam necessárias para autorização e regras atômicas. O fluxo de autenticação aprovado oferece e-mail/senha e Google; Google requer configuração do provedor e retorno por deep link no Android. A política de senha de [RNF008](02-requisitos.md) vale somente para e-mail/senha e deve ser aplicada no Supabase Auth, além de explicada na UI. Nada disso está implementado.
 
 Não criar um caso de uso para cada clique nem interfaces genéricas vazias. Começar pelos contratos necessários a CU002–CU004. O `GetDonationOverviewUseCase` já existente pode ser mantido como exemplo, mas sua utilidade deve ser reavaliada quando uma feature o consumir.
 

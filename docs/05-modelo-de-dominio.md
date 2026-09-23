@@ -40,38 +40,38 @@ classDiagram
         String nomeExibicao
     }
     class UnidadeColeta {
-        UUID id
+        Long id
         String nome
         String endereco
         String horarioAtendimento
     }
     class HorarioDisponivel {
-        UUID id
+        Long id
         Instant inicio
     }
     class Agendamento {
-        UUID id
+        Long id
         Instant horario
         String estado
     }
     class RotinaDoacao {
-        UUID id
+        Long id
         String politicaReferencia
         String situacao
     }
     class Doacao {
-        UUID id
+        Long id
         Instant ocorridaEm
         String origem
     }
     class Campanha {
-        UUID id
+        Long id
         String titulo
         Instant inicio
         Instant fim
     }
     class EstoquePublicado {
-        UUID id
+        Long id
         String tipoSanguineo
         String medida
         Instant aferidoEm
@@ -92,20 +92,35 @@ classDiagram
 
 `HorarioDisponivel`, `Doacao`, `Campanha` e `EstoquePublicado` são **condicionais**; presença no diagrama não autoriza criar suas tabelas agora. `TipoSanguineo` é valor do estoque, não entidade independente.
 
+**Adequação acadêmica pendente:** a entrega final exige pelo menos seis tabelas relacionadas, cinco FKs e 200 registros sintéticos coerentes. O diagrama contém candidatas suficientes, mas várias são condicionais ou pós-MVP; **não** constitui ainda um esquema aprovado que cumpra o critério. Antes das migrações, escolher seis ou mais tabelas justificadas por funcionalidades e fontes demonstráveis, sem contar `auth.users` como uma das seis para fins de planejamento. Depois definir PK, FKs, constraints e distribuição do seed; ver [banco de dados](09-banco-de-dados.md).
+
+### Recorte relacional de seis tabelas — proposta para revisão
+
+| Tabela do aplicativo | Chave primária proposta | Chaves estrangeiras propostas | Exemplos de integridade a detalhar |
+| --- | --- | --- | --- |
+| `perfil_doador` | `id uuid PK` | `id → auth.users.id` | Vínculo 1:1 com Auth; dados obrigatórios somente após definir o cadastro mínimo. |
+| `unidade_coleta` | `id bigint GENERATED ALWAYS AS IDENTITY PK` | — | Código interno `UNIQUE`, nome `NOT NULL`, `publicada DEFAULT false`, se esses campos forem aprovados. |
+| `horario_disponivel` | `id bigint GENERATED ALWAYS AS IDENTITY PK` | `unidade_id → unidade_coleta.id` | Unidade e início `NOT NULL`; unicidade unidade/instante depende da definição de vaga/capacidade. |
+| `agendamento` | `id bigint GENERATED ALWAYS AS IDENTITY PK` | `doador_id → perfil_doador.id`; `unidade_id → unidade_coleta.id`; `horario_id → horario_disponivel.id` | Doador e unidade `NOT NULL`; horário por FK somente se a agenda pertencer ao app; chave de idempotência `UNIQUE`. |
+| `campanha` | `id bigint GENERATED ALWAYS AS IDENTITY PK` | `unidade_id → unidade_coleta.id` | Título `NOT NULL`; nulidade do vínculo depende da decisão sobre campanhas multiunidade. |
+| `estoque_publicado` | `id bigint GENERATED ALWAYS AS IDENTITY PK` | `unidade_id → unidade_coleta.id` | Unidade, medida, fonte e instante de aferição obrigatórios antes de publicação; dados sintéticos não são estoque real. |
+
+São **seis tabelas do aplicativo** e **seis FKs entre elas**, além da FK de `perfil_doador` para `auth.users`. `GENERATED ... AS IDENTITY` é o auto-incremento do PostgreSQL; ele não substitui a declaração de `PRIMARY KEY`. O PDF exige PK adequada em toda tabela, mas **não exige auto-incremento em todas**. A escolha de tipos, nulidade, `UNIQUE`, `DEFAULT` e demais constraints só será definitiva após aprovar as regras e fontes. Em especial, `horario_disponivel`, `campanha` e `estoque_publicado` continuam condicionais; este recorte **não autoriza criar tabelas ou publicar dados de saúde reais**.
+
 ## Esboço relacional para Supabase/PostgreSQL
 
-Tipos abaixo são conceituais; nome exato, nullability, índices e status serão fechados antes de SQL. `timestamptz` deve representar instantes; a UI apresenta data/hora no fuso da unidade. `created_at`/`updated_at` são gerados pelo servidor onde aplicáveis.
+O esboço abaixo detalha as candidatas, inclusive as condicionais fora do recorte de seis tabelas. Os tipos de chave acompanham a proposta acima; nome exato, nullability, índices e status serão fechados antes de SQL. `timestamptz` deve representar instantes; a UI apresenta data/hora no fuso da unidade. `created_at`/`updated_at` são gerados pelo servidor onde aplicáveis.
 
 | Tabela candidata | PK/FK e campos principais | Restrições essenciais |
 | --- | --- | --- |
 | `perfil_doador` | `id uuid PK/FK → auth.users.id`; `nome_exibicao text`; timestamps. | 1:1; somente o próprio usuário lê/edita campos permitidos. Dados sensíveis adicionais exigem justificativa. |
-| `unidade_coleta` | `id uuid PK`; nome, endereço, atendimento, contato, `publicada bool`, fonte, `atualizada_em timestamptz`. | Publicação e edição só por ator autorizado; conteúdo público só se publicado. |
-| `horario_disponivel` **condicional** | `id uuid PK`; `unidade_id FK`; `inicio timestamptz`; capacidade/estado se a unidade delegar gestão de vagas. | Combinação unidade/instante sem duplicidade de slot; não permitir exceder capacidade sob concorrência. Pode não existir se a agenda for externa. |
-| `rotina_doacao` **condicional à política aprovada** | `id uuid PK`; `doador_id FK`; `politica_referencia text`; situação; timestamps. | Vínculo privado e política versionada; nenhum intervalo clínico fixado aqui. |
-| `agendamento` | `id uuid PK`; `doador_id FK`; `unidade_id FK`; `horario_em timestamptz`; `horario_id FK nullable`; `rotina_id FK nullable`; estado; `chave_idempotencia uuid`; timestamps. | FKs consistentes (slot e rotina devem pertencer à unidade/doador corretos); gravação atômica; idempotência; estado/transições aprovados antes de constraint. |
-| `doacao` **pós-MVP** | `id uuid PK`; `doador_id FK`; `unidade_id FK`; `agendamento_id FK nullable UNIQUE`; `ocorrida_em timestamptz`; origem, `registrada_em`. | Somente fonte operacional autorizada insere/confirma; não nasce de confirmação de agendamento. |
-| `campanha` **pós-MVP** | `id uuid PK`; `unidade_id FK nullable`; título, conteúdo, período, fonte, publicação. | Publicador autorizado; período coerente; vínculo multiunidade ainda pendente. |
-| `estoque_publicado` **pós-MVP** | `id uuid PK`; `unidade_id FK`; `tipo_sanguineo text`; medida, unidade de medida, fonte, `aferido_em`, `publicado_em`. | Fonte/medida/instante obrigatórios; somente operação autorizada escreve; sem atualização por agendamento. |
+| `unidade_coleta` | `id bigint IDENTITY PK`; nome, endereço, atendimento, contato, `publicada bool`, fonte, `atualizada_em timestamptz`. | Publicação e edição só por ator autorizado; conteúdo público só se publicado. |
+| `horario_disponivel` **condicional** | `id bigint IDENTITY PK`; `unidade_id bigint FK`; `inicio timestamptz`; capacidade/estado se a unidade delegar gestão de vagas. | Unicidade de unidade/instante depende da semântica do slot; não permitir exceder capacidade sob concorrência. Pode não existir se a agenda for externa. |
+| `rotina_doacao` **condicional à política aprovada** | `id bigint IDENTITY PK`; `doador_id uuid FK`; `politica_referencia text`; situação; timestamps. | Vínculo privado e política versionada; nenhum intervalo clínico fixado aqui. |
+| `agendamento` | `id bigint IDENTITY PK`; `doador_id uuid FK`; `unidade_id bigint FK`; `horario_em timestamptz`; `horario_id bigint FK nullable`; `rotina_id bigint FK nullable`; estado; `chave_idempotencia uuid`; timestamps. | FKs consistentes (slot e rotina devem pertencer à unidade/doador corretos); gravação atômica; idempotência; estado/transições aprovados antes de constraint. |
+| `doacao` **pós-MVP** | `id bigint IDENTITY PK`; `doador_id uuid FK`; `unidade_id bigint FK`; `agendamento_id bigint FK nullable UNIQUE`; `ocorrida_em timestamptz`; origem, `registrada_em`. | Somente fonte operacional autorizada insere/confirma; não nasce de confirmação de agendamento. |
+| `campanha` **pós-MVP** | `id bigint IDENTITY PK`; `unidade_id bigint FK nullable`; título, conteúdo, período, fonte, publicação. | Publicador autorizado; período coerente; vínculo multiunidade ainda pendente. |
+| `estoque_publicado` **pós-MVP** | `id bigint IDENTITY PK`; `unidade_id bigint FK`; `tipo_sanguineo text`; medida, unidade de medida, fonte, `aferido_em`, `publicado_em`. | Fonte/medida/instante obrigatórios; somente operação autorizada escreve; sem atualização por agendamento. |
 
 Se `horario_disponivel` for externo, `horario_id` deixa de existir e o agendamento guarda referência externa e snapshot do horário; isso é uma **DECISÃO PENDENTE**, não motivo para criar as duas formas já. A chave de idempotência deve ser única no escopo do doador/operação. `status` e periodicidade só se tornam enum/`CHECK` depois de aprovar o vocabulário; `horario_em` não deve divergir de slot. A integridade de capacidade pode exigir transação/RPC server-side, não apenas `SELECT` no cliente.
 
@@ -135,51 +150,51 @@ erDiagram
         timestamptz created_at
     }
     UNIDADE_COLETA {
-        uuid id PK
+        bigint id PK
         string nome
         string fonte
         bool publicada
         timestamptz atualizada_em
     }
     HORARIO_DISPONIVEL {
-        uuid id PK
-        uuid unidade_id FK
+        bigint id PK
+        bigint unidade_id FK
         timestamptz inicio
     }
     ROTINA_DOACAO {
-        uuid id PK
+        bigint id PK
         uuid doador_id FK
         string politica_referencia
         string situacao
     }
     AGENDAMENTO {
-        uuid id PK
+        bigint id PK
         uuid doador_id FK
-        uuid unidade_id FK
-        uuid horario_id FK
-        uuid rotina_id FK
+        bigint unidade_id FK
+        bigint horario_id FK
+        bigint rotina_id FK
         timestamptz horario_em
         string estado
         uuid chave_idempotencia UK
     }
     DOACAO {
-        uuid id PK
+        bigint id PK
         uuid doador_id FK
-        uuid unidade_id FK
-        uuid agendamento_id FK
+        bigint unidade_id FK
+        bigint agendamento_id FK
         timestamptz ocorrida_em
         string origem
     }
     CAMPANHA {
-        uuid id PK
-        uuid unidade_id FK
+        bigint id PK
+        bigint unidade_id FK
         string titulo
         timestamptz inicio
         timestamptz fim
     }
     ESTOQUE_PUBLICADO {
-        uuid id PK
-        uuid unidade_id FK
+        bigint id PK
+        bigint unidade_id FK
         string tipo_sanguineo
         string medida
         timestamptz aferido_em
