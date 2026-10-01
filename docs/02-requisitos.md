@@ -37,6 +37,6 @@ Em RF003–RF013 a interface oferece representações estáticas, não os compor
 
 ## Restrições técnicas e escopo
 
-- **Configurado:** Kotlin, Compose, Material 3, Lifecycle ViewModel, corrotinas, `compileSdk/targetSdk 36`, `minSdk 23`, Java 17, AGP 9.2.0. Navegação atual: `AppNavigator` próprio em memória.
-- **Não configurado:** Navigation Compose e bibliotecas/cliente Supabase. A migração para Navigation Compose é proposta de arquitetura, não requisito para declarar a UI atual funcional.
+- **Configurado (23/09/2026):** Kotlin, Compose, Material 3, Lifecycle ViewModel, corrotinas, `compileSdk/targetSdk 36`, `minSdk 23`, Java 17, AGP 9.3.3 e Gradle 9.5.0. Navegação: Navigation Compose 2.9.8, rotas tipadas com Kotlin Serialization e grafos Auth/Main/Scheduling.
+- **Não configurado:** bibliotecas/cliente Supabase. Preservação de histórico independente por aba, argumentos de registros e deep links continuam pendentes.
 - Não criar regras clínicas, “próxima data apta” ou frequências fixas a partir dos números escritos nas telas. Ver [RN013](03-regras-de-negocio.md).

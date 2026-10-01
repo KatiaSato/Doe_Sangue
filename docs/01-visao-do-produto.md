@@ -24,9 +24,9 @@ O professor aceitou o Doe Sangue no tema **Clínica/Hospital — atendimento hum
 
 ## Estado verificado no repositório
 
-- **Implementado:** app Android Kotlin/Compose/Material 3; tema e componentes; 34 rotas/telas visuais da versão 2; navegação local por uma pilha Compose; um recorte isolado de modelos, fonte sintética, repository, use case e `HomeViewModel` com `StateFlow`.
+- **Implementado (atualizado em 23/09/2026):** app Android Kotlin/Compose/Material 3; tema e componentes; 34 rotas/telas visuais; Navigation Compose 2.9.8 com rotas tipadas e grafos Auth/Main/Scheduling; um recorte isolado de modelos, fonte sintética, repository, use case e `HomeViewModel` com `StateFlow`.
 - **Parcial:** o fluxo de agendamento avança visualmente por unidade, data/horário, recorrência e confirmação; o botão de entrada leva à Home; a conclusão troca para uma Home com agendamento fictício. Isso **não** autentica, seleciona dados nem persiste agendamento. O `HomeViewModel` e a fonte demo não são consumidos pela UI.
-- **Não implementado:** Navigation Compose, cliente Supabase, banco/migrações, autenticação real, consulta de disponibilidade, gravação/cancelamento de agendamento, histórico real, busca, notificações e integração com unidades. A única prova de teste automatizado no código é um teste de configuração trivial; relatórios de build anteriores não demonstram regras de domínio.
+- **Não implementado:** cliente Supabase, banco/migrações, autenticação real, consulta de disponibilidade, gravação/cancelamento de agendamento, histórico real, busca, notificações e integração com unidades. Há testes instrumentados dos fluxos visuais em `AppNavigationTest`; eles não demonstram regras de domínio, autenticação ou persistência. Ver [validação](12-validacao.md).
 
 Nomes, endereços, distâncias, estoques, campanhas, datas, horários, perfil e doações apresentados nas telas são **literais fictícios de interface**; há ainda uma fonte demo separada, também sintética. Nenhum deles deve ser mostrado como dado real. Uma integração futura precisará de fonte identificada, data de atualização e autorização de publicação. Até lá, demonstrações devem indicar explicitamente a simulação.
 

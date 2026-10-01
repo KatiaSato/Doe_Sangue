@@ -33,6 +33,7 @@ import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
 import br.edu.fatec.doesangue.ui.components.SectionHeader
+import br.edu.fatec.doesangue.ui.screens.restrictions.BeforeDonationCard
 import br.edu.fatec.doesangue.ui.navigation.AppRoute
 import br.edu.fatec.doesangue.ui.theme.BloodRed
 import br.edu.fatec.doesangue.ui.theme.BloodRedSoft
@@ -62,12 +63,14 @@ fun HomeScreen(onNavigate: (AppRoute) -> Unit) {
                 )
                 Column(Modifier.weight(1f)) {
                     Text("Sua próxima doação", style = MaterialTheme.typography.titleMedium, color = Color.White)
-                    Text("Você já pode doar novamente.", style = MaterialTheme.typography.bodySmall, color = Color.White)
+                    Text("Encontre um hemocentro e agende sua visita.", style = MaterialTheme.typography.bodySmall, color = Color.White)
                     Spacer(Modifier.height(12.dp))
                     PrimaryButton("Agendar doação   ▣", { onNavigate(AppRoute.ScheduleCenter) })
                 }
             }
         }
+        Spacer(Modifier.height(12.dp))
+        BeforeDonationCard { onNavigate(AppRoute.Restrictions) }
         Spacer(Modifier.height(12.dp))
         SectionHeader("Estoque de sangue", "Ver todos")
         BloodStockRow(listOf("O+" to "Estável", "O−" to "Crítico", "A+" to "Alerta", "A−" to "Crítico"))
@@ -123,6 +126,8 @@ fun HomeScheduledScreen(onNavigate: (AppRoute) -> Unit) {
             }
         }
         Spacer(Modifier.height(18.dp))
+        BeforeDonationCard { onNavigate(AppRoute.Restrictions) }
+        Spacer(Modifier.height(12.dp))
         SectionHeader("Estoque de sangue")
         BloodStockRow(listOf("O+" to "Estável", "O−" to "Crítico", "A+" to "Alerta", "A−" to "Crítico"))
         BloodStockRow(listOf("B+" to "Estável", "B−" to "Alerta", "AB+" to "Estável", "AB−" to "Alerta"))

@@ -45,3 +45,10 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose, 34 telas vi
 - Figma: `Doe Sangue — Android App — Education`, nó `9:8`; requer inventário antes das telas.
 - Enunciado acadêmico recebido: `Aula 07 - LBD - M - Projeto Integrador Especificação e Critérios - 16.09.pdf` (fornecido pela usuária, fora do repositório).
 - Pendentes: recorrência, cardinalidades finais, matriz de permissões, ambiente Supabase de desenvolvimento, distribuição do seed, conta do professor e confirmação do `applicationId`.
+
+## Atualização de navegação — 23/09/2026
+
+- Navigation Compose 2.9.8 e rotas tipadas estão implementados; `AppNavHost` conecta Auth/Main/Scheduling. O roteador próprio foi substituído.
+- A seta das raízes usa `navigateBackOrHome`; decisões de navegação permanecem em `ui/navigation`, sem NavController nos ViewModels.
+- Testes instrumentados: `.\gradlew.bat connectedDebugAndroidTest`, com emulador/dispositivo conectado. Ver `docs/12-validacao.md` e ADR-003.
+- Trocar de aba ainda remove o percurso anterior. Rascunho, argumentos de registros, deep links e autenticação real continuam pendentes.

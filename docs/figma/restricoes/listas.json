@@ -1,0 +1,579 @@
+{
+  "status": "Implementado no Android; ver docs/13-triagem-medicamentos.md",
+  "fileKey": "OyI66BkEa9qPpGZ1mNJIWj",
+  "componentIds": [
+    "6:19",
+    "6:24"
+  ],
+  "content": [
+    {
+      "title": "Uso de medicamentos",
+      "intro": "Informe os medicamentos em uso. Não interrompa tratamentos para doar.",
+      "items": [
+        [
+          "Antibióticos",
+          "A avaliação considera o medicamento e a infecção que motivou seu uso."
+        ],
+        [
+          "Isotretinoína (Roacutan)",
+          "Exige um período de espera após a última dose. Confirme com o hemocentro."
+        ],
+        [
+          "Anticoagulantes",
+          "O tratamento e a doença de base precisam ser avaliados antes da doação."
+        ],
+        [
+          "Medicamentos de uso contínuo",
+          "Informe nome, dose e motivo do uso, incluindo remédios para pressão e saúde mental."
+        ]
+      ],
+      "source": "Hemominas",
+      "url": "https://www.hemominas.mg.gov.br/condicoes-e-restricoes",
+      "hubId": "3:89"
+    },
+    {
+      "title": "Idade e peso",
+      "intro": "Confira os critérios gerais. A avaliação final é feita pelo hemocentro.",
+      "items": [
+        [
+          "Faixa etária",
+          "Em geral, de 16 a 69 anos. A primeira doação deve ter ocorrido até os 60 anos."
+        ],
+        [
+          "16 e 17 anos",
+          "É necessário consentimento formal do responsável legal."
+        ],
+        [
+          "Peso mínimo",
+          "O requisito geral é pesar pelo menos 50 kg."
+        ],
+        [
+          "Documento com foto",
+          "Leve um documento oficial com foto para identificação na unidade."
+        ]
+      ],
+      "source": "Ministério da Saúde",
+      "url": "https://www.gov.br/saude/pt-br/composicao/saes/doacao-de-sangue/faq",
+      "hubId": "3:92"
+    },
+    {
+      "title": "Doenças e sintomas",
+      "intro": "Relate seu histórico de saúde na triagem. Esta lista não reúne todas as situações.",
+      "items": [
+        [
+          "Gripe, resfriado e febre",
+          "Adie a doação enquanto estiver com sintomas e confirme quando poderá retornar."
+        ],
+        [
+          "Diabetes e hipertensão",
+          "A equipe avalia o controle da doença, os medicamentos e possíveis complicações."
+        ],
+        [
+          "Histórico de hepatite",
+          "Informe o tipo de hepatite e quando ocorreu para a avaliação do hemocentro."
+        ],
+        [
+          "Outras doenças e tratamentos",
+          "Relate diagnósticos e tratamentos atuais ou anteriores, mesmo sem sintomas."
+        ]
+      ],
+      "source": "Hemocentro Unicamp",
+      "url": "https://www.hemocentro.unicamp.br/perguntas-frequentes/criterios-para-doacao-de-sangue/",
+      "hubId": "3:95"
+    },
+    {
+      "title": "Vacinas e procedimentos",
+      "intro": "Informe o que foi realizado e a data. O tempo de espera varia conforme o caso.",
+      "items": [
+        [
+          "Vacinas",
+          "A espera depende da vacina recebida. Informe o nome e a data da aplicação."
+        ],
+        [
+          "Tatuagem e maquiagem definitiva",
+          "Podem exigir adiamento. A equipe avalia a data e as condições do procedimento."
+        ],
+        [
+          "Piercings",
+          "Informe a região do corpo e a data da colocação para avaliação."
+        ],
+        [
+          "Cirurgias e tratamento dentário",
+          "A avaliação considera o procedimento, a recuperação e os medicamentos usados."
+        ]
+      ],
+      "source": "Hemocentro Unicamp",
+      "url": "https://www.hemocentro.unicamp.br/perguntas-frequentes/criterios-para-doacao-de-sangue/",
+      "hubId": "3:98"
+    }
+  ],
+  "validation": {
+    "visual": "Quatro listas e menu revisados em 360 × 800; nenhum conteúdo cortado.",
+    "font": "Poppins",
+    "prototype": "Cada categoria abre sua lista; todas retornam ao menu; fontes abrem links oficiais."
+  },
+  "screens": [
+    {
+      "id": "6:25",
+      "name": "03 — Uso de medicamentos",
+      "nodeIds": [
+        "6:25",
+        "6:26",
+        "6:27",
+        "6:28",
+        "6:29",
+        "6:30",
+        "6:31",
+        "6:32",
+        "6:33",
+        "6:35",
+        "6:36",
+        "6:37",
+        "6:38",
+        "6:39",
+        "I6:39;6:20",
+        "I6:39;6:21",
+        "6:42",
+        "I6:42;6:20",
+        "I6:42;6:21",
+        "6:45",
+        "I6:45;6:20",
+        "I6:45;6:21",
+        "6:48",
+        "I6:48;6:20",
+        "I6:48;6:21",
+        "6:51",
+        "I6:51;6:23",
+        "6:53"
+      ],
+      "navigation": [
+        {
+          "id": "6:30",
+          "reactions": [
+            {
+              "action": {
+                "type": "NODE",
+                "destinationId": "3:76",
+                "navigation": "NAVIGATE",
+                "transition": null,
+                "resetVideoPosition": false
+              },
+              "actions": [
+                {
+                  "type": "NODE",
+                  "destinationId": "3:76",
+                  "navigation": "NAVIGATE",
+                  "transition": null,
+                  "resetVideoPosition": false
+                }
+              ],
+              "trigger": {
+                "type": "ON_CLICK"
+              }
+            }
+          ]
+        },
+        {
+          "id": "6:53",
+          "reactions": [
+            {
+              "action": {
+                "type": "URL",
+                "url": "https://www.hemominas.mg.gov.br/condicoes-e-restricoes",
+                "openInNewTab": true
+              },
+              "actions": [
+                {
+                  "type": "URL",
+                  "url": "https://www.hemominas.mg.gov.br/condicoes-e-restricoes",
+                  "openInNewTab": true
+                }
+              ],
+              "trigger": {
+                "type": "ON_CLICK"
+              }
+            }
+          ]
+        }
+      ],
+      "footer": 1,
+      "fonts": [
+        "Poppins"
+      ],
+      "bottom": 678
+    },
+    {
+      "id": "6:56",
+      "name": "04 — Idade e peso",
+      "nodeIds": [
+        "6:56",
+        "6:57",
+        "6:58",
+        "6:59",
+        "6:60",
+        "6:61",
+        "6:62",
+        "6:63",
+        "6:64",
+        "6:66",
+        "6:67",
+        "6:68",
+        "6:69",
+        "6:70",
+        "I6:70;6:20",
+        "I6:70;6:21",
+        "6:73",
+        "I6:73;6:20",
+        "I6:73;6:21",
+        "6:76",
+        "I6:76;6:20",
+        "I6:76;6:21",
+        "6:79",
+        "I6:79;6:20",
+        "I6:79;6:21",
+        "6:82",
+        "I6:82;6:23",
+        "6:84"
+      ],
+      "navigation": [
+        {
+          "id": "6:61",
+          "reactions": [
+            {
+              "action": {
+                "type": "NODE",
+                "destinationId": "3:76",
+                "navigation": "NAVIGATE",
+                "transition": null,
+                "resetVideoPosition": false
+              },
+              "actions": [
+                {
+                  "type": "NODE",
+                  "destinationId": "3:76",
+                  "navigation": "NAVIGATE",
+                  "transition": null,
+                  "resetVideoPosition": false
+                }
+              ],
+              "trigger": {
+                "type": "ON_CLICK"
+              }
+            }
+          ]
+        },
+        {
+          "id": "6:84",
+          "reactions": [
+            {
+              "action": {
+                "type": "URL",
+                "url": "https://www.gov.br/saude/pt-br/composicao/saes/doacao-de-sangue/faq",
+                "openInNewTab": true
+              },
+              "actions": [
+                {
+                  "type": "URL",
+                  "url": "https://www.gov.br/saude/pt-br/composicao/saes/doacao-de-sangue/faq",
+                  "openInNewTab": true
+                }
+              ],
+              "trigger": {
+                "type": "ON_CLICK"
+              }
+            }
+          ]
+        }
+      ],
+      "footer": 1,
+      "fonts": [
+        "Poppins"
+      ],
+      "bottom": 638
+    },
+    {
+      "id": "6:87",
+      "name": "05 — Doenças e sintomas",
+      "nodeIds": [
+        "6:87",
+        "6:88",
+        "6:89",
+        "6:90",
+        "6:91",
+        "6:92",
+        "6:93",
+        "6:94",
+        "6:95",
+        "6:97",
+        "6:98",
+        "6:99",
+        "6:100",
+        "6:101",
+        "I6:101;6:20",
+        "I6:101;6:21",
+        "6:104",
+        "I6:104;6:20",
+        "I6:104;6:21",
+        "6:107",
+        "I6:107;6:20",
+        "I6:107;6:21",
+        "6:110",
+        "I6:110;6:20",
+        "I6:110;6:21",
+        "6:113",
+        "I6:113;6:23",
+        "6:115"
+      ],
+      "navigation": [
+        {
+          "id": "6:92",
+          "reactions": [
+            {
+              "action": {
+                "type": "NODE",
+                "destinationId": "3:76",
+                "navigation": "NAVIGATE",
+                "transition": null,
+                "resetVideoPosition": false
+              },
+              "actions": [
+                {
+                  "type": "NODE",
+                  "destinationId": "3:76",
+                  "navigation": "NAVIGATE",
+                  "transition": null,
+                  "resetVideoPosition": false
+                }
+              ],
+              "trigger": {
+                "type": "ON_CLICK"
+              }
+            }
+          ]
+        },
+        {
+          "id": "6:115",
+          "reactions": [
+            {
+              "action": {
+                "type": "URL",
+                "url": "https://www.hemocentro.unicamp.br/perguntas-frequentes/criterios-para-doacao-de-sangue/",
+                "openInNewTab": true
+              },
+              "actions": [
+                {
+                  "type": "URL",
+                  "url": "https://www.hemocentro.unicamp.br/perguntas-frequentes/criterios-para-doacao-de-sangue/",
+                  "openInNewTab": true
+                }
+              ],
+              "trigger": {
+                "type": "ON_CLICK"
+              }
+            }
+          ]
+        }
+      ],
+      "footer": 1,
+      "fonts": [
+        "Poppins"
+      ],
+      "bottom": 678
+    },
+    {
+      "id": "6:118",
+      "name": "06 — Vacinas e procedimentos",
+      "nodeIds": [
+        "6:118",
+        "6:119",
+        "6:120",
+        "6:121",
+        "6:122",
+        "6:123",
+        "6:124",
+        "6:125",
+        "6:126",
+        "6:128",
+        "6:129",
+        "6:130",
+        "6:131",
+        "6:132",
+        "I6:132;6:20",
+        "I6:132;6:21",
+        "6:135",
+        "I6:135;6:20",
+        "I6:135;6:21",
+        "6:138",
+        "I6:138;6:20",
+        "I6:138;6:21",
+        "6:141",
+        "I6:141;6:20",
+        "I6:141;6:21",
+        "6:144",
+        "I6:144;6:23",
+        "6:146"
+      ],
+      "navigation": [
+        {
+          "id": "6:123",
+          "reactions": [
+            {
+              "action": {
+                "type": "NODE",
+                "destinationId": "3:76",
+                "navigation": "NAVIGATE",
+                "transition": null,
+                "resetVideoPosition": false
+              },
+              "actions": [
+                {
+                  "type": "NODE",
+                  "destinationId": "3:76",
+                  "navigation": "NAVIGATE",
+                  "transition": null,
+                  "resetVideoPosition": false
+                }
+              ],
+              "trigger": {
+                "type": "ON_CLICK"
+              }
+            }
+          ]
+        },
+        {
+          "id": "6:146",
+          "reactions": [
+            {
+              "action": {
+                "type": "URL",
+                "url": "https://www.hemocentro.unicamp.br/perguntas-frequentes/criterios-para-doacao-de-sangue/",
+                "openInNewTab": true
+              },
+              "actions": [
+                {
+                  "type": "URL",
+                  "url": "https://www.hemocentro.unicamp.br/perguntas-frequentes/criterios-para-doacao-de-sangue/",
+                  "openInNewTab": true
+                }
+              ],
+              "trigger": {
+                "type": "ON_CLICK"
+              }
+            }
+          ]
+        }
+      ],
+      "footer": 1,
+      "fonts": [
+        "Poppins"
+      ],
+      "bottom": 658
+    }
+  ],
+  "hubLinks": [
+    {
+      "id": "3:89",
+      "reactions": [
+        {
+          "action": {
+            "type": "NODE",
+            "destinationId": "6:25",
+            "navigation": "NAVIGATE",
+            "transition": null,
+            "resetVideoPosition": false
+          },
+          "actions": [
+            {
+              "type": "NODE",
+              "destinationId": "6:25",
+              "navigation": "NAVIGATE",
+              "transition": null,
+              "resetVideoPosition": false
+            }
+          ],
+          "trigger": {
+            "type": "ON_CLICK"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3:92",
+      "reactions": [
+        {
+          "action": {
+            "type": "NODE",
+            "destinationId": "6:56",
+            "navigation": "NAVIGATE",
+            "transition": null,
+            "resetVideoPosition": false
+          },
+          "actions": [
+            {
+              "type": "NODE",
+              "destinationId": "6:56",
+              "navigation": "NAVIGATE",
+              "transition": null,
+              "resetVideoPosition": false
+            }
+          ],
+          "trigger": {
+            "type": "ON_CLICK"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3:95",
+      "reactions": [
+        {
+          "action": {
+            "type": "NODE",
+            "destinationId": "6:87",
+            "navigation": "NAVIGATE",
+            "transition": null,
+            "resetVideoPosition": false
+          },
+          "actions": [
+            {
+              "type": "NODE",
+              "destinationId": "6:87",
+              "navigation": "NAVIGATE",
+              "transition": null,
+              "resetVideoPosition": false
+            }
+          ],
+          "trigger": {
+            "type": "ON_CLICK"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3:98",
+      "reactions": [
+        {
+          "action": {
+            "type": "NODE",
+            "destinationId": "6:118",
+            "navigation": "NAVIGATE",
+            "transition": null,
+            "resetVideoPosition": false
+          },
+          "actions": [
+            {
+              "type": "NODE",
+              "destinationId": "6:118",
+              "navigation": "NAVIGATE",
+              "transition": null,
+              "resetVideoPosition": false
+            }
+          ],
+          "trigger": {
+            "type": "ON_CLICK"
+          }
+        }
+      ]
+    }
+  ]
+}

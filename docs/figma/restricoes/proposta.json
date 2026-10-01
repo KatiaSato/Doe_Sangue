@@ -1,0 +1,168 @@
+{
+  "status": "Implementado no Android",
+  "fileKey": "OyI66BkEa9qPpGZ1mNJIWj",
+  "url": "https://www.figma.com/design/OyI66BkEa9qPpGZ1mNJIWj",
+  "team": "team::1470782018559889985",
+  "createdNodeIds": [
+    "3:26",
+    "3:27",
+    "3:28",
+    "3:29",
+    "3:30",
+    "3:31",
+    "3:32",
+    "3:33",
+    "3:34",
+    "3:35",
+    "3:36",
+    "3:37",
+    "3:38",
+    "3:39",
+    "3:40",
+    "3:41",
+    "3:42",
+    "3:43",
+    "3:44",
+    "3:45",
+    "3:46",
+    "3:47",
+    "3:48",
+    "3:49",
+    "3:50",
+    "3:51",
+    "3:52",
+    "3:53",
+    "3:54",
+    "3:55",
+    "I3:55;3:32",
+    "3:57",
+    "3:58",
+    "3:59",
+    "I3:59;3:37",
+    "I3:59;3:38",
+    "3:62",
+    "I3:62;3:37",
+    "I3:62;3:38",
+    "3:65",
+    "I3:65;3:37",
+    "I3:65;3:38",
+    "3:68",
+    "I3:68;3:37",
+    "I3:68;3:38",
+    "3:71",
+    "3:72",
+    "3:73",
+    "3:74",
+    "3:75",
+    "3:76",
+    "3:77",
+    "3:78",
+    "3:79",
+    "3:80",
+    "3:81",
+    "3:82",
+    "3:83",
+    "3:84",
+    "3:85",
+    "3:86",
+    "3:87",
+    "3:88",
+    "3:89",
+    "I3:89;3:34",
+    "I3:89;3:35",
+    "3:92",
+    "I3:92;3:34",
+    "I3:92;3:35",
+    "3:95",
+    "I3:95;3:34",
+    "I3:95;3:35",
+    "3:98",
+    "I3:98;3:34",
+    "I3:98;3:35",
+    "3:101",
+    "3:102",
+    "3:103"
+  ],
+  "mutatedNodeIds": [
+    "0:1"
+  ],
+  "homeId": "3:39",
+  "hubId": "3:76",
+  "boardId": "3:26",
+  "componentIds": [
+    "3:31",
+    "3:33",
+    "3:36"
+  ],
+  "collectionId": "VariableCollectionId:3:2",
+  "evidence": [
+    {
+      "id": "3:39",
+      "name": "01 — Início / Antes de doar",
+      "width": 360,
+      "height": 800,
+      "descendantCount": 36,
+      "counts": {
+        "FRAME": 7,
+        "TEXT": 24,
+        "INSTANCE": 5
+      },
+      "imageNodes": [],
+      "fonts": [
+        "Poppins"
+      ],
+      "childBounds": [
+        {
+          "id": "3:40",
+          "y": 0,
+          "height": 48
+        },
+        {
+          "id": "3:43",
+          "y": 48,
+          "height": 509
+        },
+        {
+          "id": "3:71",
+          "y": 557,
+          "height": 48
+        }
+      ]
+    },
+    {
+      "id": "3:76",
+      "name": "02 — Consultar restrições",
+      "width": 360,
+      "height": 800,
+      "descendantCount": 27,
+      "counts": {
+        "FRAME": 7,
+        "TEXT": 15,
+        "VECTOR": 1,
+        "INSTANCE": 4
+      },
+      "imageNodes": [],
+      "fonts": [
+        "Poppins"
+      ],
+      "childBounds": [
+        {
+          "id": "3:77",
+          "y": 0,
+          "height": 48
+        },
+        {
+          "id": "3:80",
+          "y": 48,
+          "height": 749
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "visual": "Duas telas revisadas; estoque e navegação inferior corrigidos.",
+    "fonts": "Poppins",
+    "prototype": "Atualizado: todas as categorias abrem listas neste arquivo e retornam ao menu. Registro atual em listas.json.",
+    "pending": "Sem pendências de implementação neste recorte; integrações externas fora do escopo."
+  }
+}

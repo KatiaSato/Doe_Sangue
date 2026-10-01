@@ -16,7 +16,7 @@ Aplicativo acadêmico Android para gestão e incentivo à doação de sangue. O 
 - `applicationId`: `br.edu.fatec.doesangue` (a confirmar).
 - `minSdk 23`, `targetSdk 36`, `compileSdk 36`.
 - JDK 17 como alvo; o Gradle pode executar pelo JDK 21 instalado.
-- AGP 9.2.0, Kotlin 2.3.21 e Gradle 9.4.1.
+- AGP 9.3.3, Kotlin 2.3.21 e Gradle 9.5.0.
 
 ## Abrir e executar
 
@@ -49,3 +49,15 @@ Botões que dependeriam de backend, permissões do dispositivo ou integrações 
 
 Os documentos em `docs/` usam **Confirmado**, **Proposto**, **Implementado** e **Pendente** para distinguir requisitos, escolhas atuais e código pronto.
 # Doe_Sangue
+
+## Navegação e testes — atualização de 23/09/2026
+
+**Implementado:** Navigation Compose 2.9.8, rotas tipadas e grafos Auth/Main/Scheduling. As telas enviam callbacks; as decisões de navegação ficam em `ui/navigation`. As setas das raízes retornam à Home quando não há tela anterior. Histórico independente por aba e dados funcionais continuam pendentes.
+
+Com um emulador ou dispositivo de teste conectado, execute:
+
+```powershell
+.\gradlew.bat connectedDebugAndroidTest
+```
+
+Os testes em `app/src/androidTest` exercitam a navegação visual e o estado salvo do Compose. `test` executa somente os testes locais em `app/src/test`; não substitui a suíte instrumentada. Consulte [telas e navegação](docs/10-telas-e-navegacao.md), [ADR-003](docs/decisoes/ADR-003-navegacao-compose.md) e [validação](docs/12-validacao.md).

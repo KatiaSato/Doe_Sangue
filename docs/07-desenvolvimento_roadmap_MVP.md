@@ -18,7 +18,7 @@ Uma pessoa autenticada consulta unidade e horários fornecidos por fonte autoriz
 | **S5 — registro persistido** | Gravar uma solicitação/agendamento via operação que revalide oferta/capacidade, identidade, campos permitidos, transições e idempotência; resposta fornece ID/estado persistidos conforme DP02. Criar vínculo de rotina opcional conforme política aprovada. | S2–S4; modelo, RLS e migração de desenvolvimento aprovados. | Sucesso apenas após resposta do servidor e com texto fiel ao estado; vaga perdida não cria reserva nem confirmação indevida; repetição não duplica; nenhum registro de `doacao`/estoque muda. Testes de integração, concorrência e RLS com dois usuários/anon. | 02–06 e registro de migração/validação. |
 | **S6 — Minhas Doações/Agendamentos e fechamento** | Ler agendamentos próprios da persistência, mostrar estado e navegar do sucesso/detalhe; retirar do fluxo funcional os literais fictícios. | S5. | Após reinstalação/nova sessão, agendamento próprio reaparece; outro usuário não o vê; lista vazia/erro tratados. Revisão manual em dispositivo e teste automatizado de rota/consulta. | 01–06, este roadmap e 10/12 legados se continuarem publicados. |
 
-Cada sprint termina com `test`, `assembleDebug`, `lint` e testes relevantes à mudança. Migrar para Navigation Compose só se a decisão S1/S4 justificar; a biblioteca ainda não está configurada. O esquema físico é aprovado antes de migrations, mas **não** se executa nenhuma nesta Sprint 0.
+Cada sprint termina com `test`, `assembleDebug`, `lint` e testes relevantes à mudança. Atualização de 23/09/2026: Navigation Compose foi adotado e a navegação visual possui testes instrumentados (`connectedDebugAndroidTest`); isso não conclui S1–S6. O esquema físico continua sujeito a aprovação antes de migrations.
 
 ## Trilha da entrega acadêmica
 
@@ -48,12 +48,12 @@ Após o esquema e antes da apresentação: executar seed em ambiente de demonstr
 | DP06 | Haverá fonte operacional autorizada para doações realizadas, e quais papéis podem registrar/confirmar coleta? | `Doacao`, histórico verdadeiro e RLS; sem fonte, RF010 fica pós-MVP. |
 | DP07 | Como serão publicadas campanhas e medidas de estoque, com unidade, origem e atualização? | Evita exibir protótipos como dados reais; modelo pós-MVP. |
 | DP08 | Quais textos legais, consentimentos, retenção de dados e permissões de notificação são exigidos? | Cadastro, proteção de dados e lembretes. Exige revisão jurídica/organizacional, não inferência do protótipo. |
-| DP09 | Manter `AppNavigator` ou adotar Navigation Compose para argumentos/restauração? Confirmar `applicationId`. | Define evolução da navegação e identidade técnica do pacote; nenhuma migração de código autorizada aqui. |
+| DP09 | **Navegação decidida e implementada em 23/09/2026:** Navigation Compose 2.9.8 com rotas tipadas; ver ADR-003. Confirmação do `applicationId` continua pendente. | Argumentos de registros, deep links e preservação de histórico por aba ainda precisam de implementação/decisão; não confundir restauração de rota com rascunho persistido. |
 | DP10 | Qual ambiente Supabase de desenvolvimento e quem aprova migrations/RLS? | Nenhuma operação remota ou SQL deve ocorrer sem projeto-alvo e aprovação. |
 
 ## Notas sobre legados e limites ainda presentes
 
 - `AGENTS.md` e `docs/11-demonstracao.md` foram alinhados ao estado das 34 telas visuais; `docs/07-roadmap.md` aponta para este plano vigente. `docs/09-banco-de-dados.md` permanece como resumo anterior; revisar ou arquivar os demais legados quando o escopo for aprovado.
 - O texto visual apresenta “já pode doar”, intervalos de 3/6/12 meses, “agendamento confirmado”, “doação realizada”, estoque crítico e lembrete ativo, mas não existe validação médica, confirmação operacional, persistência, fonte de estoque ou envio. O agendamento estático de 12/09/2026 já é passado na data desta revisão (16/09/2026). Não usar esses literais como regra ou dado real.
-- `HomeViewModel`/fonte demo existem mas não são instanciados/observados pelas telas; a Home e o perfil usam valores embutidos. O login navega diretamente para a Home; a conclusão de agendamento navega para uma variante estática. Navigation Compose e Supabase constam da intenção, **não** do Gradle.
+- `HomeViewModel`/fonte demo existem mas não são consumidos pelas telas; Home e perfil usam literais. Login e conclusão do agendamento continuam visuais. Navigation Compose está configurado e conectado; Supabase permanece pendente.
 - Há uma modificação local anterior em `DoeSangueComponents.kt` (`navigationBarsPadding()` para a barra inferior), não relacionada a estes documentos e não commitada. Esta Sprint 0 não a altera nem a envia.
