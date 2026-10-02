@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import androidx.lifecycle.ViewModelProvider
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionDetailScreen
 import br.edu.fatec.doesangue.ui.screens.home.HomeScheduledScreen
@@ -30,6 +31,7 @@ import br.edu.fatec.doesangue.ui.screens.scheduling.EditRoutineScreen
 
 fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
+    schedulingViewModelFactory: ViewModelProvider.Factory,
     onNavigateMain: (AppRoute) -> Unit,
     onFinishScheduling: () -> Unit,
 ) {
@@ -307,6 +309,7 @@ fun NavGraphBuilder.mainNavGraph(
         // Inclui o fluxo de agendamento dentro da área principal.
         schedulingNavGraph(
             navController = navController,
+            schedulingViewModelFactory = schedulingViewModelFactory,
             onNavigateMain = onNavigateMain,
             onFinishScheduling = onFinishScheduling,
         )

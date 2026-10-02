@@ -4,6 +4,13 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import androidx.lifecycle.ViewModelProvider
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import br.edu.fatec.doesangue.presentation.scheduling.SchedulingViewModel
+
 import br.edu.fatec.doesangue.ui.screens.scheduling.ScheduleCenterScreen
 import br.edu.fatec.doesangue.ui.screens.scheduling.ScheduleConfirmScreen
 import br.edu.fatec.doesangue.ui.screens.scheduling.ScheduleDateScreen
@@ -21,6 +28,8 @@ import br.edu.fatec.doesangue.ui.screens.scheduling.ScheduleSuccessScreen
 
 fun NavGraphBuilder.schedulingNavGraph(
     navController: NavHostController,
+
+    schedulingViewModelFactory: ViewModelProvider.Factory,
     // função que recebe uma rota e executa uma ação, sem devolver um resultado útil
     onNavigateMain: (AppRoute) -> Unit,
     // função sem parâmetros
@@ -29,8 +38,24 @@ fun NavGraphBuilder.schedulingNavGraph(
     navigation<AppGraph.Scheduling>(
         startDestination = AppRoute.ScheduleCenter,
     ) {
-        composable<AppRoute.ScheduleCenter> {
+        composable<AppRoute.ScheduleCenter> { entry ->
+            // Localiza o grafo de agendamento que contém esta tela.
+            val schedulingEntry = remember(entry) {
+                navController.getBackStackEntry<AppGraph.Scheduling>()
+            }
+
+            // Obtem um ViewModel vinculado ao fluxo inteiro de agendamento.
+            val schedulingViewModel: SchedulingViewModel = viewModel(
+                viewModelStoreOwner = schedulingEntry,
+                factory = schedulingViewModelFactory,
+            )
+            // Observa o estado respeitando o ciclo de vida da tela.
+            val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
+
+            //::selectCenter passa uma referência à função. Ela será executada quando a tela comunicar a escolha.
             ScheduleCenterScreen(
+                uiState = uiState,
+                onSelectCenter = schedulingViewModel::selectCenter,
                 onBack = {
                     navController.navigateBackOrHome()
                 },
@@ -38,6 +63,7 @@ fun NavGraphBuilder.schedulingNavGraph(
                     navController.navigate(AppRoute.ScheduleDate)
                 },
                 onNavigate = onNavigateMain,
+                onRetry = schedulingViewModel::loadCenters,
             )
         }
 

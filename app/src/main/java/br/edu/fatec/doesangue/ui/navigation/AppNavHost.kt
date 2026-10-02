@@ -5,10 +5,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import br.edu.fatec.doesangue.ui.screens.onboarding.SplashScreen
+import androidx.lifecycle.ViewModelProvider
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    schedulingViewModelFactory: ViewModelProvider.Factory,
 ) {
     // Define como abrir destinos solicitados pelas telas
     // e pela barra inferior.
@@ -84,6 +86,7 @@ fun AppNavHost(
 
         mainNavGraph(
             navController = navController,
+            schedulingViewModelFactory = schedulingViewModelFactory,
             onNavigateMain = ::navigateMain,
             onFinishScheduling = {
                 navController.navigate(AppRoute.HomeScheduled) {

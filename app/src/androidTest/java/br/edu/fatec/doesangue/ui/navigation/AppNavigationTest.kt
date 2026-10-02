@@ -13,6 +13,8 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.compose.runtime.remember
+import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.ui.theme.DoeSangueTheme
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -33,14 +35,25 @@ class AppNavigationTest {
     @Before
     fun openApp() {
         restoration = StateRestorationTester(compose)
+
         restoration.setContent {
+            val appContainer = remember { AppContainer() }
             navController = rememberNavController()
-            DoeSangueTheme { AppNavHost(navController) }
-        }
-        // Avança o relógio do Compose para concluir a animação/espera da Splash.
+
+            DoeSangueTheme {
+                AppNavHost(
+                    navController = navController,
+                    schedulingViewModelFactory =
+                        appContainer.schedulingViewModelFactory,
+                )
+            } // Fecha DoeSangueTheme
+        } // Fecha restoration.setContent — faltou esta chave
+
+        // Aguarda a conclusão da Splash fora da composição.
         compose.mainClock.advanceTimeBy(2_000)
         compose.waitUntil(10_000) {
-            navController.currentDestination?.hasRoute<AppRoute.Welcome>() == true
+            navController.currentDestination
+                ?.hasRoute<AppRoute.Welcome>() == true
         }
         compose.waitForIdle()
     }
@@ -122,6 +135,9 @@ class AppNavigationTest {
     fun schedulingCompletionClearsItsSteps() {
         enterMain()
         tapTab("Agendar")
+        compose.onNodeWithText("Unidade Acadêmica de Demonstração")
+            .performScrollTo()
+            .performClick()
         repeat(3) { tap("Continuar") }
         assertRoute<AppRoute.ScheduleConfirm>()
         // O título também contém este texto; selecionamos somente o botão.

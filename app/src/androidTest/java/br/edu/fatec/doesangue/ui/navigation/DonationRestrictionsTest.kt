@@ -14,6 +14,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.runtime.remember
+import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.ui.theme.DoeSangueTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -31,21 +33,38 @@ class DonationRestrictionsTest {
     private var openedUrl: String? = null
     private var browserUnavailable = false
 
-    @Before fun open() {
+    @Before
+    fun open() {
         restoration = StateRestorationTester(compose)
+
         restoration.setContent {
+            val appContainer = remember { AppContainer() }
             nav = rememberNavController()
-            CompositionLocalProvider(LocalUriHandler provides object : UriHandler {
-                override fun openUri(uri: String) {
-                    if (browserUnavailable) throw IllegalArgumentException("Sem navegador")
-                    openedUrl = uri
+
+            CompositionLocalProvider(
+                LocalUriHandler provides object : UriHandler {
+                    override fun openUri(uri: String) {
+                        if (browserUnavailable) {
+                            throw IllegalArgumentException("Sem navegador")
+                        }
+                        openedUrl = uri
+                    }
                 }
-            }) {
-                DoeSangueTheme { AppNavHost(nav) }
+            ) {
+                DoeSangueTheme {
+                    AppNavHost(
+                        navController = nav,
+                        schedulingViewModelFactory =
+                            appContainer.schedulingViewModelFactory,
+                    )
+                }
             }
         }
+
         compose.mainClock.advanceTimeBy(2_000)
-        compose.waitUntil(10_000) { nav.currentDestination?.hasRoute<AppRoute.Welcome>() == true }
+        compose.waitUntil(10_000) {
+            nav.currentDestination?.hasRoute<AppRoute.Welcome>() == true
+        }
         tap("Já tenho uma conta")
         tap("Entrar")
     }

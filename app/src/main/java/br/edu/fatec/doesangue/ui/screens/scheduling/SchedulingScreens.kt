@@ -39,6 +39,8 @@ import br.edu.fatec.doesangue.ui.theme.BloodRed
 import br.edu.fatec.doesangue.ui.theme.BloodRedSoft
 import br.edu.fatec.doesangue.ui.theme.Ink
 import br.edu.fatec.doesangue.ui.theme.InkSecondary
+import br.edu.fatec.doesangue.domain.model.DonationCenter
+import br.edu.fatec.doesangue.presentation.scheduling.SchedulingUiState
 
 private val scheduleLabels = listOf("Unidade", "Data e horário", "Recorrência", "Confirmar")
 
@@ -49,22 +51,72 @@ private fun ScheduleHeader(current: Int) {
 }
 
 @Composable
-fun ScheduleCenterScreen(onBack: () -> Unit, onContinue: () -> Unit, onNavigate: (AppRoute) -> Unit) {
+fun ScheduleCenterScreen(
+    uiState: SchedulingUiState,
+    onSelectCenter: (DonationCenter) -> Unit,
+    onRetry: () -> Unit,
+    onBack: () -> Unit,
+    onContinue: () -> Unit,
+    onNavigate: (AppRoute) -> Unit,
+) {
     DsScreen(title = "Agendar doação", onBack = onBack, bottomRoute = AppRoute.ScheduleCenter, onNavigate = onNavigate) {
         ScheduleHeader(1)
         Text("Escolha uma unidade", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
-        listOf(
-            Triple("Hemocentro Campinas", "Rua Carlos Chagas, 480 • Campinas/SP", "4,8 km"),
-            Triple("Hemocentro Paulínia", "Av. José Paulino, 123 • Paulínia/SP", "12,3 km"),
-            Triple("Hemocentro Americana", "Rua Vital Brasil, 200 • Americana/SP", "15,7 km"),
-            Triple("Hemocentro Sumaré", "Rua Bento, 150 • Sumaré/SP", "18,1 km"),
-        ).forEachIndexed { index, (name, address, distance) ->
-            SelectionCard(name, "$address\n⌖  $distance", selected = index == 0)
-            Spacer(Modifier.height(10.dp))
+        // Guarda a mensagem em uma variável local para verificar e usar.
+        val errorMessage = uiState.errorMessage
+
+// Exibe o conteúdo correspondente ao estado atual da consulta.
+        when {
+            uiState.isLoading -> {
+                Text("Carregando unidades...")
+            }
+
+            errorMessage != null -> {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(12.dp))
+                SecondaryButton(
+                    text = "Tentar novamente",
+                    onClick = onRetry,
+                )
+            }
+
+            uiState.centers.isEmpty() -> {
+                Text("Nenhuma unidade disponível no momento.")
+                Spacer(Modifier.height(12.dp))
+                SecondaryButton(
+                    text = "Atualizar",
+                    onClick = onRetry,
+                )
+            }
+
+            else -> {
+                uiState.centers.forEach { center ->
+                    SelectionCard(
+                        title = center.name,
+                        subtitle = "${center.address}\n${center.city}",
+                        selected = uiState.selectedCenter?.id == center.id,
+                        onClick = { onSelectCenter(center) },
+                    )
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
         }
         Spacer(Modifier.height(16.dp))
-        PrimaryButton("Continuar", onContinue)
+        // Permite avançar quando a consulta terminou sem erro
+// e a unidade selecionada pertence à lista carregada.
+        PrimaryButton(
+            text = "Continuar",
+            onClick = onContinue,
+            enabled = !uiState.isLoading &&
+                    uiState.errorMessage == null &&
+                    uiState.centers.any { center ->
+                        center.id == uiState.selectedCenter?.id
+                    },
+        )
         Spacer(Modifier.height(16.dp))
     }
 }
