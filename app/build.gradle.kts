@@ -1,7 +1,20 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+}
+
+// Lê as configurações locais da raiz do projeto.
+val localProperties = Properties().apply {
+    val configFile = rootProject.file("local.properties")
+
+    if (configFile.exists()) {
+        configFile.inputStream().use { stream ->
+            load(stream)
+        }
+    }
 }
 
 android {
@@ -16,6 +29,20 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Disponibiliza a URL do Supabase ao código do aplicativo.
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"${localProperties.getProperty("SUPABASE_URL", "")}\""
+        )
+
+        // Disponibiliza somente a chave publicável ao aplicativo.
+        buildConfigField(
+            "String",
+            "SUPABASE_PUBLISHABLE_KEY",
+            "\"${localProperties.getProperty("SUPABASE_PUBLISHABLE_KEY", "")}\""
+        )
     }
 
     buildTypes {
@@ -29,12 +56,14 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
 }
@@ -60,4 +89,16 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Define as versões dos módulos Supabase.
+    implementation(platform(libs.supabase.bom))
+
+    // Acesso às tabelas pela API.
+    implementation(libs.supabase.postgrest)
+
+    // Comunicação pela rede.
+    implementation(libs.ktor.client.okhttp)
+
+    // Compatibilidade com versões antigas do Android.
+    coreLibraryDesugaring(libs.android.desugar.jdk.libs)
 }

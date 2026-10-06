@@ -38,7 +38,11 @@ class DonationRestrictionsTest {
         restoration = StateRestorationTester(compose)
 
         restoration.setContent {
-            val appContainer = remember { AppContainer() }
+            val appContainer = remember {
+                AppContainer(
+                    centerRepositoryOverride = FakeDonationCenterRepository(),
+                )
+            }
             nav = rememberNavController()
 
             CompositionLocalProvider(

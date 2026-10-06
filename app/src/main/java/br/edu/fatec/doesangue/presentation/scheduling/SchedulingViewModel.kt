@@ -8,24 +8,15 @@ import kotlinx.coroutines.flow.update
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import br.edu.fatec.doesangue.domain.model.DonationCenter
-import br.edu.fatec.doesangue.domain.usecase.GetDonationOverviewUseCase
+import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 
 /*
- * Recebe pelo construtor o caso de uso responsável por consultar
- * o resumo de doação, que inclui a lista de unidades.
- *
- * Isso é injeção de dependência: quem cria o ViewModel fornece
- * o caso de uso de que ele precisa.
- *
- * O ViewModel solicita os dados sem conhecer sua origem
- * (fonte de demonstração ou futuro Supabase).
- * O caso de uso consulta o repository.
- *
- * private mantém essa dependência acessível apenas nesta classe.
- * val impede que a referência seja substituída após a criação.
- */
+* Recebe o contrato de consulta às unidades.
+* O AppContainer fornece a implementação.
+* O ViewModel não precisa conhecer o Supabase.
+*/
 class SchedulingViewModel(
-    private val getDonationOverview: GetDonationOverviewUseCase,
+    private val donationCenterRepository: DonationCenterRepository,
 ) : ViewModel() {
     /*
     SchedulingUiState() cria o estado inicial: nenhuma unidade selecionada.
@@ -50,7 +41,7 @@ class SchedulingViewModel(
     }
 
     /*
- * Consulta as unidades pelo caso de uso.
+ * Consulta as unidades pelo repository.
  * Informa o início do carregamento e atualiza o estado
  * conforme o resultado: lista recebida ou mensagem de erro.
  */
@@ -65,11 +56,11 @@ class SchedulingViewModel(
         }
 
         viewModelScope.launch {
-            getDonationOverview().fold(
-                onSuccess = { overview ->
+            donationCenterRepository.getCenters().fold(
+                onSuccess = { centers ->
                     _uiState.update { currentState ->
                         currentState.copy(
-                            centers = overview.centers,
+                            centers = centers,
                             isLoading = false,
                         )
                     }

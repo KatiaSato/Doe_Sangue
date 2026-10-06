@@ -1,5 +1,17 @@
 # Doe Sangue — arquitetura
 
+## Estado implementado em 06/10/2026
+
+A escolha de unidade usa `ScheduleCenterScreen` → `SchedulingViewModel` → contrato `DonationCenterRepository` → `SupabaseDonationCenterRepository` → `SupabaseDonationCenterDataSource` → PostgREST. DTO e mapper mantêm o formato remoto dentro de `data`; StateFlow expõe lista, carregamento, erro e seleção. O repository propaga cancelamento e retorna outras exceções em `Result.failure`.
+
+`AppContainer` monta as dependências com `lazy`, lê a configuração por `BuildConfig` e recebe um repository alternativo explícito nos testes. `FakeDonationCenterRepository` existe somente em `androidTest`; não há fallback automático para dados demo.
+
+A fonte antiga de `DonationOverview` permanece separada e não alimenta mais o agendamento. O ViewModel consulta o contrato de unidades diretamente, sem um caso de uso que apenas repassaria a chamada. Calendário, horário, Auth e gravação continuam pendentes. A seleção de unidade é mantida enquanto existir o ViewModel do grafo; rascunho após morte do processo ainda não está implementado.
+
+O detalhamento atual está em [integração de unidades](14-integracao-unidades.md). A base proposta abaixo registra a arquitetura e o estado anteriores; afirmações de ausência de Supabase/ViewModel correspondem àquele momento, não ao estado atual. O ambiente acadêmico sintético foi confirmado e a primeira tabela foi aplicada manualmente pela usuária.
+
+## Histórico da proposta e da base visual
+
 **Atualização de 29/09/2026:** a triagem demonstrativa foi substituída por listas
 informativas. As rotas tipadas `Restrictions` e `RestrictionDetail(category)`
 conservam a categoria e a navegação. Conteúdo editorial imutável está em
@@ -9,7 +21,7 @@ Ver [estado e limites da implementação](13-triagem-medicamentos.md).
 
 **Base arquitetural proposta na Sprint 0; navegação atualizada em 23/09/2026.** Navigation Compose foi implementado; a integração funcional das camadas continua planejada. O objetivo é tornar o fluxo de [CU003](04-casos-de-uso.md#cu003--solicitar-agendamento) implementável e testável. Ver [domínio](05-modelo-de-dominio.md) e [roadmap](07-desenvolvimento_roadmap_MVP.md).
 
-## Fotografia do código atual
+## Fotografia histórica do código antes da integração
 
 - **Configurado/funcionando:** Kotlin, Jetpack Compose, Material 3, tema Poppins, Activity edge-to-edge, componentes e 34 rotas visuais. `DoeSangueApp` cria um `rememberNavController`; `AppNavHost` conecta os grafos Auth/Main/Scheduling. Navigation Compose 2.9.8 e Kotlin Serialization estão no Gradle. O roteador antigo foi substituído.
 - **Recorte técnico não conectado à UI:** `DonationOverviewRepository`, `DemoDonationOverviewDataSource`, `GetDonationOverviewUseCase`, `HomeUiState`, `HomeViewModel` com `StateFlow` e `AppContainer`. A Activity chama diretamente `DoeSangueApp`; nenhum ViewModel/repository alimenta Home, unidades ou estoque.

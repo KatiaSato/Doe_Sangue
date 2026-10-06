@@ -1,6 +1,17 @@
 # Validação
 
-## Consulta de restrições — substituição do fluxo anterior
+## Integração de unidades — 06/10/2026
+
+- `test assembleDebug assembleDebugAndroidTest lint`: BUILD SUCCESSFUL; um teste local básico aprovado; APK do aplicativo e dos testes gerados.
+- Lint: zero erros e 31 avisos, incluindo versões/dependências, ícones, recurso não usado e anotação de preservação de enum na minificação. Não houve ampliação de escopo para corrigir esses avisos nesta etapa.
+- `connectedDebugAndroidTest`: 12 testes aprovados (9 em `AppNavigationTest`, 3 em `DonationRestrictionsTest`), zero falhas, erros ou ignorados. Emulador Pixel 5, Android 12/API 32.
+- Ambos os testes injetam `FakeDonationCenterRepository` no container; não consultam Supabase nem exigem chave configurada. Verificam a navegação existente, não persistência de agendamento.
+- Em 03/10/2026 a usuária confirmou manualmente a exibição de Unidade Demo A do Supabase no celular. Também relatou anteriormente que os dois papéis consultam somente a unidade publicada e não possuem privilégios de escrita. Não houve teste automatizado remoto nem tentativa automatizada de escrita nesta etapa.
+- Ainda pendem testes de sucesso/vazio/erro/cancelamento do ViewModel/repository, mapper, dados privados com usuários distintos e concorrência. Ver [estado e responsabilidades](14-integracao-unidades.md).
+
+Relatórios locais (não versionados): `app/build/reports/androidTests/connected/debug/index.html`, `app/build/test-results/testDebugUnitTest` e `app/build/reports/lint-results-debug.html`.
+
+## Histórico: consulta de restrições — substituição do fluxo anterior
 
 - `test assembleDebug lint`: BUILD SUCCESSFUL. O teste local básico passou.
 - `connectedDebugAndroidTest`: **12 testes aprovados**, sem falhas (9 de navegação

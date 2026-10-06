@@ -2,13 +2,13 @@
 
 Aplicativo acadêmico Android para gestão e incentivo à doação de sangue. O app é voltado ao doador e pretende permitir consulta de unidades e necessidades, agendamento, status, histórico e campanhas.
 
-> Estado atual: as 34 telas da versão 2 do Figma e sua navegação visual estão implementadas em Jetpack Compose. Campos e controles são apenas representações visuais; não há autenticação real, persistência, conexão com Supabase nem regras médicas implementadas.
+> Estado em 06/10/2026: a escolha de unidade no agendamento consulta o Supabase e mantém a seleção em um ViewModel. A base visual e a navegação Compose estão implementadas. Autenticação, calendário interativo, horários e gravação do agendamento continuam pendentes; as telas de confirmação ainda são demonstrativas. Veja o [registro desta integração](docs/14-integracao-unidades.md).
 
 ## Stack confirmada
 
 - Android nativo, Kotlin e Jetpack Compose.
-- Arquitetura MVVM com Repository preparada em camadas; a UI visual ainda não consome ViewModels.
-- Supabase Authentication, PostgreSQL e PostgREST na etapa de integração.
+- MVVM com Repository e StateFlow conectado à escolha de unidade.
+- PostgreSQL e PostgREST integrados à consulta de unidades; Supabase Auth pendente.
 - Dados sintéticos para a demonstração acadêmica.
 
 ## Configuração proposta
@@ -23,7 +23,7 @@ Aplicativo acadêmico Android para gestão e incentivo à doação de sangue. O 
 1. Abra esta pasta no Android Studio.
 2. Aguarde a sincronização do Gradle e confirme o SDK 36.
 3. Escolha um emulador/dispositivo com API 23 ou superior.
-4. Execute a configuração `app`.
+4. Configure a URL e a chave publicável conforme a seção abaixo e execute `app`.
 
 ```powershell
 .\gradlew.bat test assembleDebug lint
@@ -33,7 +33,16 @@ O Android Studio gera `local.properties` com o caminho do SDK; esse arquivo não
 
 ## Supabase
 
-A integração ainda não existe. URL e chave cliente publicável deverão vir de configuração local não versionada. Nunca incluir `service_role`, senha do banco, tokens ou dados pessoais no aplicativo ou no Git.
+A consulta usa Supabase Kotlin 3.6.0, Ktor/OkHttp 3.4.3 e desugaring para manter `minSdk 23`. Preserve `sdk.dir` no `local.properties` da raiz e acrescente os valores do seu projeto de desenvolvimento, sem aspas:
+
+```properties
+SUPABASE_URL=https://SEU_PROJETO.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_SUBSTITUA_PELO_VALOR_DO_PAINEL
+```
+
+Os valores acima são exemplos. O arquivo é ignorado pelo Git; Gradle lê suas propriedades e gera os campos de `BuildConfig`. Após alterar os valores, recompile o aplicativo. A chave publicável ficará no APK e não é segredo: permissões e RLS protegem os dados. Nunca incluir `sb_secret_`, `service_role`, senha do banco ou tokens de usuário no Android.
+
+Sem configuração, a compilação e os testes com fake são possíveis, mas abrir o agendamento no aplicativo normal falha na validação do cliente. Consulte [SQL, seed e aplicação manual](supabase/README.md) antes de preparar outro ambiente. O aplicativo não executa migrações.
 
 ## Escopo visual atual
 
@@ -43,16 +52,15 @@ A integração ainda não existe. URL e chave cliente publicável deverão vir d
 - Navegação inferior entre Início, Agendar, Doações, Unidades e Perfil.
 - Entrada de Configurações adicionada ao Perfil por decisão explícita de produto.
 
-Botões que dependeriam de backend, permissões do dispositivo ou integrações externas permanecem sem efeito propositalmente.
+A consulta, seleção de unidade e repetição da consulta são funcionais. As demais ações de backend permanecem visuais; a tela de sucesso ainda não comprova um agendamento gravado.
 
 ## Documentação
 
 Os documentos em `docs/` usam **Confirmado**, **Proposto**, **Implementado** e **Pendente** para distinguir requisitos, escolhas atuais e código pronto.
-# Doe_Sangue
 
 ## Navegação e testes — atualização de 23/09/2026
 
-**Implementado:** Navigation Compose 2.9.8, rotas tipadas e grafos Auth/Main/Scheduling. As telas enviam callbacks; as decisões de navegação ficam em `ui/navigation`. As setas das raízes retornam à Home quando não há tela anterior. Histórico independente por aba e dados funcionais continuam pendentes.
+**Implementado:** Navigation Compose 2.9.8, rotas tipadas e grafos Auth/Main/Scheduling. As telas enviam callbacks; as decisões de navegação ficam em `ui/navigation`. As setas das raízes retornam à Home quando não há tela anterior. Histórico independente por aba e persistência do rascunho continuam pendentes.
 
 Com um emulador ou dispositivo de teste conectado, execute:
 
@@ -60,4 +68,4 @@ Com um emulador ou dispositivo de teste conectado, execute:
 .\gradlew.bat connectedDebugAndroidTest
 ```
 
-Os testes em `app/src/androidTest` exercitam a navegação visual e o estado salvo do Compose. `test` executa somente os testes locais em `app/src/test`; não substitui a suíte instrumentada. Consulte [telas e navegação](docs/10-telas-e-navegacao.md), [ADR-003](docs/decisoes/ADR-003-navegacao-compose.md) e [validação](docs/12-validacao.md).
+Os testes em `app/src/androidTest` exercitam a navegação e o estado salvo do Compose, com `FakeDonationCenterRepository` injetado explicitamente e sem consulta ao Supabase. Em 06/10/2026, 12 testes passaram no Pixel 5/API 32. `test` executa somente os testes locais em `app/src/test`; não substitui a suíte instrumentada. Consulte [telas e navegação](docs/10-telas-e-navegacao.md), [ADR-003](docs/decisoes/ADR-003-navegacao-compose.md) e [validação](docs/12-validacao.md).

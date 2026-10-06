@@ -37,7 +37,11 @@ class AppNavigationTest {
         restoration = StateRestorationTester(compose)
 
         restoration.setContent {
-            val appContainer = remember { AppContainer() }
+            val appContainer = remember {
+                AppContainer(
+                    centerRepositoryOverride = FakeDonationCenterRepository(),
+                )
+            }
             navController = rememberNavController()
 
             DoeSangueTheme {

@@ -1,5 +1,7 @@
 # Doe Sangue — desenvolvimento e roadmap do MVP
 
+**Atualização de 06/10/2026:** o ambiente acadêmico sintético está confirmado; a primeira tabela e o seed foram aplicados manualmente pela usuária. A consulta de unidades no agendamento está integrada ao Supabase e os testes de navegação usam um fake. Ver [estado atual e próximos passos](14-integracao-unidades.md). DP01/DP02 ficam limitadas à demonstração com dados fictícios, sem reserva real; a semântica e as transições do futuro registro acadêmico ainda precisam ser definidas. DP10 foi atendida para essa aplicação manual inicial; novas operações remotas continuam exigindo autorização. O plano e os registros da Sprint 0 abaixo são históricos quando descrevem a ausência de integração.
+
 **Sprint 0 — proposta para revisão (16/09/2026).** Nenhuma implementação, migração, operação remota ou commit foi feito nesta etapa. A trilha funcional do MVP é **Unidade → Data/Horário → preferência de recorrência se aprovada → Revisão → registro no Supabase → Minhas Doações/Agendamentos**. Auth, fonte de horários e contrato de persistência são preparados antes do registro. O antigo `07-roadmap.md` permanece no repositório como documento legado; este arquivo é a proposta nova para aprovação, não uma alteração silenciosa daquele plano.
 
 ## Critério de MVP
