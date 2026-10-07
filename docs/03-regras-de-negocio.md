@@ -20,4 +20,6 @@
 
 ## Observações sobre a interface atual
 
+**Atualização de 06/10/2026:** orientações editoriais revisadas conforme [registro da atualização normativa](16-revisao-regras-doacao.md). A sugestão trimestral e as datas futuras de recorrência foram retiradas do Android; a funcionalidade permanece pendente e não determina aptidão. O parágrafo abaixo descreve o protótipo original, não o estado atual de todos os textos.
+
 “Você já pode doar novamente”, “a cada 3 meses”, “agendamento confirmado”, “doação realizada” e “lembrete ativo” são **textos estáticos de protótipo**, não aplicação de RN013, confirmação operacional ou envio. Também há datas de 2026 e estoques fixos no código. Essas frases não autorizam transformar números/estados visuais em regra de negócio.

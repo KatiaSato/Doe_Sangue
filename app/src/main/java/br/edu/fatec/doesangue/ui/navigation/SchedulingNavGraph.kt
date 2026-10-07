@@ -67,8 +67,24 @@ fun NavGraphBuilder.schedulingNavGraph(
             )
         }
 
-        composable<AppRoute.ScheduleDate> {
+        composable<AppRoute.ScheduleDate> { entry ->
+            // Localiza o mesmo grafo usado na etapa de escolha da unidade.
+            val schedulingEntry = remember(entry) {
+                navController.getBackStackEntry<AppGraph.Scheduling>()
+            }
+
+            // Obtém o ViewModel compartilhado entre as etapas.
+            val schedulingViewModel: SchedulingViewModel = viewModel(
+                viewModelStoreOwner = schedulingEntry,
+                factory = schedulingViewModelFactory,
+            )
+
+            val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
+
             ScheduleDateScreen(
+                uiState = uiState,
+                onSelectDate = schedulingViewModel::selectDate,
+                onSelectTime = schedulingViewModel::selectTime,
                 onBack = {
                     navController.popBackStack()
                 },

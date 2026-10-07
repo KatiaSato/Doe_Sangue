@@ -2,7 +2,7 @@
 
 ## Objetivo e estado
 
-Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; a escolha de unidade no agendamento consulta o Supabase e mantém a seleção em StateFlow. As outras etapas do agendamento e a autenticação continuam visuais. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md`.
+Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; a escolha de unidade no agendamento consulta o Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow; os horários ainda são opções fixas de demonstração. Recorrência, revisão, sucesso e autenticação continuam visuais. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
 
 ## Stack e estrutura
 
@@ -60,4 +60,18 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - `local.properties` fornece URL/chave publicável ao `BuildConfig`; não exibir valores nem versionar esse arquivo. Chave publicável pode estar no APK; nenhum segredo administrativo pode estar nele.
 - RLS/grants da tabela permitem aos papéis `anon` e `authenticated` somente leitura das unidades publicadas. SQL foi aplicado manualmente pela usuária; histórico da CLI ainda não foi conciliado. Não reaplicar automaticamente a migração.
 - Em 06/10/2026: compilação, teste local, Lint e 12 testes instrumentados passaram; Lint tem 31 avisos e zero erros. A consulta real no celular foi confirmada pela usuária em 03/10/2026.
-- Próximo passo didático: seleção de data e horário e estado do rascunho, seguida de disponibilidade sintética, autenticação e persistência. Agendamento ainda não é gravado.
+- Data e horário já preenchem o rascunho; os testes do fluxo foram atualizados após o checkpoint acima. Consultar resultados atuais em `docs/12-validacao.md`. Próximos passos: modelar disponibilidade sintética e ligar revisão ao rascunho, depois autenticação e persistência. Agendamento ainda não é gravado.
+
+## Disponibilidade por unidade — decisão de 06/10/2026
+
+- Permitir agendamento somente nas datas/horários disponibilizados para a unidade escolhida. Não bloquear sábados, domingos ou feriados universalmente; representar aberturas especiais e fechamentos na programação.
+- `horario_atendimento` é texto descritivo, não fonte estruturada de disponibilidade. Modelar horários ligados à unidade antes de implementar a regra no calendário.
+- A futura gravação deve revalidar disponibilidade/capacidade no servidor, com controle de concorrência; o estado da tela não garante reserva.
+- Programação de segunda a sexta, sábado pela manhã e domingo excepcional é apenas exemplo sintético proposto. Esquema, capacidade, fuso, antecedência, permissões e seed ainda serão definidos.
+- Ler `docs/15-disponibilidade-agendamento.md` antes de continuar esta etapa. Nenhuma migração remota foi aplicada por esta decisão.
+
+## Revisão editorial — 06/10/2026
+
+- Orientações de idade, procedimentos e medicamentos revisadas após a Portaria GM/MS nº 11.685/2026, com fontes e data visíveis. Ver `docs/16-revisao-regras-doacao.md` para referências e limites.
+- Não reintroduzir a cadência trimestral nem datas futuras como recomendação universal. Recorrência ainda não está implementada; preservar a distinção entre agendamento e aptidão.
+- Inventários locais do Figma são históricos; os textos atuais estão em `RestrictionContent.kt`. Figma remoto não foi alterado.

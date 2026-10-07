@@ -39,14 +39,16 @@ O cliente exige URL HTTPS e chave com prefixo publicável. Valores ausentes pass
 
 ## Validado
 
+Os testes automatizados abaixo correspondem ao checkpoint de integração de unidades, anterior à seleção de data/horário. Para a evolução posterior, ver [disponibilidade de agendamento](15-disponibilidade-agendamento.md) e os resultados atuais em [validação](12-validacao.md).
+
 - `test assembleDebug assembleDebugAndroidTest lint`: sucesso em 06/10/2026; um teste local básico aprovado; 31 avisos no Lint, zero erros.
 - `connectedDebugAndroidTest`: 12 testes aprovados no Pixel 5 com Android 12/API 32, usando o fake: nove de navegação e três de restrições; zero falhas, erros ou testes ignorados.
 - Essas verificações não são testes automatizados do Supabase, da RLS, de falha de rede ou de concorrência. Evidências remotas acima são relatos da execução manual pela usuária.
 
 ## Pendente e próximo passo
 
-1. Implementar junto com a usuária a seleção real de data e horário, explicando evento da UI, atualização do estado e responsabilidade do ViewModel. O calendário e os horários atuais são estáticos.
-2. Definir e implementar disponibilidade sintética por unidade no banco, sem inventar regras médicas.
+1. Calendário e seleção de horário já preenchem o rascunho em memória. A lista de horários ainda é fixa. Ligar as etapas de revisão ao rascunho; os testes do fluxo já exigem data/horário e cobrem preservação e troca da data.
+2. Modelar e implementar disponibilidade sintética por unidade no banco, conforme a [decisão registrada](15-disponibilidade-agendamento.md): dias e horários configuráveis, exceções e revalidação no servidor, sem bloqueio universal de fim de semana nem regras médicas inventadas.
 3. Implementar Auth, tabelas relacionadas, permissões e gravação/consulta do agendamento. A tela de sucesso atual ainda é visual.
 4. Adicionar testes de mapper, sucesso/vazio/erro/cancelamento do fluxo e RLS com usuários distintos quando houver dados privados. Reconciliar seleção ao recarregar uma lista é outra melhoria pendente.
 5. Completar o esquema e a massa acadêmica; alinhar o histórico de migrações antes de adotar a CLI em um banco já criado manualmente.

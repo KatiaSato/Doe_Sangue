@@ -9,6 +9,15 @@ import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -142,7 +151,13 @@ class AppNavigationTest {
         compose.onNodeWithText("Unidade Acadêmica de Demonstração")
             .performScrollTo()
             .performClick()
-        repeat(3) { tap("Continuar") }
+        tap("Continuar")
+        chooseDate("15")
+        tap("09:30")
+        tap("Continuar")
+        compose.onNodeWithText("A cada 3 meses").assertDoesNotExist()
+        compose.onNodeWithText("Somente este agendamento").assertExists()
+        tap("Continuar")
         assertRoute<AppRoute.ScheduleConfirm>()
         // O título também contém este texto; selecionamos somente o botão.
         compose.onNode(hasText("Confirmar agendamento") and hasClickAction())
@@ -151,6 +166,68 @@ class AppNavigationTest {
         tap("Ir para o início")
         assertRoute<AppRoute.HomeScheduled>()
         assertNoPreviousScreen()
+    }
+
+    @Test
+    fun schedulingDraftPreservesConfirmedDateAndResetsTimeWhenDateChanges() {
+        enterMain()
+        tapTab("Agendar")
+        compose.onNodeWithText("Unidade Acadêmica de Demonstração")
+            .performScrollTo().performClick()
+        tap("Continuar")
+        compose.onNodeWithText("09:30").assertIsNotEnabled()
+        compose.onNodeWithText("Continuar").assertIsNotEnabled()
+        chooseDate("15")
+        tap("09:30")
+        compose.onNodeWithText("09:30").assertIsSelected()
+        compose.onNodeWithText("Continuar").assertIsEnabled()
+
+        // Reabrir a data confirmada, escolher outra e cancelar preserva o horário.
+        tapDateButton()
+        tapCalendarDay("16")
+        tap("Cancelar")
+        compose.onNodeWithText("09:30").assertIsSelected()
+
+        // Confirmar a mesma data preserva o rascunho.
+        tapDateButton()
+        tap("Confirmar data")
+        compose.onNodeWithText("09:30").assertIsSelected()
+
+        // Voltar à unidade e avançar não cria outro ViewModel.
+        tap("‹")
+        tap("Continuar")
+        compose.onNodeWithText("09:30").assertIsSelected()
+
+        tapDateButton()
+        tapCalendarDay("16")
+        tap("Confirmar data")
+        compose.onNodeWithText("09:30").assertIsNotSelected()
+        compose.onNodeWithText("Continuar").assertIsNotEnabled()
+    }
+
+    private fun chooseDate(day: String) {
+        tap("Selecionar data")
+        tapCalendarDay(day)
+        tap("Confirmar data")
+    }
+
+    private fun tapCalendarDay(day: String) {
+        // Material 3 expõe a data completa no texto acessível, em vez do número isolado.
+        val dayNumber = Regex("(?<!\\d)$day(?!\\d)")
+        val matcher = SemanticsMatcher("dia $day na descrição do calendário") { node ->
+            node.config.getOrNull(SemanticsProperties.Text)
+                ?.any { dayNumber.containsMatchIn(it.text) } == true
+        }
+        // Restringe a busca ao diálogo para não confundir o dia 15 com o horário 15:30.
+        compose.onNode(matcher and hasClickAction() and hasAnyAncestor(isDialog()))
+            .performClick()
+        compose.waitForIdle()
+    }
+
+    private fun tapDateButton() {
+        // A tela tem um único botão cujo texto é uma data dd/MM/yyyy.
+        compose.onNode(hasText("/", substring = true) and hasClickAction()).performClick()
+        compose.waitForIdle()
     }
 
     @Test

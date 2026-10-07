@@ -1,6 +1,8 @@
 # Doe Sangue — modelo de domínio e banco conceitual
 
-**Sprint 0 — proposta para revisão; nenhuma tabela, migração ou cliente Supabase foi criado.** O modelo deriva de RF001–RF013 e RN001–RN013, não do nome das telas. Apenas `DonationCenter`, `BloodNeed`, `BloodType`, `NeedLevel` e `DonationOverview` já existem em Kotlin; são um recorte de demonstração **não ligado à UI**. Classes abaixo são propostas, não código atual.
+**Modelo conceitual originado na Sprint 0 — proposta para revisão.** O modelo deriva de RF001–RF013 e RN001–RN013, não do nome das telas. As tabelas e os diagramas abaixo não representam integralmente a implementação atual.
+
+**Atualização de 06/10/2026:** `unidade_coleta`, migração, seed e consulta Supabase já existem e alimentam a escolha de unidade. Data e horário são mantidos no rascunho em memória. Foi confirmada a direção de uma agenda sintética própria, com disponibilidade por unidade e data; ver [decisão de disponibilidade](15-disponibilidade-agendamento.md). As alternativas de agenda externa abaixo são históricas para este recorte acadêmico. O esquema de horários, capacidade e reservas permanece pendente; não há autorização para criar automaticamente as demais tabelas.
 
 ## Conceitos e responsabilidades
 

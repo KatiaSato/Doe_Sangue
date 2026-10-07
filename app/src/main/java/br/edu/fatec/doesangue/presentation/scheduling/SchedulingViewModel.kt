@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.presentation.scheduling
 
+import java.time.LocalDate
+import java.time.LocalTime
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,9 +36,47 @@ class SchedulingViewModel(
 
     // Recebe a unidade escolhida e atualiza o estado do preenchimento.
     // O copy cria um novo estado com a unidade escolhida. O StateFlow comunica essa atualização
+    // Ao trocar de unidade, reinicia as escolhas de data e horário.
     fun selectCenter(center: DonationCenter) {
         _uiState.update { currentState ->
-            currentState.copy(selectedCenter = center)
+            val changedCenter = currentState.selectedCenter?.id != center.id
+
+            currentState.copy(
+                selectedCenter = center,
+                selectedDate = if (changedCenter) null else currentState.selectedDate,
+                selectedTime = if (changedCenter) null else currentState.selectedTime,
+            )
+        }
+    }
+
+    // Guarda a data escolhida e limpa o horário quando a data muda.
+    fun selectDate(date: LocalDate) {
+        _uiState.update { currentState ->
+            if (
+                currentState.selectedCenter == null ||
+                currentState.selectedDate == date
+            ) {
+                currentState
+            } else {
+                currentState.copy(
+                    selectedDate = date,
+                    selectedTime = null,
+                )
+            }
+        }
+    }
+
+    // Guarda o horário escolhido após a seleção da unidade e da data.
+    fun selectTime(time: LocalTime) {
+        _uiState.update { currentState ->
+            if (
+                currentState.selectedCenter == null ||
+                currentState.selectedDate == null
+            ) {
+                currentState
+            } else {
+                currentState.copy(selectedTime = time)
+            }
         }
     }
 

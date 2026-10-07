@@ -1,5 +1,8 @@
 package br.edu.fatec.doesangue.ui.screens.scheduling
 
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,9 +19,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.edu.fatec.doesangue.ui.components.DonationDatePickerDialog
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
@@ -122,42 +131,77 @@ fun ScheduleCenterScreen(
 }
 
 @Composable
-fun ScheduleDateScreen(onBack: () -> Unit, onContinue: () -> Unit) {
+fun ScheduleDateScreen(
+    uiState: SchedulingUiState,
+    onSelectDate: (LocalDate) -> Unit,
+    onSelectTime: (LocalTime) -> Unit,
+    onBack: () -> Unit,
+    onContinue: () -> Unit,
+) {
+    // Controla somente se a janela do calendário está aberta.
+    // A variável começa com false, então o calendário fica fechado. Quando ela passa para true, o Compose exibe o diálogo.
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        DonationDatePickerDialog(
+            selectedDate = uiState.selectedDate,
+            onConfirm = onSelectDate,
+            onDismiss = { showDatePicker = false },
+        )
+    }
     DsScreen(title = "Agendar doação", onBack = onBack) {
         ScheduleHeader(2)
+        Text(
+            text = uiState.selectedCenter?.name ?: "Nenhuma unidade selecionada",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(12.dp))
         Text("Escolha uma data", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(12.dp))
-        Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
-            Column(Modifier.fillMaxWidth().padding(12.dp)) {
-                Text("Setembro 2026", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(10.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    listOf("D", "S", "T", "Q", "Q", "S", "S").forEach { Text(it, style = MaterialTheme.typography.labelSmall, color = InkSecondary) }
-                }
-                (1..30).chunked(7).forEach { week ->
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                        week.forEach { day ->
-                            Box(
-                                Modifier.size(34.dp).background(if (day == 12) BloodRed else Color.Transparent, CircleShape),
-                                contentAlignment = Alignment.Center,
-                            ) { Text("$day", color = if (day == 12) Color.White else Ink, style = MaterialTheme.typography.bodyMedium) }
-                        }
-                        repeat(7 - week.size) { Spacer(Modifier.size(34.dp)) }
+        SecondaryButton(
+            text = uiState.selectedDate
+                ?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                ?: "Selecionar data",
+            onClick = { showDatePicker = true },
+        )
+        Spacer(Modifier.height(14.dp))
+        Text(
+            text = "Horários de demonstração",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(Modifier.height(10.dp))
+
+        listOf("08:00", "09:30", "11:00", "14:00", "15:30", "17:00")
+            .chunked(3)
+            .forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    row.forEach { timeText ->
+                        // Converte o texto da opção para um valor de horário.
+                        val time = LocalTime.parse(timeText)
+
+                        FilterChip(
+                            selected = uiState.selectedTime == time,
+                            onClick = { onSelectTime(time) },
+                            label = { Text(timeText) },
+                            enabled = uiState.selectedCenter != null &&
+                                    uiState.selectedDate != null,
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
+                Spacer(Modifier.height(10.dp))
             }
-        }
-        Spacer(Modifier.height(14.dp))
-        Text("Horários disponíveis", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(10.dp))
-        listOf("08:00", "09:30", "11:00", "14:00", "15:30", "17:00").chunked(3).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                row.forEach { time -> SecondaryButton(time, {}, Modifier.weight(1f)) }
-            }
-            Spacer(Modifier.height(10.dp))
-        }
         Spacer(Modifier.height(12.dp))
-        PrimaryButton("Continuar", onContinue)
+        PrimaryButton(
+            text = "Continuar",
+            onClick = onContinue,
+            enabled = uiState.selectedCenter != null &&
+                    uiState.selectedDate != null &&
+                    uiState.selectedTime != null,
+        )
         Spacer(Modifier.height(16.dp))
     }
 }
@@ -166,17 +210,14 @@ fun ScheduleDateScreen(onBack: () -> Unit, onContinue: () -> Unit) {
 fun ScheduleRecurrenceScreen(onBack: () -> Unit, onContinue: () -> Unit) {
     DsScreen(title = "Agendar doação", onBack = onBack) {
         ScheduleHeader(3)
-        Text("Quer criar uma rotina?", style = MaterialTheme.typography.titleLarge)
+        Text("Recorrência", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
-        SelectionCard("Somente esta doação", "Sem repetição")
-        Spacer(Modifier.height(10.dp))
-        SelectionCard("A cada 3 meses", "Rotina mais frequente", selected = true)
-        Spacer(Modifier.height(10.dp))
-        SelectionCard("A cada 6 meses", "Duas vezes ao ano")
-        Spacer(Modifier.height(10.dp))
-        SelectionCard("A cada 12 meses", "Uma vez ao ano")
+        SelectionCard("Somente este agendamento", "Sem repetição automática", selected = true)
         Spacer(Modifier.height(18.dp))
-        InfoCard { Text("A frequência pode ser alterada ou cancelada depois.", style = MaterialTheme.typography.bodyMedium, color = InkSecondary) }
+        InfoCard {
+            Text("A recorrência ainda não está disponível. Consulte o hemocentro sobre o intervalo adequado entre doações. Agendar não confirma aptidão clínica.",
+                style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
+        }
         Spacer(Modifier.height(28.dp))
         PrimaryButton("Continuar", onContinue)
         Spacer(Modifier.height(16.dp))
@@ -193,7 +234,7 @@ fun ScheduleConfirmScreen(onBack: () -> Unit, onConfirm: () -> Unit) {
             ReviewRow("Unidade", "Hemocentro Campinas")
             ReviewRow("Data", "12/09/2026")
             ReviewRow("Horário", "14:00")
-            ReviewRow("Rotina", "A cada 3 meses")
+            ReviewRow("Recorrência", "Sem repetição automática")
         }
         Spacer(Modifier.height(22.dp))
         Text("♡  Obrigada por doar!", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = BloodRed, style = MaterialTheme.typography.titleMedium)
@@ -219,7 +260,7 @@ fun ScheduleSuccessScreen(onHome: () -> Unit) {
         InfoCard {
             Text("Hemocentro Campinas", style = MaterialTheme.typography.titleMedium)
             Text("Rua Carlos Chagas, 480", style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
-            Text("Rotina: a cada 3 meses", style = MaterialTheme.typography.bodyMedium, color = BloodRed)
+            Text("Sem repetição automática", style = MaterialTheme.typography.bodyMedium, color = BloodRed)
         }
         Spacer(Modifier.height(18.dp))
         Text("Vamos lembrar você antes da doação ♡", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = InkSecondary)
@@ -256,7 +297,7 @@ private fun AppointmentCard() {
             Text("Hemocentro Campinas", style = MaterialTheme.typography.titleMedium)
             Text("Rua Carlos Chagas, 480", style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
             Spacer(Modifier.height(10.dp))
-            Text("Rotina: a cada 3 meses", style = MaterialTheme.typography.bodyMedium, color = BloodRed)
+            Text("Sem repetição automática", style = MaterialTheme.typography.bodyMedium, color = BloodRed)
             Text("Lembrete ativo ✓", style = MaterialTheme.typography.bodySmall, color = InkSecondary)
         }
     }
@@ -280,19 +321,14 @@ fun CancelAppointmentScreen(onBack: () -> Unit, onCancel: () -> Unit, onNavigate
 fun EditRoutineScreen(onBack: () -> Unit) {
     DsScreen(title = "Editar rotina", onBack = onBack) {
         Spacer(Modifier.height(18.dp))
-        Text("Frequência atual", style = MaterialTheme.typography.labelMedium)
-        Text("A cada 3 meses", style = MaterialTheme.typography.headlineMedium, color = BloodRed)
+        Text("Sem repetição automática", style = MaterialTheme.typography.titleLarge, color = BloodRed)
         Spacer(Modifier.height(24.dp))
-        SelectionCard("Assim que possível", "Baseada no intervalo aplicável")
-        Spacer(Modifier.height(10.dp))
-        SelectionCard("A cada 3 meses", "Frequência atual", selected = true)
-        Spacer(Modifier.height(10.dp))
-        SelectionCard("A cada 6 meses", "Duas vezes ao ano")
-        Spacer(Modifier.height(10.dp))
-        SelectionCard("A cada 12 meses", "Uma vez ao ano")
+        InfoCard {
+            Text("A recorrência ainda não está disponível. O intervalo entre doações depende dos critérios aplicáveis e da avaliação do hemocentro.",
+                style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
+        }
         Spacer(Modifier.height(42.dp))
-        PrimaryButton("Salvar alterações", onBack)
-        TextAction("Encerrar rotina", {}, Modifier.align(Alignment.CenterHorizontally))
+        PrimaryButton("Voltar", onBack)
     }
 }
 
@@ -300,7 +336,7 @@ fun EditRoutineScreen(onBack: () -> Unit) {
 fun AppointmentCancelledScreen(onNew: () -> Unit, onHome: () -> Unit) {
     DsScreen {
         Spacer(Modifier.height(170.dp))
-        CenteredMessage("✓", "Agendamento cancelado", "Sua rotina continua ativa")
+        CenteredMessage("✓", "Agendamento cancelado", "Nenhum agendamento futuro foi criado automaticamente")
         Spacer(Modifier.height(100.dp))
         PrimaryButton("Fazer novo agendamento", onNew)
         TextAction("Voltar ao início", onHome, Modifier.align(Alignment.CenterHorizontally))

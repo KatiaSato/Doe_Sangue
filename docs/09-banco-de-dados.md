@@ -15,6 +15,7 @@ Ver [instruções e limites dos scripts](../supabase/README.md), [fluxo Android]
 - Constraints preservarão integridade e índices atenderão filtros frequentes.
 - RLS protegerá perfil, agendamentos e histórico; o doador não elevará papel, alterará estoque nem confirmará coleta.
 - Dados públicos não poderão revelar dados pessoais.
+- Agendamentos devem usar datas/horários disponibilizados por unidade, com revalidação de capacidade no servidor. Sábados, domingos e feriados não terão bloqueio universal. Decisão, responsabilidades e pendências em [disponibilidade de agendamento](15-disponibilidade-agendamento.md); o esquema dessa agenda ainda não foi implementado.
 
 ## Critérios da entrega acadêmica — ainda não implementados
 

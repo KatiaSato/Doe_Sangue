@@ -1,5 +1,16 @@
 # Validação
 
+## Orientações e rascunho do agendamento — 07/10/2026
+
+- `test assembleDebug assembleDebugAndroidTest lint`: sucesso na preparação desta entrega; um teste local básico aprovado e APKs gerados. Lint: zero erros e 31 avisos.
+- `connectedDebugAndroidTest`: execução final aprovada no Pixel 5, Android 12/API 32; **14 testes**, sendo dez de navegação e quatro de orientações, sem falhas, erros ou ignorados.
+- O fluxo exige unidade, data e horário. A cobertura nova verifica cancelamento do calendário, confirmação da mesma data, preservação ao voltar à unidade e limpeza do horário ao mudar de data. A conclusão visual também foi exercitada.
+- As quatro categorias de orientações foram percorridas, com fontes e data de revisão; as condições de avaliação médica, procedimentos e preservação da prevenção permanecem nos textos verificados.
+- O seletor do dia usa a data acessível do Material 3 e restringe a busca ao diálogo, evitando confusão entre o dia 15 e o horário 15:30 da tela ao fundo. As falhas anteriores desse seletor foram corrigidas; houve também uma falha do sistema do emulador, resolvida com reinicialização antes da execução final.
+- Testes usam `FakeDonationCenterRepository` e dados sintéticos. Não validam Supabase remoto, reserva real, disponibilidade por unidade ou aptidão clínica. Revisão/sucesso continuam visuais e não gravam agendamento.
+
+Ver [revisão editorial e fontes](16-revisao-regras-doacao.md) e [disponibilidade planejada](15-disponibilidade-agendamento.md). Relatórios locais permanecem em `app/build`, fora do versionamento.
+
 ## Integração de unidades — 06/10/2026
 
 - `test assembleDebug assembleDebugAndroidTest lint`: BUILD SUCCESSFUL; um teste local básico aprovado; APK do aplicativo e dos testes gerados.

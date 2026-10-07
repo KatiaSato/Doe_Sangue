@@ -80,10 +80,10 @@ class DonationRestrictionsTest {
         tap("Consultar restrições")
         screenshot("categorias")
         val cases = listOf(
-            Triple("Uso de medicamentos", "Antibióticos", "https://www.hemominas.mg.gov.br/condicoes-e-restricoes"),
-            Triple("Idade e peso", "Peso mínimo", "https://www.gov.br/saude/pt-br/composicao/saes/doacao-de-sangue/faq"),
+            Triple("Uso de medicamentos", "PrEP e PEP", "https://bvsms.saude.gov.br/bvs/saudelegis/gm/2026/prt11685_03_07_2026.html"),
+            Triple("Idade e peso", "Primeira doação", "https://bvsms.saude.gov.br/bvs/saudelegis/gm/2026/prt11685_03_07_2026.html"),
             Triple("Doenças e sintomas", "Histórico de hepatite", "https://www.hemocentro.unicamp.br/perguntas-frequentes/criterios-para-doacao-de-sangue/"),
-            Triple("Vacinas e procedimentos", "Piercings", "https://www.hemocentro.unicamp.br/perguntas-frequentes/criterios-para-doacao-de-sangue/"),
+            Triple("Vacinas e procedimentos", "Endoscopia e colonoscopia", "https://portal.hemominas.mg.gov.br/hemominas-adota-novos-criterios-para-doacao-de-sangue"),
         )
         cases.forEachIndexed { index, (category, item, source) ->
             tap(category)
@@ -96,11 +96,30 @@ class DonationRestrictionsTest {
             compose.onNode(hasText("Fonte:", substring = true) and hasClickAction())
                 .performScrollTo().performClick()
             compose.runOnIdle { assertEquals(source, openedUrl) }
+            compose.onNodeWithText("Conteúdo revisado em 06/10/2026")
+                .performScrollTo().assertIsDisplayed()
             tap("Restrições")
             compose.onNodeWithText("Consultar restrições").assertExists()
         }
         tap("Início")
         compose.runOnIdle { assertTrue(nav.currentDestination?.hasRoute<AppRoute.Home>() == true) }
+    }
+
+    @Test fun updatedGuidanceKeepsConditionsVisible() {
+        tap("Consultar restrições")
+        tap("Idade e peso")
+        compose.onNodeWithText("após os 70 anos, mediante avaliação médica", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        tap("Restrições")
+        tap("Vacinas e procedimentos")
+        compose.onNodeWithText("o prazo não garante aptidão", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("4 meses após a retirada", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        tap("Restrições")
+        tap("Uso de medicamentos")
+        compose.onNodeWithText("Não interrompa a prevenção para doar", substring = true)
+            .performScrollTo().assertIsDisplayed()
     }
 
     @Test fun detailRestoresAndSystemBackKeepsHierarchy() {

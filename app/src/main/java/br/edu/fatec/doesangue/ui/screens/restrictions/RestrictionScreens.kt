@@ -131,6 +131,8 @@ fun RestrictionDetailScreen(category: RestrictionCategory, onBack: () -> Unit) {
             Text("Fonte: ${content.sourceName} ↗", fontSize = 11.sp, lineHeight = 17.sp,
                 textDecoration = TextDecoration.Underline, color = RestrictionRed)
         }
+        Text("Conteúdo revisado em ${DonationRestrictions.reviewedOn}",
+            fontSize = 11.sp, lineHeight = 17.sp, color = RestrictionMuted)
         if (sourceError) {
             Text("Não foi possível abrir a fonte. Verifique se há um navegador disponível.",
                 fontSize = 12.sp, color = RestrictionMuted)

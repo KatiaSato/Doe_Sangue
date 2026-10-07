@@ -1,5 +1,9 @@
 # Consulta de restrições para doação
 
+## Revisão editorial — 06/10/2026
+
+Textos de idade, procedimentos e medicamentos atualizados no Android após a Portaria GM/MS nº 11.685/2026. Fontes e data de revisão aparecem nas listas. Ver [mudanças, referências e limites](16-revisao-regras-doacao.md). O Figma e seus inventários locais abaixo são referências históricas do layout; seus textos não foram sincronizados com esta revisão.
+
 ## Confirmado
 
 A usuária aprovou substituir a triagem demonstrativa por listas informativas por
@@ -35,7 +39,7 @@ não a especificação atual. O Figma original não foi alterado.
 
 ## Fontes do conteúdo
 
-Consultadas durante o desenho em 29/09/2026:
+Referências do desenho original, consultadas em 29/09/2026 (as fontes atuais por categoria estão no código e no documento de revisão acima):
 
 - [Hemominas — condições e restrições](https://www.hemominas.mg.gov.br/condicoes-e-restricoes).
 - [Ministério da Saúde — perguntas frequentes](https://www.gov.br/saude/pt-br/composicao/saes/doacao-de-sangue/faq).

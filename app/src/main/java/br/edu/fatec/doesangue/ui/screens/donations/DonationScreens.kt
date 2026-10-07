@@ -76,7 +76,7 @@ fun DonationAppointmentsScreen(onBack: () -> Unit, onHistory: () -> Unit, onDeta
             Column(Modifier.padding(18.dp)) {
                 Text("12 de setembro • 14:00", style = MaterialTheme.typography.titleLarge, color = Color.White)
                 Text("Hemocentro Campinas", style = MaterialTheme.typography.bodyMedium, color = Color.White)
-                Text("Rotina: a cada 3 meses", style = MaterialTheme.typography.bodySmall, color = Color.White)
+                Text("Sem repetição automática", style = MaterialTheme.typography.bodySmall, color = Color.White)
                 Spacer(Modifier.height(14.dp))
                 PrimaryButton("Ver detalhes", onDetails)
             }
@@ -84,13 +84,8 @@ fun DonationAppointmentsScreen(onBack: () -> Unit, onHistory: () -> Unit, onDeta
         Spacer(Modifier.height(28.dp))
         SectionHeader("Próximos lembretes")
         InfoCard {
-            Text("12/12/2026", style = MaterialTheme.typography.titleMedium)
-            Text("Próxima data sugerida", style = MaterialTheme.typography.bodySmall, color = InkSecondary)
-        }
-        Spacer(Modifier.height(10.dp))
-        InfoCard {
-            Text("12/03/2027", style = MaterialTheme.typography.titleMedium)
-            Text("Próxima data sugerida", style = MaterialTheme.typography.bodySmall, color = InkSecondary)
+            Text("Nenhum lembrete de recorrência configurado.", style = MaterialTheme.typography.bodyMedium)
+            Text("Consulte o hemocentro sobre quando poderá doar novamente.", style = MaterialTheme.typography.bodySmall, color = InkSecondary)
         }
     }
 }
