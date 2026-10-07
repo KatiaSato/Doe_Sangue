@@ -225,21 +225,44 @@ fun ScheduleRecurrenceScreen(onBack: () -> Unit, onContinue: () -> Unit) {
 }
 
 @Composable
-fun ScheduleConfirmScreen(onBack: () -> Unit, onConfirm: () -> Unit) {
+fun ScheduleConfirmScreen(
+    uiState: SchedulingUiState,
+    onBack: () -> Unit,
+    onConfirm: () -> Unit,
+) {
     DsScreen(title = "Confirmar agendamento", onBack = onBack) {
         ScheduleHeader(4)
         Text("Revise os dados", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
         InfoCard {
-            ReviewRow("Unidade", "Hemocentro Campinas")
-            ReviewRow("Data", "12/09/2026")
-            ReviewRow("Horário", "14:00")
+            ReviewRow(
+                "Unidade",
+                uiState.selectedCenter?.name ?: "Nenhuma unidade selecionada",
+            )
+            ReviewRow(
+                "Data",
+                uiState.selectedDate
+                    ?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    ?: "Nenhuma data selecionada",
+            )
+            ReviewRow(
+                "Horário",
+                uiState.selectedTime
+                    ?.format(DateTimeFormatter.ofPattern("HH:mm"))
+                    ?: "Nenhum horário selecionado",
+            )
             ReviewRow("Recorrência", "Sem repetição automática")
         }
         Spacer(Modifier.height(22.dp))
         Text("♡  Obrigada por doar!", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = BloodRed, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(80.dp))
-        PrimaryButton("Confirmar agendamento", onConfirm)
+        PrimaryButton(
+            text = "Confirmar agendamento",
+            onClick = onConfirm,
+            enabled = uiState.selectedCenter != null &&
+                    uiState.selectedDate != null &&
+                    uiState.selectedTime != null,
+        )
     }
 }
 

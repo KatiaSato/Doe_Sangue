@@ -105,8 +105,22 @@ fun NavGraphBuilder.schedulingNavGraph(
             )
         }
 
-        composable<AppRoute.ScheduleConfirm> {
+        composable<AppRoute.ScheduleConfirm> { entry ->
+            // Localiza o grafo que guarda o rascunho do agendamento.
+            val schedulingEntry = remember(entry) {
+                navController.getBackStackEntry<AppGraph.Scheduling>()
+            }
+
+            // Recupera o mesmo ViewModel usado nas etapas anteriores.
+            val schedulingViewModel: SchedulingViewModel = viewModel(
+                viewModelStoreOwner = schedulingEntry,
+                factory = schedulingViewModelFactory,
+            )
+
+            // Observa o estado atual com unidade, data e horário.
+            val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
             ScheduleConfirmScreen(
+                uiState = uiState,
                 onBack = {
                     navController.popBackStack()
                 },

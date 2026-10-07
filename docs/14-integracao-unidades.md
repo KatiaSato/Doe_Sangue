@@ -47,7 +47,7 @@ Os testes automatizados abaixo correspondem ao checkpoint de integração de uni
 
 ## Pendente e próximo passo
 
-1. Calendário e seleção de horário já preenchem o rascunho em memória. A lista de horários ainda é fixa. Ligar as etapas de revisão ao rascunho; os testes do fluxo já exigem data/horário e cobrem preservação e troca da data.
+1. Calendário e seleção de horário já preenchem o rascunho em memória. Em 07/10/2026, a revisão passou a receber o estado do mesmo ViewModel e a exibir unidade, data e horário escolhidos; Confirmar exige os três campos. A lista de horários ainda é fixa. A cobertura automatizada da exibição desses valores e dos estados incompletos da revisão continua pendente; os testes anteriores cobrem seleção e troca da data.
 2. Modelar e implementar disponibilidade sintética por unidade no banco, conforme a [decisão registrada](15-disponibilidade-agendamento.md): dias e horários configuráveis, exceções e revalidação no servidor, sem bloqueio universal de fim de semana nem regras médicas inventadas.
 3. Implementar Auth, tabelas relacionadas, permissões e gravação/consulta do agendamento. A tela de sucesso atual ainda é visual.
 4. Adicionar testes de mapper, sucesso/vazio/erro/cancelamento do fluxo e RLS com usuários distintos quando houver dados privados. Reconciliar seleção ao recarregar uma lista é outra melhoria pendente.

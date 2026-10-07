@@ -2,7 +2,7 @@
 
 ## Objetivo e estado
 
-Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; a escolha de unidade no agendamento consulta o Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow; os horários ainda são opções fixas de demonstração. Recorrência, revisão, sucesso e autenticação continuam visuais. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
+Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; a escolha de unidade no agendamento consulta o Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão; os horários ainda são opções fixas de demonstração. Recorrência, sucesso e autenticação continuam visuais; confirmar ainda não grava agendamento. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
 
 ## Stack e estrutura
 
@@ -60,7 +60,7 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - `local.properties` fornece URL/chave publicável ao `BuildConfig`; não exibir valores nem versionar esse arquivo. Chave publicável pode estar no APK; nenhum segredo administrativo pode estar nele.
 - RLS/grants da tabela permitem aos papéis `anon` e `authenticated` somente leitura das unidades publicadas. SQL foi aplicado manualmente pela usuária; histórico da CLI ainda não foi conciliado. Não reaplicar automaticamente a migração.
 - Em 06/10/2026: compilação, teste local, Lint e 12 testes instrumentados passaram; Lint tem 31 avisos e zero erros. A consulta real no celular foi confirmada pela usuária em 03/10/2026.
-- Data e horário já preenchem o rascunho; os testes do fluxo foram atualizados após o checkpoint acima. Consultar resultados atuais em `docs/12-validacao.md`. Próximos passos: modelar disponibilidade sintética e ligar revisão ao rascunho, depois autenticação e persistência. Agendamento ainda não é gravado.
+- Data e horário já preenchem o rascunho; a revisão passou a exibir as escolhas em 07/10/2026 e exige os três campos para habilitar Confirmar. Consultar resultados atuais em `docs/12-validacao.md`. Próximos passos: modelar disponibilidade sintética, depois autenticação e persistência. Agendamento ainda não é gravado.
 
 ## Disponibilidade por unidade — decisão de 06/10/2026
 

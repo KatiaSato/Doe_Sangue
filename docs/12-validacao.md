@@ -1,5 +1,12 @@
 # Validação
 
+## Revisão ligada ao rascunho — 07/10/2026
+
+- `assembleDebug`: BUILD SUCCESSFUL após ligar a revisão ao estado e após adicionar a condição de habilitação de Confirmar.
+- A usuária confirmou a exibição e enviou captura da revisão com Unidade Demo A, 19/10/2026 e 08:00. Isso comprova a apresentação dessas escolhas; não comprova gravação no banco nem validação de disponibilidade.
+- Inspeção do código: Confirmar exige unidade, data e horário não nulos. O comportamento dos estados incompletos ainda não foi exercitado em teste automatizado.
+- A suíte instrumentada e o Lint não foram repetidos nesta pequena alteração. Os 14 testes aprovados abaixo pertencem ao checkpoint anterior à ligação da revisão ao rascunho.
+
 ## Orientações e rascunho do agendamento — 07/10/2026
 
 - `test assembleDebug assembleDebugAndroidTest lint`: sucesso na preparação desta entrega; um teste local básico aprovado e APKs gerados. Lint: zero erros e 31 avisos.

@@ -20,7 +20,8 @@ Registro de decisão — 06/10/2026. A usuária aprovou a direção funcional e 
 - A tela permite selecionar horários de demonstração fixos e habilita Continuar após escolher unidade, data e horário. Esses horários ainda não vêm do banco nem variam conforme o dia.
 - `onContinue` comunica a intenção de avançar à navegação, sem transportar data/horário. As escolhas já estão no ViewModel compartilhado pelo grafo de agendamento.
 - A usuária confirmou manualmente o comportamento do calendário, da seleção de horário e da habilitação de Continuar. Os testes instrumentados foram atualizados para exigir data/horário e cobrir cancelamento do calendário, confirmação da mesma data, retorno à unidade e limpeza do horário ao mudar a data. Resultados em [validação](12-validacao.md).
-- A etapa de recorrência informa que a funcionalidade ainda não está disponível e oferece somente este agendamento. Revisão e sucesso ainda contêm conteúdo visual fixo; não há gravação de agendamento nem recuperação do rascunho após morte do processo.
+- A revisão recebe o estado do ViewModel compartilhado e exibe unidade, data (`dd/MM/yyyy`) e horário (`HH:mm`) escolhidos. Valores ausentes recebem mensagens explicativas; Confirmar só fica habilitado quando os três campos estão preenchidos. Implementado em 07/10/2026, com compilação aprovada e exibição confirmada pela usuária.
+- A etapa de recorrência informa que a funcionalidade ainda não está disponível e oferece somente este agendamento. A confirmação ainda navega para uma tela de sucesso com conteúdo fixo; não há gravação de agendamento nem recuperação do rascunho após morte do processo.
 
 ## Proposto para a demonstração
 
