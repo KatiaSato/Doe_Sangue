@@ -1,6 +1,7 @@
 package br.edu.fatec.doesangue.presentation.scheduling
 
 import br.edu.fatec.doesangue.domain.model.DonationCenter
+import br.edu.fatec.doesangue.domain.model.DonationTimeSlot
 import java.time.LocalDate
 import java.time.LocalTime
 /*
@@ -16,6 +17,13 @@ data class SchedulingUiState(
     // Guarda as escolhas enquanto a pessoa preenche o agendamento.
     val selectedDate: LocalDate? = null,
     val selectedTime: LocalTime? = null,
+
+    // Guarda os horários retornados para a unidade e a data escolhidas.
+    val timeSlots: List<DonationTimeSlot> = emptyList(),
+
+// Indica o andamento e uma possível falha da consulta de horários.
+    val isLoadingTimeSlots: Boolean = false,
+    val timeSlotsErrorMessage: String? = null,
 
     val isLoading: Boolean = false,
     val errorMessage: String? = null,

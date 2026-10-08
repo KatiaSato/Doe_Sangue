@@ -25,6 +25,9 @@ data class DonationCenterDto(
     @SerialName("telefone")
     val phone: String? = null,
 
+    @SerialName("fuso_horario")
+    val timeZoneId: String,
+
     @SerialName("publicada")
     val published: Boolean,
 )

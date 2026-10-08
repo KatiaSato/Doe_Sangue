@@ -1,5 +1,24 @@
 # Validação
 
+## Consulta de horários e correção do intervalo — 07/10/2026
+
+- `test assembleDebug assembleDebugAndroidTest connectedDebugAndroidTest`: BUILD SUCCESSFUL com o argumento de leitura remota abaixo. Um teste local básico aprovado e **15 testes instrumentados** no Pixel_6/Android 12, sem falhas ou ignorados: dez de navegação, quatro de orientações e um de integração de leitura dos horários.
+- `SupabaseTimeSlotsReadTest` usa o cliente do aplicativo, a API real de desenvolvimento e a tela de data/horário, com o seed sintético existente. Verificou 18/10/2026 vazio; 19/10/2026 com 08:00 e sem 09:30; seleção habilitando Continuar; 20/10 e retorno a 18/10 vazios; retorno a 19/10 sem seleção e com Continuar desabilitado. Nenhuma escrita remota foi realizada.
+- O teste de integração é ignorado por padrão. No PowerShell, para executar explicitamente contra o ambiente acadêmico configurado: `.\gradlew.bat connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.enableSupabaseReadTests=true'`. Depende da rede, da configuração local e do seed de 19/10/2026; não representa uma suíte independente do ambiente. A chave não é escrita no código de teste nem nos seus resultados.
+- A regressão vinha do envio de filtros repetidos para a mesma coluna na biblioteca Supabase Kotlin 3.6.0: PostgrestRequestBuilder usa mapToFirstValue, descartando o segundo valor. Agrupar os limites em and preserva início inclusivo e fim exclusivo no pedido. Compilar, isoladamente, não detectava esse erro de consulta.
+- O teste de navegação foi adaptado: antes de selecionar a data, 09:30 não existe na tela; anteriormente ficava visível e desabilitado. Os testes normais usam repositories fictícios para unidades e horários.
+- Limites: não exercitados falha/repetição da rede, corridas de respostas com atraso controlado, transições de horário de verão, reserva/capacidade concorrente ou login real. O calendário ainda permite consultar datas sem ofertas. Lint não foi repetido neste checkpoint.
+
+## Histórico: horários sintéticos e permissões antes da integração Android — 07/10/2026
+
+- A usuária executou o SQL manualmente no Supabase de desenvolvimento; o agente conferiu as capturas, sem executar SQL remoto.
+- `pg_tables` mostrou `public.horario_disponivel` com RLS ativo. Após `seed_horarios.sql`, a consulta administrativa mostrou três ofertas em 19/10/2026: Demo A às 08:00 (capacidade 3, ativa), Demo A às 09:30 (capacidade 2, inativa) e Demo B às 08:00 (capacidade 1, ativa). Demo A publicada; Demo B não publicada.
+- Consultas com JOIN entre horários e unidades, sem WHERE, executadas com `SET LOCAL ROLE anon` e depois `authenticated`, retornaram somente Demo A às 08:00. Os testes usaram transações encerradas por ROLLBACK.
+- `has_table_privilege` retornou SELECT = true e INSERT/UPDATE/DELETE = false para os dois papéis na tabela de horários. TRUNCATE não foi consultado nesta etapa.
+- A usuária também confirmou por relato o resultado esperado na consulta direta a horario_disponivel, sem JOIN e sem WHERE, sob anon e authenticated: somente o horário ativo da unidade publicada.
+- Limites: Constraints não foram exercitadas por inserções inválidas. Simular o papel authenticated não testa login ou JWT. Não há reserva, cálculo de vagas restantes ou consulta dos horários pelo Android.
+- Fuso no Android: `assembleDebug assembleDebugAndroidTest` passou após DTO/mapper/modelo receberem o campo; a usuária confirmou carregamento da unidade sem erro. `assembleDebug` passou com `GetDonationTimeSlotsUseCase`. Limites de dia/fuso ainda não têm testes específicos. Não houve nova execução instrumentada ou de Lint nesta etapa.
+
 ## Revisão ligada ao rascunho — 07/10/2026
 
 - `assembleDebug`: BUILD SUCCESSFUL após ligar a revisão ao estado e após adicionar a condição de habilitação de Confirmar.

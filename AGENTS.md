@@ -2,7 +2,7 @@
 
 ## Objetivo e estado
 
-Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; a escolha de unidade no agendamento consulta o Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão; os horários ainda são opções fixas de demonstração. Recorrência, sucesso e autenticação continuam visuais; confirmar ainda não grava agendamento. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
+Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; unidades e horários sintéticos do agendamento são consultados no Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão. Recorrência, sucesso e autenticação continuam visuais; confirmar ainda não grava agendamento. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
 
 ## Stack e estrutura
 
@@ -41,6 +41,7 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 
 ## Fontes e pendências
 
+- Entrega confirmada pela usuária para a última quarta-feira de novembro de 2026: 25/11/2026. Apresentação focada em banco de dados, na disciplina de persistência. Priorizar modelagem, integridade, permissões, operações persistidas e requisitos acadêmicos; continuar o ensino em pequenos passos.
 - Briefing local fornecido em 30/08/2026.
 - Figma: `Doe Sangue — Android App — Education`, nó `9:8`; requer inventário antes das telas.
 - Enunciado acadêmico recebido: `Aula 07 - LBD - M - Projeto Integrador Especificação e Critérios - 16.09.pdf` (fornecido pela usuária, fora do repositório).
@@ -67,8 +68,17 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - Permitir agendamento somente nas datas/horários disponibilizados para a unidade escolhida. Não bloquear sábados, domingos ou feriados universalmente; representar aberturas especiais e fechamentos na programação.
 - `horario_atendimento` é texto descritivo, não fonte estruturada de disponibilidade. Modelar horários ligados à unidade antes de implementar a regra no calendário.
 - A futura gravação deve revalidar disponibilidade/capacidade no servidor, com controle de concorrência; o estado da tela não garante reserva.
-- Programação de segunda a sexta, sábado pela manhã e domingo excepcional é apenas exemplo sintético proposto. Esquema, capacidade, fuso, antecedência, permissões e seed ainda serão definidos.
-- Ler `docs/15-disponibilidade-agendamento.md` antes de continuar esta etapa. Nenhuma migração remota foi aplicada por esta decisão.
+- Em 07/10/2026, a usuária escolheu um registro por horário oferecido, com capacidade configurável para vários agendamentos. Capacidade total não equivale a vagas restantes; o servidor deverá calcular e revalidar a disponibilidade.
+- Em 07/10/2026, a usuária aplicou manualmente a migração de `fuso_horario` e mostrou Demo A/B com `America/Sao_Paulo` e publicação preservada. DTO, mapper e domínio já transportam `timeZoneId`; aplicativo e APK de testes compilaram, e a usuária confirmou a consulta real sem erro. O caso de uso já converte o dia para instantes no fuso da unidade, e a tela converte os instantes recebidos para horários locais. Não reaplicar a migração. Ver `supabase/README.md` para ordem e evidências.
+- Programação de segunda a sexta, sábado pela manhã e domingo excepcional é apenas exemplo sintético proposto. Esquema, permissões de leitura e seed mínimo de horários já existem; ampliação da programação, limites operacionais da capacidade e antecedência permanecem pendentes.
+- A tabela `horario_disponivel` foi criada manualmente pela usuária em 07/10/2026; captura de `pg_tables` confirma RLS ativo. O seed de horários foi aplicado: três ofertas sintéticas. Consultas com JOIN sob `anon` e `authenticated` retornaram somente Demo A às 08:00; `has_table_privilege` confirmou SELECT e ausência de INSERT/UPDATE/DELETE para ambos. Ver limites da evidência em `docs/12-validacao.md`. Não reaplicar a migração. Nenhuma tabela de reservas foi criada. Ler `docs/15-disponibilidade-agendamento.md` antes de continuar.
+
+## Consulta de horários — evolução de 07/10/2026
+
+- DTO, mapper, DataSource, repository e caso de uso de horários estão ligados ao SchedulingViewModel via AppContainer. Ao mudar a data, consulta o intervalo no fuso da unidade; ao mudar a unidade, cancela e limpa o rascunho. A tela mostra carregamento, erro com nova tentativa, vazio ou horários retornados; o ViewModel valida a escolha contra unidade/data/lista.
+- Supabase Kotlin 3.6.0: agrupar gte/lt da coluna inicio dentro de and no DataSource. O envio de parâmetros dessa versão usa somente o primeiro valor por chave quando as condições ficam diretamente no filter; isso descartava o limite superior. Não remover o agrupamento sem um teste do pedido HTTP ou de integração que cubra dias adjacentes.
+- AppNavigationTest e DonationRestrictionsTest injetam repositories fictícios de unidades e horários. SupabaseTimeSlotsReadTest é uma exceção explícita, somente leitura, ativada por enableSupabaseReadTests=true contra o seed de desenvolvimento. Resultados em docs/12-validacao.md.
+- Calendário ainda permite escolher qualquer data para consultar; não há bloqueio antecipado de dias vazios. Capacidade restante, persistência de reservas, autenticação e conservação do ID do horário selecionado para a futura gravação continuam pendentes.
 
 ## Revisão editorial — 06/10/2026
 

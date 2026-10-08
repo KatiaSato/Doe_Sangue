@@ -49,6 +49,7 @@ class AppNavigationTest {
             val appContainer = remember {
                 AppContainer(
                     centerRepositoryOverride = FakeDonationCenterRepository(),
+                    timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
                 )
             }
             navController = rememberNavController()
@@ -175,7 +176,7 @@ class AppNavigationTest {
         compose.onNodeWithText("Unidade Acadêmica de Demonstração")
             .performScrollTo().performClick()
         tap("Continuar")
-        compose.onNodeWithText("09:30").assertIsNotEnabled()
+        compose.onNodeWithText("09:30").assertDoesNotExist()
         compose.onNodeWithText("Continuar").assertIsNotEnabled()
         chooseDate("15")
         tap("09:30")

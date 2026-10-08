@@ -15,6 +15,7 @@ class FakeDonationCenterRepository : DonationCenterRepository {
                 address = "Endereço fictício",
                 openingHours = "Horário fictício",
                 phone = "Contato fictício",
+                timeZoneId = "America/Sao_Paulo",
             )
         )
 

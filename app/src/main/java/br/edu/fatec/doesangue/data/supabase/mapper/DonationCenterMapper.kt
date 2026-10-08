@@ -12,5 +12,6 @@ fun DonationCenterDto.toDomain(): DonationCenter {
         address = address,
         openingHours = openingHours.orEmpty(),
         phone = phone.orEmpty(),
+        timeZoneId = timeZoneId,
     )
 }

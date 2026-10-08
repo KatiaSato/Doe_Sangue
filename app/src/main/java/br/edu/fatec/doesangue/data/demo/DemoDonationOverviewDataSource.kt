@@ -16,6 +16,7 @@ class DemoDonationOverviewDataSource : DonationOverviewDataSource {
             address = "Endereço fictício para demonstração",
             openingHours = "Horário fictício",
             phone = "Contato fictício",
+            timeZoneId = "America/Sao_Paulo",
         )
 
         return DonationOverview(

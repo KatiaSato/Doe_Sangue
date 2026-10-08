@@ -8,7 +8,11 @@ O seed contém duas unidades sintéticas: Demo A publicada e Demo B não publica
 
 Ver [instruções e limites dos scripts](../supabase/README.md), [fluxo Android](14-integracao-unidades.md) e [validação](12-validacao.md). O histórico da CLI não foi estabelecido pela aplicação manual no painel.
 
+**Evolução de 07/10/2026:** a usuária aplicou a migração de `fuso_horario` e mostrou Demo A e Demo B com `America/Sao_Paulo`, sem alterar a publicação. O script local define campo obrigatório sem default ao final; falta conferir essas propriedades no esquema remoto. O seed atualizado informa o fuso e requer as duas migrações; sua nova versão ainda não foi executada. A integração desse campo no Android está em andamento. A contagem continua em uma tabela, nenhuma FK e duas unidades sintéticas.
+
 ## Diretrizes confirmadas
+
+Atualização adicional de 07/10/2026: `horario_disponivel` foi criada manualmente pela usuária; consulta a `pg_tables` confirma RLS ativo. O esquema versionado passa a ter duas tabelas do aplicativo e uma FK (horário → unidade). Foram confirmados cinco registros sintéticos: duas unidades e três horários. Consultas com JOIN sob `anon` e `authenticated` retornaram somente Demo A às 08:00; SELECT permitido e INSERT/UPDATE/DELETE ausentes foram confirmados para ambos. A consulta direta sem JOIN sob ambos os papéis também teve o resultado esperado, conforme relato da usuária. Testes de constraints permanecem pendentes. Esta atualização substitui as contagens históricas acima. Ver [validação](12-validacao.md) e [disponibilidade](15-disponibilidade-agendamento.md).
 
 - PostgreSQL/Supabase será o banco principal, conforme sugestão aceita do professor; credenciais ficam no Supabase Auth.
 - Migrações são versionadas e devem ser aplicadas na ordem, uma vez por ambiente. O seed usa apenas dados sintéticos e evita duplicar as mesmas unidades em reexecuções sequenciais.

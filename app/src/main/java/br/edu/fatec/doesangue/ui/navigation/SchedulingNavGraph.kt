@@ -85,6 +85,7 @@ fun NavGraphBuilder.schedulingNavGraph(
                 uiState = uiState,
                 onSelectDate = schedulingViewModel::selectDate,
                 onSelectTime = schedulingViewModel::selectTime,
+                onRetry = schedulingViewModel::loadTimeSlots,
                 onBack = {
                     navController.popBackStack()
                 },

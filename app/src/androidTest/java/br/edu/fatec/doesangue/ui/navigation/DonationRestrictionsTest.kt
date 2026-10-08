@@ -41,6 +41,7 @@ class DonationRestrictionsTest {
             val appContainer = remember {
                 AppContainer(
                     centerRepositoryOverride = FakeDonationCenterRepository(),
+                    timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
                 )
             }
             nav = rememberNavController()

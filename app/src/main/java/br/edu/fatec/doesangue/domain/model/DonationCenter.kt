@@ -7,5 +7,6 @@ data class DonationCenter(
     val address: String,
     val openingHours: String,
     val phone: String,
+    val timeZoneId : String,
 )
 

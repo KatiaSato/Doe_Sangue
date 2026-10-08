@@ -2,6 +2,7 @@ package br.edu.fatec.doesangue.ui.screens.scheduling
 
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -135,6 +136,7 @@ fun ScheduleDateScreen(
     uiState: SchedulingUiState,
     onSelectDate: (LocalDate) -> Unit,
     onSelectTime: (LocalTime) -> Unit,
+    onRetry: () -> Unit,
     onBack: () -> Unit,
     onContinue: () -> Unit,
 ) {
@@ -171,36 +173,70 @@ fun ScheduleDateScreen(
         )
         Spacer(Modifier.height(10.dp))
 
-        listOf("08:00", "09:30", "11:00", "14:00", "15:30", "17:00")
-            .chunked(3)
-            .forEach { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    row.forEach { timeText ->
-                        // Converte o texto da opção para um valor de horário.
-                        val time = LocalTime.parse(timeText)
+        val timeSlotsError = uiState.timeSlotsErrorMessage
 
-                        FilterChip(
-                            selected = uiState.selectedTime == time,
-                            onClick = { onSelectTime(time) },
-                            label = { Text(timeText) },
-                            enabled = uiState.selectedCenter != null &&
-                                    uiState.selectedDate != null,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                }
-                Spacer(Modifier.height(10.dp))
+        when {
+            uiState.selectedCenter == null || uiState.selectedDate == null -> {
+                Text("Selecione uma unidade e uma data para consultar os horários.")
             }
+
+            uiState.isLoadingTimeSlots -> {
+                Text("Carregando horários...")
+            }
+
+            timeSlotsError != null -> {
+                Text(
+                    text = timeSlotsError,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(12.dp))
+                SecondaryButton(
+                    text = "Tentar novamente",
+                    onClick = onRetry,
+                )
+            }
+
+            uiState.timeSlots.isEmpty() -> {
+                Text("Nenhum horário disponível para esta data.")
+            }
+
+            else -> {
+                val zone = ZoneId.of(uiState.selectedCenter.timeZoneId)
+
+                uiState.timeSlots.chunked(3).forEach { slotsRow ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        slotsRow.forEach { slot ->
+                            // Apresenta o instante no fuso da unidade.
+                            val time = slot.startsAt
+                                .atZone(zone)
+                                .toLocalTime()
+
+                            FilterChip(
+                                selected = uiState.selectedTime == time,
+                                onClick = { onSelectTime(time) },
+                                label = {
+                                    Text(time.format(DateTimeFormatter.ofPattern("HH:mm")))
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
+        }
         Spacer(Modifier.height(12.dp))
         PrimaryButton(
             text = "Continuar",
             onClick = onContinue,
             enabled = uiState.selectedCenter != null &&
                     uiState.selectedDate != null &&
-                    uiState.selectedTime != null,
+                    uiState.selectedTime != null &&
+                    !uiState.isLoadingTimeSlots &&
+                    uiState.timeSlotsErrorMessage == null,
         )
         Spacer(Modifier.height(16.dp))
     }
