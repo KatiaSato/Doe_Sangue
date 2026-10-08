@@ -1,4 +1,12 @@
-# Supabase — unidades sintéticas
+# Supabase — banco acadêmico e dados sintéticos
+
+## Perfil do doador — 08/10/2026
+
+- `migrations/20261008000100_criar_perfil_doador.sql` foi executada manualmente pela usuária após as três migrações anteriores. Não reaplicar no ambiente existente.
+- Perfil mínimo com ID UUID vinculado a `auth.users`, nome de exibição e data de criação gerada pelo banco. Não armazena senha nem cria automaticamente conta ou perfil.
+- Capturas confirmam RLS ativo, três policies de acesso próprio e privilégios por coluna: authenticated pode consultar, inserir ID/nome e editar somente nome; anon não tem esses acessos, e ambos não podem excluir. Testes manuais com duas identidades simuladas confirmaram leitura própria; inserção própria como A, edição própria preservando B, inserção em nome de B bloqueada e consulta anon bloqueada também foram verificados por captura ou relato. Evidências e limites em [validação](../docs/12-validacao.md).
+- Duas contas sintéticas foram criadas pelo painel Auth; perfis dos testes SQL são temporários, com ROLLBACK. Não inserir contas diretamente em auth.users nem guardar senhas nos scripts. Os testes de policies não comprovam login pela API.
+- O histórico remoto da CLI continua sem conciliação. Em ambiente novo, esta é a quarta migração, após as três descritas abaixo. Ainda não há seed de perfis ou login Android implementado.
 
 ## Implementado em 06/10/2026
 

@@ -2,6 +2,14 @@
 
 ## Estado atual
 
+**Atualizado em 08/10/2026.** Existem três tabelas do domínio: `unidade_coleta`, `horario_disponivel` e `perfil_doador`. As migrações definem uma FK entre tabelas do domínio (horário → unidade) e uma FK adicional do perfil para `auth.users`. A tabela de agendamento ainda não existe. O Android consulta unidades/horários e guarda o ID selecionado no rascunho; autenticação e gravação continuam pendentes.
+
+A migração do perfil foi aplicada manualmente pela usuária. Capturas e relatos dos testes SQL confirmam RLS, privilégios por coluna, leitura própria com duas identidades simuladas, criação/edição própria como A, bloqueio de criação em nome de B e bloqueio de consulta anônima. Limites e evidências em [validação](12-validacao.md).
+
+A massa sintética confirmada permanece em duas unidades e três horários. Duas contas de teste existem no Supabase Auth, mas não são tabelas/registros do domínio para a meta acadêmica. Os perfis dos testes SQL são temporários, com ROLLBACK; ainda não há seed persistente de perfis.
+
+### Histórico da evolução de unidades e horários
+
 **Atualizado em 06/10/2026.** A primeira migração cria `public.unidade_coleta`: ID `bigint` gerado por identidade, nome/cidade/endereço obrigatórios, horário/telefone opcionais e `publicada` com padrão `false`. RLS e grants permitem somente consulta das linhas publicadas para `anon` e `authenticated`.
 
 O seed contém duas unidades sintéticas: Demo A publicada e Demo B não publicada. A usuária aplicou os arquivos manualmente no Supabase de desenvolvimento e confirmou a leitura de Demo A no aplicativo. O app não grava dados nesta etapa. O restante do modelo em `05-modelo-de-dominio.md` continua proposto; há uma tabela, nenhuma FK e dois registros do seed.
@@ -19,7 +27,7 @@ Atualização adicional de 07/10/2026: `horario_disponivel` foi criada manualmen
 - Constraints preservarão integridade e índices atenderão filtros frequentes.
 - RLS protegerá perfil, agendamentos e histórico; o doador não elevará papel, alterará estoque nem confirmará coleta.
 - Dados públicos não poderão revelar dados pessoais.
-- Agendamentos devem usar datas/horários disponibilizados por unidade, com revalidação de capacidade no servidor. Sábados, domingos e feriados não terão bloqueio universal. Decisão, responsabilidades e pendências em [disponibilidade de agendamento](15-disponibilidade-agendamento.md); o esquema dessa agenda ainda não foi implementado.
+- Agendamentos devem usar datas/horários disponibilizados por unidade, com revalidação de capacidade no servidor. Sábados, domingos e feriados não terão bloqueio universal. A tabela de horários e sua consulta estão implementadas; reserva e controle de capacidade ainda não. Decisão, responsabilidades e pendências em [disponibilidade de agendamento](15-disponibilidade-agendamento.md).
 
 ## Critérios da entrega acadêmica — ainda não implementados
 
@@ -28,7 +36,7 @@ Atualização adicional de 07/10/2026: `horario_disponivel` foi criada manualmen
 - Consultas e alterações feitas pelo aplicativo devem refletir o banco; demonstrar filtros, busca, ordenação e relacionamentos com dados persistidos, não com listas fixas nas telas.
 - O Android acessará Auth e dados pela API do Supabase (incluindo PostgREST e operações server-side quando necessárias), com RLS e sem conexão direta ao PostgreSQL ou segredo administrativo no APK.
 
-O [recorte proposto de seis tabelas, PKs e FKs](05-modelo-de-dominio.md#recorte-relacional-de-seis-tabelas--proposta-para-revisão) mostra uma opção com UUID para o perfil vinculado ao Auth e `bigint GENERATED ALWAYS AS IDENTITY` para as demais tabelas. Auto-incremento é uma escolha de modelagem; o enunciado exige chave primária adequada, não auto-incremento em toda tabela. Até esta etapa, somente `unidade_coleta` foi criada.
+O [recorte proposto de seis tabelas, PKs e FKs](05-modelo-de-dominio.md#recorte-relacional-de-seis-tabelas--proposta-para-revisão) mostra uma opção com UUID para o perfil vinculado ao Auth e `bigint GENERATED ALWAYS AS IDENTITY` para as demais tabelas. Auto-incremento é uma escolha de modelagem; o enunciado exige chave primária adequada, não auto-incremento em toda tabela. As três tabelas implementadas estão listadas no estado atual acima; as demais permanecem propostas.
 
 ## Como popular os dados
 

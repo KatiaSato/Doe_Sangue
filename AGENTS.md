@@ -86,6 +86,12 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - Mudar de unidade/data ou recarregar horários limpa o ID e a hora. Continuar e Confirmar exigem o ID preenchido. A usuária confirmou o percurso manual de seleção, troca de data, retorno sem seleção e revisão; resultados automatizados em `docs/12-validacao.md`.
 - O ID identifica a oferta para a futura persistência; não constitui reserva nem garante capacidade disponível. Confirmar ainda é navegação visual.
 
+## Perfil do doador — 08/10/2026
+
+- A usuária aplicou manualmente `20261008000100_criar_perfil_doador.sql`. Não reaplicar. Perfil mínimo com UUID PK/FK para auth.users, nome de exibição e criado_em; sem senha ou criação automática após cadastro.
+- Capturas confirmam RLS ativo, policies de SELECT/INSERT/UPDATE para acesso próprio, privilégios por coluna e DELETE negado aos papéis anon/authenticated. Testes SQL manuais confirmaram leitura isolada A/B e criação própria como A; edição própria preservando B, inserção em nome de B bloqueada e consulta anon bloqueada tiveram resultado esperado conforme relato. Ver `docs/12-validacao.md` para limites.
+- Duas contas sintéticas existem no Auth, criadas pelo painel; perfis dos testes foram usados em transações com ROLLBACK. Não versionar credenciais nem confundir simulação administrativa da identidade com login real. Próximo passo didático: autenticação Android e ligação do perfil, em pequenos passos. Constraints, seed persistente de perfis e gravação de agendamento permanecem pendentes.
+
 ## Revisão editorial — 06/10/2026
 
 - Orientações de idade, procedimentos e medicamentos revisadas após a Portaria GM/MS nº 11.685/2026, com fontes e data visíveis. Ver `docs/16-revisao-regras-doacao.md` para referências e limites.

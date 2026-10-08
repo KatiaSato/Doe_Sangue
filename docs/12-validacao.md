@@ -1,5 +1,16 @@
 # Validação
 
+## Perfil do doador: estrutura e permissões — 08/10/2026
+
+- A usuária preparou `20261008000100_criar_perfil_doador.sql` em pequenos passos e relatou sua execução manual no Supabase de desenvolvimento. O agente revisou o arquivo e as capturas; não executou SQL remoto.
+- Captura de `pg_tables` confirma `public.perfil_doador` com RLS ativo. A migração declara ID UUID como PK/FK para `auth.users(id)`, exclusão restrita, nome obrigatório não vazio após trim e data de criação com default now(). O preenchimento da data foi observado na inserção descrita abaixo; rejeições por constraints ainda não foram exercitadas.
+- Captura de `has_column_privilege` confirma: anon sem SELECT/INSERT/UPDATE nas três colunas; authenticated com SELECT nas três, INSERT somente em id/nome_exibicao e UPDATE somente em nome_exibicao. Outra captura confirma DELETE ausente para ambos os papéis.
+- Captura de `pg_policies` mostra três policies para authenticated: SELECT com USING, INSERT com WITH CHECK e UPDATE com ambas as condições, comparando id com auth.uid().
+- A usuária criou duas contas sintéticas pelo painel Auth. Uma captura de LEFT JOIN confirma ambas em auth.users, sem perfil naquele momento. Contas de teste não equivalem a seed de perfis nem comprovam login realizado.
+- Testes manuais no SQL Editor usaram BEGIN, SET LOCAL ROLE e request.jwt.claim.sub, com ROLLBACK ao final. Captura confirma INSERT do próprio perfil como A, com nome e criado_em retornados. Outras capturas confirmam SELECT sem WHERE, sobre dois perfis temporários: A recebeu somente A e B recebeu somente B.
+- Conforme relato da usuária, UPDATE sem WHERE como A alterou somente o nome de A; consulta administrativa posterior mostrou B intacto. Ela também confirmou os resultados esperados dos blocos que capturam insufficient_privilege: A tentando inserir perfil com ID de B foi bloqueado, e consulta como anon foi bloqueada.
+- Limites: são testes manuais de permissões/policies com identidade simulada administrativamente, não testes de login/JWT via API ou pelo Android. Os perfis usados nos scripts são temporários e não compõem o seed. Ainda faltam rejeições por constraints, tentativas efetivas de alterar ID/data ou excluir, consulta de TRUNCATE e criação/edição própria como B. Login Android e criação do perfil pelo aplicativo ainda não existem. Não houve nova execução Gradle nesta etapa exclusivamente SQL/documental.
+
 ## Seleção do horário pelo ID — 08/10/2026
 
 - Inspeção: a tela envia o ID ao ViewModel, que valida o registro contra unidade/data/lista antes de guardar ID e hora. Troca de unidade/data e recarga limpam a seleção; Continuar e Confirmar exigem o ID preenchido.
