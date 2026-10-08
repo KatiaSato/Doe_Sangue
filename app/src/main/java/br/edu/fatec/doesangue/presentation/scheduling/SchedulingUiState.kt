@@ -18,6 +18,9 @@ data class SchedulingUiState(
     val selectedDate: LocalDate? = null,
     val selectedTime: LocalTime? = null,
 
+    // Identifica o registro de horário escolhido para o futuro agendamento.
+    val selectedTimeSlotId: String? = null,
+
     // Guarda os horários retornados para a unidade e a data escolhidas.
     val timeSlots: List<DonationTimeSlot> = emptyList(),
 

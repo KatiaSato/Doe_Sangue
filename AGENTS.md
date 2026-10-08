@@ -78,7 +78,13 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - DTO, mapper, DataSource, repository e caso de uso de horários estão ligados ao SchedulingViewModel via AppContainer. Ao mudar a data, consulta o intervalo no fuso da unidade; ao mudar a unidade, cancela e limpa o rascunho. A tela mostra carregamento, erro com nova tentativa, vazio ou horários retornados; o ViewModel valida a escolha contra unidade/data/lista.
 - Supabase Kotlin 3.6.0: agrupar gte/lt da coluna inicio dentro de and no DataSource. O envio de parâmetros dessa versão usa somente o primeiro valor por chave quando as condições ficam diretamente no filter; isso descartava o limite superior. Não remover o agrupamento sem um teste do pedido HTTP ou de integração que cubra dias adjacentes.
 - AppNavigationTest e DonationRestrictionsTest injetam repositories fictícios de unidades e horários. SupabaseTimeSlotsReadTest é uma exceção explícita, somente leitura, ativada por enableSupabaseReadTests=true contra o seed de desenvolvimento. Resultados em docs/12-validacao.md.
-- Calendário ainda permite escolher qualquer data para consultar; não há bloqueio antecipado de dias vazios. Capacidade restante, persistência de reservas, autenticação e conservação do ID do horário selecionado para a futura gravação continuam pendentes.
+- Calendário ainda permite escolher qualquer data para consultar; não há bloqueio antecipado de dias vazios. Capacidade restante, persistência de reservas e autenticação continuam pendentes.
+
+## Identidade do horário no rascunho — 08/10/2026
+
+- A tela comunica o ID do horário ao ViewModel por `onSelectTimeSlot`. `selectTimeSlot` valida o registro na lista da unidade/data atuais e guarda `selectedTimeSlotId` junto de `selectedTime` para exibição.
+- Mudar de unidade/data ou recarregar horários limpa o ID e a hora. Continuar e Confirmar exigem o ID preenchido. A usuária confirmou o percurso manual de seleção, troca de data, retorno sem seleção e revisão; resultados automatizados em `docs/12-validacao.md`.
+- O ID identifica a oferta para a futura persistência; não constitui reserva nem garante capacidade disponível. Confirmar ainda é navegação visual.
 
 ## Revisão editorial — 06/10/2026
 

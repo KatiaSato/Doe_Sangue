@@ -1,5 +1,13 @@
 # Validação
 
+## Seleção do horário pelo ID — 08/10/2026
+
+- Inspeção: a tela envia o ID ao ViewModel, que valida o registro contra unidade/data/lista antes de guardar ID e hora. Troca de unidade/data e recarga limpam a seleção; Continuar e Confirmar exigem o ID preenchido.
+- Validação manual relatada pela usuária: selecionar Demo A, 19/10/2026 e 08:00 habilita Continuar; mudar para 20/10 mostra agenda vazia e desabilita o botão; voltar para 19/10 não restaura a seleção; escolher novamente permite avançar até a revisão com os dados corretos e Confirmar habilitado.
+- `test assembleDebug`: um teste local básico aprovado e compilação concluída. A primeira tentativa instrumentada encontrou o Moto g04/Android 14 com tela apagada e bloqueada, com falhas de ausência de hierarquia Compose; foi interrompida pelo agente.
+- Após a usuária desbloquear o aparelho, `connectedDebugAndroidTest` terminou com BUILD SUCCESSFUL: **14 testes instrumentados aprovados**, zero falhas/erros e um teste de leitura remota ignorado por padrão. Contagem conferida no XML: dez testes de navegação, quatro de orientações e um remoto ignorado. A suíte usa repositories fictícios e verifica o fluxo, incluindo limpeza da seleção ao mudar a data.
+- Limites: o teste local básico não verifica a nova lógica do ViewModel. Não foram acrescentados testes isolados para IDs inválidos ou registros de outra unidade/data. A confirmação continua visual, sem gravação de reserva. Lint e teste remoto de leitura não foram repetidos nesta etapa.
+
 ## Consulta de horários e correção do intervalo — 07/10/2026
 
 - `test assembleDebug assembleDebugAndroidTest connectedDebugAndroidTest`: BUILD SUCCESSFUL com o argumento de leitura remota abaixo. Um teste local básico aprovado e **15 testes instrumentados** no Pixel_6/Android 12, sem falhas ou ignorados: dez de navegação, quatro de orientações e um de integração de leitura dos horários.

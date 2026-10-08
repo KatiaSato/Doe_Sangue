@@ -57,7 +57,7 @@ class SupabaseTimeSlotsReadTest {
                 ScheduleDateScreen(
                     uiState = state,
                     onSelectDate = model::selectDate,
-                    onSelectTime = model::selectTime,
+                    onSelectTimeSlot = model::selectTimeSlot,
                     onRetry = model::loadTimeSlots,
                     onBack = {},
                     onContinue = {},

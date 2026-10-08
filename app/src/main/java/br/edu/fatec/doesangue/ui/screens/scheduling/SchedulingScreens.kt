@@ -1,7 +1,6 @@
 package br.edu.fatec.doesangue.ui.screens.scheduling
 
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.background
@@ -135,7 +134,7 @@ fun ScheduleCenterScreen(
 fun ScheduleDateScreen(
     uiState: SchedulingUiState,
     onSelectDate: (LocalDate) -> Unit,
-    onSelectTime: (LocalTime) -> Unit,
+    onSelectTimeSlot: (String) -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
     onContinue: () -> Unit,
@@ -215,8 +214,8 @@ fun ScheduleDateScreen(
                                 .toLocalTime()
 
                             FilterChip(
-                                selected = uiState.selectedTime == time,
-                                onClick = { onSelectTime(time) },
+                                selected = uiState.selectedTimeSlotId == slot.id,
+                                onClick = { onSelectTimeSlot(slot.id) },
                                 label = {
                                     Text(time.format(DateTimeFormatter.ofPattern("HH:mm")))
                                 },
@@ -235,6 +234,7 @@ fun ScheduleDateScreen(
             enabled = uiState.selectedCenter != null &&
                     uiState.selectedDate != null &&
                     uiState.selectedTime != null &&
+                    uiState.selectedTimeSlotId != null &&
                     !uiState.isLoadingTimeSlots &&
                     uiState.timeSlotsErrorMessage == null,
         )
@@ -297,7 +297,8 @@ fun ScheduleConfirmScreen(
             onClick = onConfirm,
             enabled = uiState.selectedCenter != null &&
                     uiState.selectedDate != null &&
-                    uiState.selectedTime != null,
+                    uiState.selectedTime != null &&
+                    uiState.selectedTimeSlotId != null,
         )
     }
 }

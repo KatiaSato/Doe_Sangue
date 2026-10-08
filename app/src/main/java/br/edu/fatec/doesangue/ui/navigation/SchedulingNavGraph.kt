@@ -84,7 +84,7 @@ fun NavGraphBuilder.schedulingNavGraph(
             ScheduleDateScreen(
                 uiState = uiState,
                 onSelectDate = schedulingViewModel::selectDate,
-                onSelectTime = schedulingViewModel::selectTime,
+                onSelectTimeSlot = schedulingViewModel::selectTimeSlot,
                 onRetry = schedulingViewModel::loadTimeSlots,
                 onBack = {
                     navController.popBackStack()

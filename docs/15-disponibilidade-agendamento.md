@@ -15,6 +15,14 @@ Registro de decisão — 06/10/2026. A usuária aprovou a direção funcional e 
 
 ## Implementado e validado até aqui
 
+### Identidade do horário selecionado — 08/10/2026
+
+- `SchedulingUiState` conserva `selectedTimeSlotId` no rascunho. `selectedTime` permanece para exibir a hora local da unidade.
+- O clique envia `slot.id` por `onSelectTimeSlot`; a navegação liga o callback a `SchedulingViewModel.selectTimeSlot`. O ViewModel localiza o registro na lista consultada e valida unidade/data antes de atualizar ID e hora juntos. Não aceita seleção durante carregamento ou erro.
+- Troca de unidade, troca de data e nova consulta limpam ID e hora. Os botões Continuar e Confirmar exigem o ID preenchido; o chip identifica a seleção pelo ID.
+- A usuária confirmou o percurso manual: Demo A em 19/10/2026 às 08:00 habilita Continuar; 20/10 fica vazio e desabilitado; retornar a 19/10 exige nova seleção; a revisão mostra os dados e habilita Confirmar. Resultados e limites em [validação](12-validacao.md).
+- Ainda não há gravação de reserva, cálculo de vagas restantes ou bloqueio prévio de dias vazios. O ID guardado prepara a futura referência ao registro no banco; a confirmação permanece visual.
+
 ### Estado da integração Android — 07/10/2026
 
 - A usuária implementou DonationTimeSlotDto, mapper com OffsetDateTime para Instant, DataSource, repository com Result e preservação de cancelamento, e injeção do caso de uso pelo AppContainer.
@@ -22,7 +30,7 @@ Registro de decisão — 06/10/2026. A usuária aprovou a direção funcional e 
 - ScheduleDateScreen substituiu a lista fixa por carregamento, erro com Tentar novamente, lista vazia ou horários do estado. Exibe o instante no fuso da unidade e impede Continuar durante carregamento/erro ou sem seleção.
 - O relato de 08:00 aparecendo em outras datas revelou perda do limite superior na biblioteca Supabase Kotlin 3.6.0: PostgrestRequestBuilder usa mapToFirstValue no envio. A usuária agrupou gte/lt em and, preservando os dois limites da coluna inicio no pedido. A validação do ViewModel impedia selecionar o registro de outro dia, mas não corrigia a consulta.
 - Os testes normais usam FakeDonationTimeSlotRepository em androidTest. Um teste remoto de leitura, explicitamente ativado, percorre os dias 18, 19 e 20 de outubro usando a consulta real. Resultados e limites em [validação](12-validacao.md).
-- Ainda não há gravação de reserva, vagas restantes, bloqueio prévio de dias vazios no calendário nem ID do horário selecionado no rascunho. O título de demonstração permanece porque os dados são sintéticos.
+- Neste checkpoint ainda não havia ID do horário selecionado no rascunho; ele foi acrescentado em 08/10/2026, conforme seção acima. O título de demonstração permanece porque os dados são sintéticos.
 
 ### Histórico dos passos anteriores à ligação da consulta
 
@@ -55,7 +63,7 @@ Esses valores servem para testar a configuração de uma unidade; não são uma 
 
 Começar pela modelagem de `HorarioDisponivel` vinculado a `UnidadeColeta`. A agenda sintética será mantida no nosso banco. Definir o esquema e o contrato antes de substituir a lista fixa da tela. Uma grade semanal e suas exceções podem ajudar a gerar horários por data, mas a necessidade de tabelas separadas para isso ainda será avaliada.
 
-O seed mínimo já foi criado e aplicado: três ofertas sintéticas em 19/10/2026 — Demo A às 08:00 ativa (capacidade 3), Demo A às 09:30 inativa (capacidade 2) e Demo B às 08:00 ativa (capacidade 1). Usa o fuso da unidade e evita duplicação por unidade/início, sem atualizar ofertas existentes. Ele ainda não cobre a grade semanal proposta acima. DTO, mapper, fonte de dados e repository já estão ligados à tela; próximas etapas incluem conservar a identidade do horário escolhido e planejar autenticação/persistência com capacidade validada no servidor.
+O seed mínimo já foi criado e aplicado: três ofertas sintéticas em 19/10/2026 — Demo A às 08:00 ativa (capacidade 3), Demo A às 09:30 inativa (capacidade 2) e Demo B às 08:00 ativa (capacidade 1). Usa o fuso da unidade e evita duplicação por unidade/início, sem atualizar ofertas existentes. Ele ainda não cobre a grade semanal proposta acima. DTO, mapper, fonte de dados e repository já estão ligados à tela, e o rascunho conserva a identidade do horário escolhido. Próximas etapas incluem planejar autenticação/persistência com capacidade validada no servidor.
 
 ## Responsabilidade de cada camada — implementação planejada
 

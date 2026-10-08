@@ -1,7 +1,6 @@
 package br.edu.fatec.doesangue.presentation.scheduling
 
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.ZoneId
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +53,7 @@ class SchedulingViewModel(
                 selectedCenter = center,
                 selectedDate = null,
                 selectedTime = null,
+                selectedTimeSlotId = null,
                 timeSlots = emptyList(),
                 isLoadingTimeSlots = false,
                 timeSlotsErrorMessage = null,
@@ -77,43 +77,45 @@ class SchedulingViewModel(
             current.copy(
                 selectedDate = date,
                 selectedTime = null,
+                selectedTimeSlotId = null,
             )
         }
 
         loadTimeSlots()
     }
 
-    // Aceita somente um horário retornado para a unidade e a data atuais.
-    fun selectTime(time: LocalTime) {
+    // Localiza e valida o registro de horário escolhido pelo seu ID.
+    fun selectTimeSlot(slotId: String) {
         _uiState.update { current ->
             val center = current.selectedCenter ?: return@update current
             val date = current.selectedDate ?: return@update current
 
             if (
                 current.isLoadingTimeSlots ||
-                current.timeSlotsErrorMessage != null ||
-                current.timeSlots.isEmpty()
+                current.timeSlotsErrorMessage != null
             ) {
                 return@update current
             }
 
-            val zone = ZoneId.of(center.timeZoneId)
+            val slot = current.timeSlots.firstOrNull { item ->
+                item.id == slotId && item.centerId == center.id
+            } ?: return@update current
 
-            val offeredTime = current.timeSlots.any { slot ->
-                val localStart = slot.startsAt.atZone(zone)
+            val localStart = slot.startsAt.atZone(
+                ZoneId.of(center.timeZoneId)
+            )
 
-                slot.centerId == center.id &&
-                        localStart.toLocalDate() == date &&
-                        localStart.toLocalTime() == time
+            if (localStart.toLocalDate() != date) {
+                return@update current
             }
 
-            if (offeredTime) {
-                current.copy(selectedTime = time)
-            } else {
-                current
-            }
+            current.copy(
+                selectedTimeSlotId = slot.id,
+                selectedTime = localStart.toLocalTime(),
+            )
         }
     }
+
 
     // Consulta os horários da unidade e da data selecionadas.
     /* Essa função:
@@ -133,6 +135,7 @@ class SchedulingViewModel(
             current.copy(
                 timeSlots = emptyList(),
                 selectedTime = null,
+                selectedTimeSlotId = null,
                 isLoadingTimeSlots = true,
                 timeSlotsErrorMessage = null,
             )
