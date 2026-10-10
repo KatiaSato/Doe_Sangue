@@ -6,6 +6,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.getValue
+import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionDetailScreen
 import br.edu.fatec.doesangue.ui.screens.home.HomeScheduledScreen
@@ -32,6 +36,7 @@ import br.edu.fatec.doesangue.ui.screens.scheduling.EditRoutineScreen
 fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
     schedulingViewModelFactory: ViewModelProvider.Factory,
+    profileViewModelFactory: ViewModelProvider.Factory,
     onNavigateMain: (AppRoute) -> Unit,
     onFinishScheduling: () -> Unit,
 ) {
@@ -226,7 +231,16 @@ fun NavGraphBuilder.mainNavGraph(
 
         // Perfil e configurações
         composable<AppRoute.Profile> {
+            val profileViewModel: ProfileViewModel = viewModel(
+                factory = profileViewModelFactory,
+            )
+
+            val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
             ProfileScreen(
+                uiState = uiState,
+                onRetry = profileViewModel::loadProfile,
+                onDisplayNameChange = profileViewModel::updateDisplayName,
+                onCreateProfile = profileViewModel::createProfile,
                 onBack = {
                     navController.navigateBackOrHome()
                 },

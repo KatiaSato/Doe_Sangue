@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.edu.fatec.doesangue.presentation.profile.ProfileUiState
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
@@ -43,32 +44,29 @@ import br.edu.fatec.doesangue.ui.theme.InkSecondary
 
 @Composable
 fun ProfileScreen(
+    uiState: ProfileUiState,
+    onRetry: () -> Unit,
     onBack: () -> Unit,
     onDonations: () -> Unit,
     onAppointment: () -> Unit,
     onSettings: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
+    onDisplayNameChange: (String) -> Unit,
+    onCreateProfile: () -> Unit,
 ) {
-    DsScreen(onBack = onBack, bottomRoute = AppRoute.Profile, onNavigate = onNavigate) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp),
-            colors = CardDefaults.cardColors(containerColor = BloodRed),
-        ) {
-            Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier.size(66.dp).background(Color.White, CircleShape), contentAlignment = Alignment.Center) {
-                    Text("●", color = BloodRed, style = MaterialTheme.typography.headlineLarge)
-                }
-                Text("Mariana Silva", style = MaterialTheme.typography.titleLarge, color = Color.White)
-                Text("O+ • 28 anos", style = MaterialTheme.typography.bodyMedium, color = Color.White)
-            }
-        }
-        Spacer(Modifier.height(18.dp))
-        ProfileInfo("✉", "E-mail", "mariana@email.com")
-        ProfileInfo("⌕", "Telefone", "(19) 99999-9999")
-        ProfileInfo("♦", "Tipo sanguíneo", "O+")
-        ProfileInfo("▣", "Data de nascimento", "15/04/1996")
-        ProfileInfo("○", "Última doação", "20/06/2026")
+    DsScreen(
+        title = "Meu perfil",
+        onBack = onBack,
+        bottomRoute = AppRoute.Profile,
+        onNavigate = onNavigate,
+    ) {
+        ProfileContent(
+            uiState = uiState,
+            onRetry = onRetry,
+            onDisplayNameChange = onDisplayNameChange,
+            onCreateProfile = onCreateProfile,
+        )
+
         Spacer(Modifier.height(16.dp))
         SecondaryButton("Minhas doações", onDonations)
         Spacer(Modifier.height(10.dp))

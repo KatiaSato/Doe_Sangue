@@ -2,11 +2,11 @@
 
 ## Estado atual
 
-**Atualizado em 08/10/2026.** Existem três tabelas do domínio: `unidade_coleta`, `horario_disponivel` e `perfil_doador`. As migrações definem uma FK entre tabelas do domínio (horário → unidade) e uma FK adicional do perfil para `auth.users`. A tabela de agendamento ainda não existe. O Android consulta unidades/horários e guarda o ID selecionado no rascunho; autenticação e gravação continuam pendentes.
+**Atualizado em 10/10/2026.** Existem três tabelas do domínio: `unidade_coleta`, `horario_disponivel` e `perfil_doador`. As migrações definem uma FK entre tabelas do domínio (horário → unidade) e uma FK adicional do perfil para `auth.users`. A tabela de agendamento ainda não existe. O Android consulta unidades/horários e guarda o ID selecionado no rascunho. Login por e-mail/senha e criação/leitura do perfil estão implementados e tiveram resultado manual esperado com a conta sintética A; captura confirma o perfil persistido. Cadastro real, gestão completa da sessão e gravação de agendamentos permanecem pendentes.
 
 A migração do perfil foi aplicada manualmente pela usuária. Capturas e relatos dos testes SQL confirmam RLS, privilégios por coluna, leitura própria com duas identidades simuladas, criação/edição própria como A, bloqueio de criação em nome de B e bloqueio de consulta anônima. Limites e evidências em [validação](12-validacao.md).
 
-A massa sintética confirmada permanece em duas unidades e três horários. Duas contas de teste existem no Supabase Auth, mas não são tabelas/registros do domínio para a meta acadêmica. Os perfis dos testes SQL são temporários, com ROLLBACK; ainda não há seed persistente de perfis.
+A massa sintética confirmada compreende duas unidades, três horários e um perfil persistido (Doador Demo A), totalizando seis registros do domínio. Duas contas de teste existem no Supabase Auth, mas não são tabelas/registros do domínio para a meta acadêmica. Os perfis dos testes SQL anteriores foram temporários, com ROLLBACK; o perfil A atual foi criado pelo aplicativo e confirmado por captura da consulta no banco. Ainda não há seed ampliado de perfis nem os 200 registros acadêmicos exigidos.
 
 ### Histórico da evolução de unidades e horários
 

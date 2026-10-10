@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.compose.runtime.remember
+import androidx.compose.ui.test.performTextInput
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.ui.theme.DoeSangueTheme
 import org.junit.Assert.assertNull
@@ -50,6 +51,8 @@ class AppNavigationTest {
                 AppContainer(
                     centerRepositoryOverride = FakeDonationCenterRepository(),
                     timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
+                    authRepositoryOverride = FakeAuthRepository(),
+                    donorProfileRepositoryOverride = FakeDonorProfileRepository(),
                 )
             }
             navController = rememberNavController()
@@ -59,6 +62,8 @@ class AppNavigationTest {
                     navController = navController,
                     schedulingViewModelFactory =
                         appContainer.schedulingViewModelFactory,
+                    loginViewModelFactory = appContainer.loginViewModelFactory,
+                    profileViewModelFactory = appContainer.profileViewModelFactory,
                 )
             } // Fecha DoeSangueTheme
         } // Fecha restoration.setContent — faltou esta chave
@@ -260,6 +265,13 @@ class AppNavigationTest {
 
     private fun enterMain() {
         tap("Já tenho uma conta")
+
+        compose.onNodeWithText("E-mail")
+            .performTextInput("teste@example.com")
+        compose.onNodeWithText("Senha")
+            .performTextInput("senha-ficticia")
+
+        compose.onNodeWithText("Entrar").performScrollTo()
         tap("Entrar")
         assertRoute<AppRoute.Home>()
     }

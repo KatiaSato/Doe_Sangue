@@ -2,13 +2,13 @@
 
 ## Objetivo e estado
 
-Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; unidades e horários sintéticos do agendamento são consultados no Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão. Recorrência, sucesso e autenticação continuam visuais; confirmar ainda não grava agendamento. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
+Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; unidades e horários sintéticos do agendamento são consultados no Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão. Login por e-mail/senha e criação/leitura do perfil estão integrados ao Supabase; cadastro, recuperação de senha e provedores sociais continuam visuais. Recorrência e sucesso ainda são visuais; confirmar não grava agendamento. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
 
 ## Stack e estrutura
 
 - Kotlin, Android nativo, Jetpack Compose.
 - Arquitetura planejada: MVVM com Repository, StateFlow e corrotinas.
-- Backend: PostgreSQL/PostgREST integrado à consulta de unidades; Supabase Auth planejado.
+- Backend: PostgreSQL/PostgREST integrado a unidades, horários e perfil; Supabase Auth integrado ao login por e-mail/senha.
 - Tema acadêmico aceito pelo professor: Clínica/Hospital — atendimento humano. Supabase foi sugerido por ele; ambiente de desenvolvimento acadêmico confirmado pela usuária, somente dados sintéticos e sem reservas em hemocentros reais.
 - Autenticação planejada: e-mail/senha e Google. Para e-mail/senha, mínimo de 8 caracteres com maiúscula, minúscula, número e símbolo, aplicado no Auth e explicado na UI.
 - `domain/`: modelos, contratos e casos de uso sem dependência da UI.
@@ -91,6 +91,14 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - A usuária aplicou manualmente `20261008000100_criar_perfil_doador.sql`. Não reaplicar. Perfil mínimo com UUID PK/FK para auth.users, nome de exibição e criado_em; sem senha ou criação automática após cadastro.
 - Capturas confirmam RLS ativo, policies de SELECT/INSERT/UPDATE para acesso próprio, privilégios por coluna e DELETE negado aos papéis anon/authenticated. Testes SQL manuais confirmaram leitura isolada A/B e criação própria como A; edição própria preservando B, inserção em nome de B bloqueada e consulta anon bloqueada tiveram resultado esperado conforme relato. Ver `docs/12-validacao.md` para limites.
 - Duas contas sintéticas existem no Auth, criadas pelo painel; perfis dos testes foram usados em transações com ROLLBACK. Não versionar credenciais nem confundir simulação administrativa da identidade com login real. Próximo passo didático: autenticação Android e ligação do perfil, em pequenos passos. Constraints, seed persistente de perfis e gravação de agendamento permanecem pendentes.
+
+## Login e persistência do perfil — 10/10/2026
+
+- AuthRepository/LoginViewModel estão ligados ao login; a navegação abre Main somente após sucesso. A senha não fica no estado do ViewModel nem em logs. O cliente Supabase é compartilhado entre Auth e PostgREST; factories e repositories aceitam substituições nos testes.
+- Perfil mínimo: DonorProfile, DTO/mapper, DataSource e repository; ProfileViewModel representa Loading/Loaded/Missing/Error. O formulário Missing cria o próprio perfil, validando nome vazio, preservando o texto em falhas e bloqueando edição/envios repetidos/consulta concorrente durante a gravação. O ID vem da conta autenticada; criado_em vem do banco. RLS continua sendo a proteção no servidor.
+- A usuária confirmou login real e criação/leitura com a conta sintética A. Captura da consulta com JOIN para auth.users confirma um perfil persistido com nome Doador Demo A e data preenchida. Massa confirmada: duas unidades, três horários e um perfil (seis registros do domínio); duas contas Auth são separadas dessa contagem.
+- No cadastro real, usar o nome já informado para criar o perfil quando houver sessão autenticada. Missing é recuperação de contas sem perfil, não uma segunda etapa obrigatória do cadastro. Cadastro real e confirmação de e-mail ainda precisam ser conectados; sessão/restauração/logout e perda de resposta após INSERT permanecem pendentes.
+- Validação atual: cinco testes de perfil e dez de navegação aprovados em 10/10 no Pixel_6/Android 12. Suíte de 09/10: 17 aprovados e um remoto ignorado no Moto g04/Android 14. Testes usam dados fictícios; ver docs/12-validacao.md para evidências e limites. Ainda faltam isolamento entre contas via API, cancelamento, seed ampliado e persistência de agendamentos. Seções anteriores descrevem checkpoints históricos.
 
 ## Revisão editorial — 06/10/2026
 

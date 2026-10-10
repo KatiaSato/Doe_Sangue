@@ -96,6 +96,9 @@ dependencies {
     // Acesso às tabelas pela API.
     implementation(libs.supabase.postgrest)
 
+    // Autenticação e gerenciamento da sessão.
+    implementation(libs.supabase.auth)
+
     // Comunicação pela rede.
     implementation(libs.ktor.client.okhttp)
 

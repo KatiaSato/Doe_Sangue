@@ -1,6 +1,7 @@
 package br.edu.fatec.doesangue.data.supabase
 
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 
@@ -21,6 +22,7 @@ fun createDonationSupabaseClient(
         supabaseUrl = url,
         supabaseKey = publishableKey,
     ) {
+        install(Auth)
         install(Postgrest)
     }
 }

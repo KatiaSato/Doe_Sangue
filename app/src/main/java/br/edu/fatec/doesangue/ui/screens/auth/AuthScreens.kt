@@ -19,6 +19,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import br.edu.fatec.doesangue.presentation.auth.LoginUiState
 import br.edu.fatec.doesangue.R
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
@@ -34,10 +43,14 @@ import br.edu.fatec.doesangue.ui.theme.InkSecondary
 
 @Composable
 fun LoginScreen(
-    onEnter: () -> Unit,
+    uiState: LoginUiState,
+    onSignIn: (String, String) -> Unit,
     onForgot: () -> Unit,
     onRegister: () -> Unit,
 ) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
     DsScreen {
         Spacer(Modifier.height(54.dp))
         ScreenHeading("Bem-vindo!", "Que bom ter você por aqui.")
@@ -47,11 +60,49 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth().height(190.dp),
             contentScale = ContentScale.Fit,
         )
-        VisualField("E-mail", "seu@email.com")
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("E-mail") },
+            placeholder = { Text("seu@email.com") },
+            singleLine = true,
+            enabled = !uiState.isLoading,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        )
+
         Spacer(Modifier.height(12.dp))
-        VisualField("Senha", "Digite sua senha")
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Senha") },
+            placeholder = { Text("Digite sua senha") },
+            singleLine = true,
+            enabled = !uiState.isLoading,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        )
         TextAction("Esqueci minha senha", onForgot, Modifier.align(Alignment.End))
-        PrimaryButton("Entrar", onEnter)
+        uiState.errorMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+
+        PrimaryButton(
+            text = if (uiState.isLoading) "Entrando..." else "Entrar",
+            onClick = { onSignIn(email, password) },
+            enabled = !uiState.isLoading &&
+                    uiState.authenticatedUser == null,
+        )
         Spacer(Modifier.height(12.dp))
         Text("ou continue com", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = InkSecondary, style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(10.dp))

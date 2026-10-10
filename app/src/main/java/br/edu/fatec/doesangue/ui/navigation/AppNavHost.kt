@@ -11,6 +11,8 @@ import androidx.lifecycle.ViewModelProvider
 fun AppNavHost(
     navController: NavHostController,
     schedulingViewModelFactory: ViewModelProvider.Factory,
+    loginViewModelFactory: ViewModelProvider.Factory,
+    profileViewModelFactory: ViewModelProvider.Factory,
 ) {
     // Define como abrir destinos solicitados pelas telas
     // e pela barra inferior.
@@ -71,9 +73,9 @@ fun AppNavHost(
 
         authNavGraph(
             navController = navController,
+            loginViewModelFactory = loginViewModelFactory,
             onEnterMain = {
-                // Entrada visual do protótipo.
-                // Futuramente, dependerá de autenticação bem-sucedida.
+                // Abre a área principal após o login bem-sucedido.
                 navController.navigate(AppGraph.Main) {
                     // Ao entrar, remove todo o fluxo de autenticação.
                     popUpTo<AppGraph.Auth> {
@@ -87,6 +89,7 @@ fun AppNavHost(
         mainNavGraph(
             navController = navController,
             schedulingViewModelFactory = schedulingViewModelFactory,
+            profileViewModelFactory = profileViewModelFactory,
             onNavigateMain = ::navigateMain,
             onFinishScheduling = {
                 navController.navigate(AppRoute.HomeScheduled) {

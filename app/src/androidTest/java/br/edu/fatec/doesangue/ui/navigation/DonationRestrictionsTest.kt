@@ -42,6 +42,8 @@ class DonationRestrictionsTest {
                 AppContainer(
                     centerRepositoryOverride = FakeDonationCenterRepository(),
                     timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
+                    authRepositoryOverride = FakeAuthRepository(),
+                    donorProfileRepositoryOverride = FakeDonorProfileRepository(),
                 )
             }
             nav = rememberNavController()
@@ -61,6 +63,8 @@ class DonationRestrictionsTest {
                         navController = nav,
                         schedulingViewModelFactory =
                             appContainer.schedulingViewModelFactory,
+                        loginViewModelFactory = appContainer.loginViewModelFactory,
+                        profileViewModelFactory = appContainer.profileViewModelFactory,
                     )
                 }
             }
@@ -71,6 +75,12 @@ class DonationRestrictionsTest {
             nav.currentDestination?.hasRoute<AppRoute.Welcome>() == true
         }
         tap("Já tenho uma conta")
+        compose.onNodeWithText("E-mail")
+            .performTextInput("teste@example.com")
+        compose.onNodeWithText("Senha")
+            .performTextInput("senha-ficticia")
+
+        compose.onNodeWithText("Entrar").performScrollTo()
         tap("Entrar")
     }
 

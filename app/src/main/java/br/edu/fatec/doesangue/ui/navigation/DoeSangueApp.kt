@@ -14,5 +14,7 @@ fun DoeSangueApp() {
     AppNavHost(
         navController = navController,
         schedulingViewModelFactory = appContainer.schedulingViewModelFactory,
+        loginViewModelFactory = appContainer.loginViewModelFactory,
+        profileViewModelFactory = appContainer.profileViewModelFactory,
     )
 }

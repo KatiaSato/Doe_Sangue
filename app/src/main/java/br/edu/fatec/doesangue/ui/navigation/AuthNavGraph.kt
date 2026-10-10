@@ -4,6 +4,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import androidx.lifecycle.ViewModelProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
 import br.edu.fatec.doesangue.ui.screens.auth.EmailVerificationScreen
 import br.edu.fatec.doesangue.ui.screens.auth.ForgotPasswordScreen
 import br.edu.fatec.doesangue.ui.screens.auth.LoginScreen
@@ -15,6 +21,7 @@ import br.edu.fatec.doesangue.ui.screens.onboarding.WelcomeScreen
 
 fun NavGraphBuilder.authNavGraph(
     navController: NavHostController,
+    loginViewModelFactory: ViewModelProvider.Factory,
     onEnterMain: () -> Unit,
 ) {
     navigation<AppGraph.Auth>(
@@ -32,10 +39,20 @@ fun NavGraphBuilder.authNavGraph(
         }
 
         composable<AppRoute.Login> {
+            val loginViewModel: LoginViewModel = viewModel(
+                factory = loginViewModelFactory,
+            )
+
+            val uiState by loginViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(uiState.authenticatedUser?.id) {
+                if (uiState.authenticatedUser != null) {
+                    onEnterMain()
+                }
+            }
             LoginScreen(
-                // No protótipo, entrar apenas solicita a mudança de fluxo.
-                // A autenticação real será conectada em outra etapa.
-                onEnter = onEnterMain,
+
+                uiState = uiState,
+                onSignIn = loginViewModel::signIn,
                 onForgot = {
                     navController.navigate(AppRoute.ForgotPassword)
                 },
