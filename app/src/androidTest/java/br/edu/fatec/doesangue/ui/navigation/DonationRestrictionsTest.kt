@@ -66,6 +66,7 @@ class DonationRestrictionsTest {
                         loginViewModelFactory = appContainer.loginViewModelFactory,
                         profileViewModelFactory = appContainer.profileViewModelFactory,
                         logoutViewModelFactory = appContainer.logoutViewModelFactory,
+                        sessionViewModelFactory = appContainer.sessionViewModelFactory,
                     )
                 }
             }

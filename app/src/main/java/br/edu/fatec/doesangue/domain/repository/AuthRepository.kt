@@ -18,4 +18,7 @@ interface AuthRepository {
 
     // Encerra a sessão da conta no aplicativo.
     suspend fun signOut(): Result<Unit>
+
+    // Aguarda a restauração e informa se existe uma conta conectada.
+    suspend fun restoreSession(): Result<AuthenticatedUser?>
 }

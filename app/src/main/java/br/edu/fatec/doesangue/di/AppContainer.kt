@@ -24,6 +24,7 @@ import br.edu.fatec.doesangue.data.repository.SupabaseDonorProfileRepository
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonorProfileDataSource
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
+import br.edu.fatec.doesangue.presentation.auth.SessionViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 
 // Ele é responsável por criar os objetos e fornecer suas dependências
@@ -115,6 +116,15 @@ class AppContainer(
         initializer {
             ProfileViewModel(
                 repository = donorProfileRepository,
+            )
+        }
+    }
+
+    // Cria o ViewModel que consulta a sessão na abertura.
+    val sessionViewModelFactory = viewModelFactory {
+        initializer {
+            SessionViewModel(
+                authRepository = authRepository,
             )
         }
     }

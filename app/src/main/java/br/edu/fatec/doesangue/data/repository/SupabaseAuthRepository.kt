@@ -38,4 +38,18 @@ class SupabaseAuthRepository(
             Result.failure(exception)
         }
     }
+
+    override suspend fun restoreSession(): Result<AuthenticatedUser?> {
+        return try {
+            val user = dataSource.restoreSession()
+            Result.success(user)
+        } catch (exception: CancellationException) {
+            // Preserva o cancelamento da corrotina.
+            throw exception
+        } catch (exception: Exception) {
+            Result.failure(exception)
+        }
+    }
+
+
 }

@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.edu.fatec.doesangue.R
+import br.edu.fatec.doesangue.presentation.auth.SessionUiState
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
 import br.edu.fatec.doesangue.ui.components.TextAction
 import br.edu.fatec.doesangue.ui.theme.BloodRed
@@ -34,10 +35,26 @@ import br.edu.fatec.doesangue.ui.theme.BloodRedStrong
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(onFinished: () -> Unit) {
-    LaunchedEffect(Unit) {
-        delay(1_800)
-        onFinished()
+fun SplashScreen(
+    uiState: SessionUiState,
+    onRetry: () -> Unit,
+    onFinished: (Boolean) -> Unit,
+) {
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is SessionUiState.Authenticated -> {
+                delay(1_800)
+                onFinished(true)
+            }
+
+            SessionUiState.Unauthenticated -> {
+                delay(1_800)
+                onFinished(false)
+            }
+
+            SessionUiState.Loading,
+            is SessionUiState.Error -> Unit
+        }
     }
     Box(
         Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(BloodRedStrong, Color(0xFFF0141A)))),
@@ -54,7 +71,11 @@ fun SplashScreen(onFinished: () -> Unit) {
                 modifier = Modifier.size(190.dp).clip(RoundedCornerShape(34.dp)),
                 contentScale = ContentScale.Crop,
             )
-            Spacer(Modifier.height(120.dp))
+            Spacer(
+                Modifier.height(
+                    if (uiState is SessionUiState.Error) 32.dp else 120.dp
+                )
+            )
             Text("Doe Sangue", style = MaterialTheme.typography.displaySmall, color = Color.White)
             Text(
                 "Um pequeno ato\nque salva vidas.",
@@ -64,6 +85,31 @@ fun SplashScreen(onFinished: () -> Unit) {
             )
             Spacer(Modifier.height(28.dp))
             Text("—    ♡    —", style = MaterialTheme.typography.titleLarge, color = Color.White)
+            when (val state = uiState) {
+                SessionUiState.Loading -> {
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = "Verificando sua sessão...",
+                        color = Color.White,
+                    )
+                }
+
+                is SessionUiState.Error -> {
+                    Spacer(Modifier.height(24.dp))
+                    Text(
+                        text = state.message,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    PrimaryButton(
+                        text = "Tentar novamente",
+                        onClick = onRetry,
+                    )
+                }
+
+                else -> Unit
+            }
         }
     }
 }

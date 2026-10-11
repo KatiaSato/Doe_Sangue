@@ -48,6 +48,7 @@ class LoginFlowTest {
                     loginViewModelFactory = factory,
                     profileViewModelFactory = container.profileViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
+                    sessionViewModelFactory = container.sessionViewModelFactory,
                 )
             }
         }
@@ -162,6 +163,10 @@ class LoginFlowTest {
 
         override suspend fun signOut(): Result<Unit> {
             return Result.success(Unit)
+        }
+
+        override suspend fun restoreSession(): Result<AuthenticatedUser?> {
+            return Result.success(null)
         }
     }
 }

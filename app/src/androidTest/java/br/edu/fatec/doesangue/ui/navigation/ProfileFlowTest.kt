@@ -48,6 +48,7 @@ class ProfileFlowTest {
                     loginViewModelFactory = container.loginViewModelFactory,
                     profileViewModelFactory = profileFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
+                    sessionViewModelFactory = container.sessionViewModelFactory,
                 )
             }
         }

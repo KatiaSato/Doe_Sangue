@@ -107,6 +107,13 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - LogoutFlowTest no Pixel_6/Android 12: cinco aprovados, zero falhas/erros/ignorados. Usa repositories fictícios e cobre histórico removido, novo login/logout, falha/nova tentativa, duplicidade, troca A/B e navegação durante a resposta pendente. Ver docs/12-validacao.md para a falha inicial e sua correção.
 - A usuária confirmou manualmente o roteiro com Supabase real: logout da conta sintética A retorna a boas-vindas; novo login como A mantém Doador Demo A no Perfil. Troca A/B pela API ainda precisa de validação manual. Restauração de sessão ao abrir o aplicativo permanece pendente; não assumir que estas etapas foram concluídas a partir dos testes em memória.
 
+## Consulta da sessão na abertura — 10/10/2026
+
+- AuthRepository.restoreSession retorna Result<AuthenticatedUser?>. DataSource aguarda inicialização do SDK e distingue Authenticated/NotAuthenticated/falha; repository preserva CancellationException. A nova operação não armazena manualmente credenciais ou tokens.
+- SessionUiState/SessionViewModel e fábrica estão ligados à entrada Splash. O ViewModel consulta na criação, impede consultas simultâneas e permite nova tentativa após erro. Splash recebe estado/callbacks; só sinaliza conclusão após resultado e atraso visual de 1,8 segundo. AppNavHost escolhe Main ou Auth e remove Splash do histórico. Mensagem de erro e nova tentativa são visíveis na Splash.
+- SessionRestoreFlowTest cobre cinco cenários de abertura com repositories fictícios, sem rede. Execução focada: cinco aprovados. Suíte ampliada no Pixel_6/Android 12: 32 aprovados, zero falhas/erros e um remoto ignorado, confirmados no XML. Ver docs/12-validacao.md para evidências e limites.
+- A usuária confirmou manualmente o roteiro com Supabase real: reabrir com conta sintética A conectada abriu Home com perfil Doador Demo A; reabrir após logout abriu boas-vindas. O agente não inspecionou armazenamento ou tokens. Testes em memória não verificam renovação, expiração, revogação ou recriação do processo. Não há observador global de mudanças de sessão durante o uso; a integração nova decide a entrada na abertura. Seções anteriores são checkpoints históricos.
+
 ## Revisão editorial — 06/10/2026
 
 

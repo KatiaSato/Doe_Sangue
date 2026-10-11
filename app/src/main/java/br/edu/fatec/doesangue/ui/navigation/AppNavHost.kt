@@ -1,11 +1,15 @@
 package br.edu.fatec.doesangue.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import br.edu.fatec.doesangue.ui.screens.onboarding.SplashScreen
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import br.edu.fatec.doesangue.presentation.auth.SessionViewModel
 
 @Composable
 fun AppNavHost(
@@ -14,6 +18,7 @@ fun AppNavHost(
     loginViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
     logoutViewModelFactory: ViewModelProvider.Factory,
+    sessionViewModelFactory: ViewModelProvider.Factory,
 ) {
     // Define como abrir destinos solicitados pelas telas
     // e pela barra inferior.
@@ -57,12 +62,25 @@ fun AppNavHost(
         startDestination = AppRoute.Splash,
     ) {
         composable<AppRoute.Splash> {
+
+            val sessionViewModel: SessionViewModel = viewModel(
+                factory = sessionViewModelFactory,
+            )
+
+            val sessionUiState by
+            sessionViewModel.uiState.collectAsStateWithLifecycle()
             SplashScreen(
-                onFinished = {
-                    navController.navigate(AppGraph.Auth) {
-                        // A Splash já cumpriu seu papel de abertura.
-                        // Removemos também a própria Splash da pilha
-                        // para que Voltar não a exiba novamente.
+                uiState = sessionUiState,
+                onRetry = sessionViewModel::restoreSession,
+                onFinished = { authenticated ->
+                    val destination = if (authenticated) {
+                        AppGraph.Main
+                    } else {
+                        AppGraph.Auth
+                    }
+
+                    navController.navigate(destination) {
+                        // Remove a Splash após concluir a abertura.
                         popUpTo<AppRoute.Splash> {
                             inclusive = true
                         }

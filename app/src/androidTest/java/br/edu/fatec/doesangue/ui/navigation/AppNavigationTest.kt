@@ -65,6 +65,7 @@ class AppNavigationTest {
                     loginViewModelFactory = appContainer.loginViewModelFactory,
                     profileViewModelFactory = appContainer.profileViewModelFactory,
                     logoutViewModelFactory = appContainer.logoutViewModelFactory,
+                    sessionViewModelFactory = appContainer.sessionViewModelFactory,
                 )
             } // Fecha DoeSangueTheme
         } // Fecha restoration.setContent — faltou esta chave
