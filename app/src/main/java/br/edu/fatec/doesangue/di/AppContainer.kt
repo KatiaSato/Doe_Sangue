@@ -23,6 +23,7 @@ import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
 import br.edu.fatec.doesangue.data.repository.SupabaseDonorProfileRepository
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonorProfileDataSource
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
+import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 
 // Ele é responsável por criar os objetos e fornecer suas dependências
@@ -126,13 +127,22 @@ class AppContainer(
             )
         }
     }
+
+    // Cria o ViewModel de saída com o repository de autenticação.
+    val logoutViewModelFactory = viewModelFactory {
+        initializer {
+            LogoutViewModel(
+                authRepository = authRepository,
+            )
+        }
+    }
     /*
- * Define como criar o ViewModel de agendamento,
- * fornecendo o repository de unidades montado neste container.
- *
- * A navegação usará esta fábrica para obter um ViewModel
- * gerenciado pelo Android.
- */
+    * Define como criar o ViewModel de agendamento,
+    * fornecendo o repository de unidades montado neste container.
+    *
+    * A navegação usará esta fábrica para obter um ViewModel
+    * gerenciado pelo Android.
+    */
     val schedulingViewModelFactory = viewModelFactory {
         initializer {
             SchedulingViewModel(

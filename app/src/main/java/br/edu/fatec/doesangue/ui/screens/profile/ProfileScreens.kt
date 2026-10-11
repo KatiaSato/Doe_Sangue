@@ -1,5 +1,6 @@
 package br.edu.fatec.doesangue.ui.screens.profile
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.edu.fatec.doesangue.presentation.auth.LogoutUiState
 import br.edu.fatec.doesangue.presentation.profile.ProfileUiState
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
@@ -90,6 +92,8 @@ private fun ProfileInfo(icon: String, label: String, value: String) {
 
 @Composable
 fun SettingsScreen(
+    logoutUiState: LogoutUiState,
+    onSignOut: () -> Unit,
     onBack: () -> Unit,
     onEditProfile: () -> Unit,
     onSecurity: () -> Unit,
@@ -99,25 +103,57 @@ fun SettingsScreen(
     onAbout: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
 ) {
-    DsScreen(title = "Configurações", onBack = onBack, bottomRoute = AppRoute.Profile, onNavigate = onNavigate) {
+
+    val canNavigate =
+        !logoutUiState.isLoading && !logoutUiState.isSignedOut
+    BackHandler(enabled = !canNavigate) {
+        // Aguarda o logout terminar antes de permitir voltar.
+    }
+
+    DsScreen(
+        title = "Configurações",
+        onBack = if (canNavigate) onBack else null,
+        bottomRoute = AppRoute.Profile,
+        onNavigate = { route ->
+            if (canNavigate) {
+                onNavigate(route)
+            }
+        },
+    ) {
         SectionHeader("Conta")
-        SettingsRow("Editar perfil", onEditProfile)
-        SettingsRow("Segurança", onSecurity)
-        SettingsRow("Notificações", onNotifications)
+        SettingsRow("Editar perfil", onEditProfile, enabled = canNavigate)
+        SettingsRow("Segurança", onSecurity, enabled = canNavigate)
+        SettingsRow("Notificações", onNotifications, enabled = canNavigate)
         Spacer(Modifier.height(28.dp))
         SectionHeader("Ajuda")
-        SettingsRow("Dúvidas frequentes", onFaq)
-        SettingsRow("Fale conosco", onContact)
-        SettingsRow("Sobre o app", onAbout)
+        SettingsRow("Dúvidas frequentes", onFaq, enabled = canNavigate)
+        SettingsRow("Fale conosco", onContact, enabled = canNavigate)
+        SettingsRow("Sobre o app", onAbout, enabled = canNavigate)
         Spacer(Modifier.height(60.dp))
-        SecondaryButton("Sair da conta", {})
+        logoutUiState.errorMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+
+        SecondaryButton(
+            text = if (logoutUiState.isLoading) "Saindo..." else "Sair da conta",
+            onClick = onSignOut,
+            enabled = !logoutUiState.isLoading && !logoutUiState.isSignedOut,
+        )
     }
 }
 
 @Composable
-private fun SettingsRow(label: String, onClick: () -> Unit) {
+private fun SettingsRow(
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+) {
     Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 10.dp, vertical = 17.dp),
+        Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onClick).padding(horizontal = 10.dp, vertical = 17.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, color = Ink)

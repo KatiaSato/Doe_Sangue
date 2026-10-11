@@ -100,7 +100,15 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - No cadastro real, usar o nome já informado para criar o perfil quando houver sessão autenticada. Missing é recuperação de contas sem perfil, não uma segunda etapa obrigatória do cadastro. Cadastro real e confirmação de e-mail ainda precisam ser conectados; sessão/restauração/logout e perda de resposta após INSERT permanecem pendentes.
 - Validação atual: cinco testes de perfil e dez de navegação aprovados em 10/10 no Pixel_6/Android 12. Suíte de 09/10: 17 aprovados e um remoto ignorado no Moto g04/Android 14. Testes usam dados fictícios; ver docs/12-validacao.md para evidências e limites. Ainda faltam isolamento entre contas via API, cancelamento, seed ampliado e persistência de agendamentos. Seções anteriores descrevem checkpoints históricos.
 
+## Logout — 10/10/2026
+
+- AuthRepository/DataSource/repository, LogoutUiState/ViewModel e fábrica estão ligados a Configurações. Supabase usa SignOutScope.LOCAL; sucesso abre Auth removendo Main, falha apresenta mensagem genérica e permite nova tentativa. Nenhum NavController foi levado ao ViewModel.
+- Durante a saída, SettingsRow não aceita cliques, a seta fica ausente, as abas não encaminham navegação e BackHandler intercepta Voltar. Isso evita abandonar o observador de sucesso em Configurações antes da conclusão.
+- LogoutFlowTest no Pixel_6/Android 12: cinco aprovados, zero falhas/erros/ignorados. Usa repositories fictícios e cobre histórico removido, novo login/logout, falha/nova tentativa, duplicidade, troca A/B e navegação durante a resposta pendente. Ver docs/12-validacao.md para a falha inicial e sua correção.
+- A usuária confirmou manualmente o roteiro com Supabase real: logout da conta sintética A retorna a boas-vindas; novo login como A mantém Doador Demo A no Perfil. Troca A/B pela API ainda precisa de validação manual. Restauração de sessão ao abrir o aplicativo permanece pendente; não assumir que estas etapas foram concluídas a partir dos testes em memória.
+
 ## Revisão editorial — 06/10/2026
+
 
 - Orientações de idade, procedimentos e medicamentos revisadas após a Portaria GM/MS nº 11.685/2026, com fontes e data visíveis. Ver `docs/16-revisao-regras-doacao.md` para referências e limites.
 - Não reintroduzir a cadência trimestral nem datas futuras como recomendação universal. Recorrência ainda não está implementada; preservar a distinção entre agendamento e aptidão.

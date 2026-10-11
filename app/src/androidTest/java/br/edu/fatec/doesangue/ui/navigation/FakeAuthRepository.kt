@@ -15,4 +15,8 @@ class FakeAuthRepository(
     ): Result<AuthenticatedUser> {
         return result
     }
+
+    override suspend fun signOut(): Result<Unit> {
+        return Result.success(Unit)
+    }
 }

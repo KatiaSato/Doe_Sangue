@@ -47,6 +47,7 @@ class LoginFlowTest {
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
                     loginViewModelFactory = factory,
                     profileViewModelFactory = container.profileViewModelFactory,
+                    logoutViewModelFactory = container.logoutViewModelFactory,
                 )
             }
         }
@@ -157,6 +158,10 @@ class LoginFlowTest {
             // Confere trim somente do e-mail; a senha deve chegar sem alterações.
             receivedExpectedCredentials = email == "teste@example.com" && password == " senha-ficticia "
             return answer()
+        }
+
+        override suspend fun signOut(): Result<Unit> {
+            return Result.success(Unit)
         }
     }
 }

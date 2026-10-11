@@ -1,5 +1,22 @@
 # Validação
 
+## Logout: correção e nova validação — 10/10/2026
+
+- A usuária acrescentou enabled a SettingsRow e condicionou os seis itens de Configurações a canNavigate. Enquanto o logout está pendente ou já concluído, a seta fica ausente, a barra inferior não encaminha navegação e BackHandler intercepta o Voltar do Android. Falha libera novamente os controles. A navegação após sucesso continua no grafo, sem NavController no ViewModel.
+- O teste de regressão foi ampliado: verifica Sobre o app desabilitado, tenta clicar nele e nas abas Início/Agendar, confirma ausência da seta e pressiona Voltar. A tela deve continuar em Configurações até a resposta; após sucesso deve estar em Welcome com o histórico de Main removido.
+- Repetido `.\gradlew.bat connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=br.edu.fatec.doesangue.ui.navigation.LogoutFlowTest'` no Pixel_6/Android 12: BUILD SUCCESSFUL, **cinco aprovados, zero falhas/erros/ignorados**, conferidos no XML. Aplicativo e APK de testes compilaram; diff --check sem erros. A falha registrada na execução inicial abaixo foi resolvida neste cenário.
+- Arquivos alterados pelo agente nesta validação: LogoutFlowTest.kt, este documento e AGENTS.md. As correções de produção em ProfileScreens.kt foram implementadas pela usuária em pequenos passos.
+- Validação manual posterior: em 10/10/2026, a usuária confirmou que o roteiro no aplicativo com Supabase real ocorreu sem erros: login como conta sintética A, Perfil → Configurações → Sair da conta, retorno a boas-vindas, novo login como A e perfil Doador Demo A preservado. É evidência manual do comportamento de logout e nova autenticação no aplicativo; não houve inspeção independente de tokens pelo agente.
+- Limites: os testes automatizados usam repositories fictícios, sem rede. Troca de contas pela API permanece pendente de validação manual. Restauração da sessão ao abrir o aplicativo ainda não está ligada à navegação. Demais testes instrumentados e Lint não foram repetidos nesta execução focada; nenhuma escrita remota foi executada pelo agente. Esta atualização documental não exige repetir os testes.
+
+## Logout: validação inicial — 10/10/2026
+
+- A usuária conectou AuthRepository, DataSource/repository Supabase, LogoutUiState/ViewModel, fábrica e Configurações. O DataSource usa SignOutScope.LOCAL; sucesso solicita a entrada no grafo Auth e remoção de Main. Ainda não há validação manual do logout remoto.
+- Criado LogoutFlowTest com cinco cenários no grafo real e repositories sintéticos, sem rede. A primeira execução falhou no auxiliar de interação do teste, que tentava rolar a tela de boas-vindas sem rolagem; corrigido para clicar diretamente nesse botão.
+- Após a correção do teste, `connectedDebugAndroidTest` focado em LogoutFlowTest no Pixel_6/Android 12 compilou aplicativo e APK de testes: **quatro aprovados e uma falha**, sem testes ignorados. Passaram saída com limpeza do histórico e novo login/logout, falha com nova tentativa e mensagem genérica, bloqueio de solicitações repetidas durante resposta pendente e troca A/B sem exibir o perfil anterior.
+- Falha pendente: iniciar logout e abrir Sobre o app antes da resposta encerra a sessão fictícia, mas não retorna a Welcome. O observador de sucesso está na composição de Configurações, que deixa de acompanhar o estado ao navegar. Corrigir a navegação durante a operação e repetir a validação antes de concluir a etapa.
+- Limites: testes em memória não comprovam encerramento remoto da sessão, RLS ou isolamento pela API. Demais classes instrumentadas e Lint não foram repetidos nesta execução focada. Nenhuma alteração de produção foi feita pelo agente para corrigir a falha nesta etapa; a correção será acompanhada pela usuária.
+
 ## Formulário de criação do perfil — 10/10/2026
 
 - A usuária confirmou manualmente em 09/10/2026 que a conta sintética autenticada abriu Perfil e recebeu a mensagem de perfil ausente. É evidência de uma consulta concluída sem perfil visível, não de criação persistida ou isolamento entre duas contas pela API.

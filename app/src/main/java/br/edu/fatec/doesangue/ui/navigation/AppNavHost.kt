@@ -13,6 +13,7 @@ fun AppNavHost(
     schedulingViewModelFactory: ViewModelProvider.Factory,
     loginViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
+    logoutViewModelFactory: ViewModelProvider.Factory,
 ) {
     // Define como abrir destinos solicitados pelas telas
     // e pela barra inferior.
@@ -90,6 +91,16 @@ fun AppNavHost(
             navController = navController,
             schedulingViewModelFactory = schedulingViewModelFactory,
             profileViewModelFactory = profileViewModelFactory,
+            logoutViewModelFactory = logoutViewModelFactory,
+            onSignedOut = {
+                navController.navigate(AppGraph.Auth) {
+                    // Remove as telas da conta que acabou de sair.
+                    popUpTo<AppGraph.Main> {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            },
             onNavigateMain = ::navigateMain,
             onFinishScheduling = {
                 navController.navigate(AppRoute.HomeScheduled) {

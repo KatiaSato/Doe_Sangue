@@ -15,4 +15,7 @@ interface AuthRepository {
         email: String,
         password: String,
     ): Result<AuthenticatedUser>
+
+    // Encerra a sessão da conta no aplicativo.
+    suspend fun signOut(): Result<Unit>
 }

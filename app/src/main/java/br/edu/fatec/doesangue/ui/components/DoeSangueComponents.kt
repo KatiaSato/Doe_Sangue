@@ -81,12 +81,16 @@ fun DsScreen(
 @Composable
 fun DsTopBar(title: String, onBack: (() -> Unit)?) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(76.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(76.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = if (onBack == null) "" else "‹",
-            modifier = Modifier.width(32.dp).clickable(enabled = onBack != null) { onBack?.invoke() },
+            modifier = Modifier
+                .width(32.dp)
+                .clickable(enabled = onBack != null) { onBack?.invoke() },
             color = BloodRed,
             fontSize = 36.sp,
         )
@@ -106,21 +110,33 @@ fun PrimaryButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.fillMaxWidth().heightIn(min = 52.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 52.dp),
         shape = shape,
         colors = ButtonDefaults.buttonColors(containerColor = containerColor),
         contentPadding = PaddingValues(horizontal = 16.dp),
     ) {
-        Text(text, style = MaterialTheme.typography.labelLarge,
-            color = if (enabled) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+        Text(
+            text, style = MaterialTheme.typography.labelLarge,
+            color = if (enabled) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        )
     }
 }
 
 @Composable
-fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun SecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
     Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(48.dp),
+        enabled = enabled,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp),
         shape = RoundedCornerShape(8.dp),
         border = BorderStroke(1.dp, Border),
         colors = ButtonDefaults.buttonColors(containerColor = Color.White),
@@ -133,14 +149,21 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 fun TextAction(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        modifier = modifier.clickable(onClick = onClick).padding(vertical = 8.dp),
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
         color = BloodRed,
         style = MaterialTheme.typography.labelMedium,
     )
 }
 
 @Composable
-fun VisualField(label: String, value: String, modifier: Modifier = Modifier, tall: Boolean = false) {
+fun VisualField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    tall: Boolean = false
+) {
     Column(modifier) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = Ink)
         Spacer(Modifier.height(6.dp))
@@ -165,7 +188,10 @@ fun StepProgress(current: Int, labels: List<String>? = null) {
                     modifier = Modifier.size(24.dp),
                     shape = CircleShape,
                     color = if (step <= current) BloodRed else Color(0xFFE6E6E6),
-                    border = if (step == current && step > 1) BorderStroke(1.dp, BloodRed) else null,
+                    border = if (step == current && step > 1) BorderStroke(
+                        1.dp,
+                        BloodRed
+                    ) else null,
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
@@ -177,7 +203,11 @@ fun StepProgress(current: Int, labels: List<String>? = null) {
                 }
                 if (labels != null) {
                     Spacer(Modifier.height(6.dp))
-                    Text(labels[step - 1], fontSize = 8.sp, color = if (step == current) BloodRed else Muted)
+                    Text(
+                        labels[step - 1],
+                        fontSize = 8.sp,
+                        color = if (step == current) BloodRed else Muted
+                    )
                 }
             }
             if (step < 4) {
@@ -201,15 +231,26 @@ fun SelectionCard(
     onClick: () -> Unit = {},
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = if (selected) Color(0xFFFFF5F5) else Color.White),
         border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) BloodRed else Border),
     ) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium, color = Ink)
-                if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = InkSecondary)
+                if (subtitle != null) Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = InkSecondary
+                )
             }
             Text(if (selected) "✓" else "○", color = BloodRed, fontWeight = FontWeight.Bold)
         }
@@ -223,13 +264,20 @@ fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, Border),
-    ) { Column(Modifier.fillMaxWidth().padding(16.dp), content = content) }
+    ) { Column(Modifier
+        .fillMaxWidth()
+        .padding(16.dp), content = content) }
 }
 
 @Composable
 fun SectionHeader(title: String, action: String? = null, onAction: () -> Unit = {}) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, color = Ink)
+        Text(
+            title,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.titleMedium,
+            color = Ink
+        )
         if (action != null) TextAction(action, onAction)
     }
 }
@@ -257,14 +305,23 @@ fun DsBottomBar(current: AppRoute, onNavigate: (AppRoute) -> Unit) {
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             items.forEach { (icon, label, route) ->
-                val selected = current == route || (route == AppRoute.DonationsHistory && current == AppRoute.DonationsAppointments)
+                val selected =
+                    current == route || (route == AppRoute.DonationsHistory && current == AppRoute.DonationsAppointments)
                 Column(
-                    modifier = Modifier.weight(1f).fillMaxSize().clickable { onNavigate(route) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize()
+                        .clickable { onNavigate(route) },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(icon, fontSize = 20.sp, color = if (selected) BloodRed else InkSecondary)
-                    Text(label, fontSize = 10.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal, color = if (selected) BloodRed else InkSecondary)
+                    Text(
+                        label,
+                        fontSize = 10.sp,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (selected) BloodRed else InkSecondary
+                    )
                 }
             }
         }
@@ -284,11 +341,27 @@ fun ScreenHeading(title: String, subtitle: String? = null) {
 fun CenteredMessage(symbol: String, title: String, body: String) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(Modifier.size(82.dp), shape = CircleShape, color = Color(0xFFFFE6E7)) {
-            Box(contentAlignment = Alignment.Center) { Text(symbol, fontSize = 38.sp, color = BloodRed) }
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    symbol,
+                    fontSize = 38.sp,
+                    color = BloodRed
+                )
+            }
         }
         Spacer(Modifier.height(24.dp))
-        Text(title, style = MaterialTheme.typography.headlineMedium, color = BloodRed, textAlign = TextAlign.Center)
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineMedium,
+            color = BloodRed,
+            textAlign = TextAlign.Center
+        )
         Spacer(Modifier.height(12.dp))
-        Text(body, style = MaterialTheme.typography.bodyLarge, color = InkSecondary, textAlign = TextAlign.Center)
+        Text(
+            body,
+            style = MaterialTheme.typography.bodyLarge,
+            color = InkSecondary,
+            textAlign = TextAlign.Center
+        )
     }
 }

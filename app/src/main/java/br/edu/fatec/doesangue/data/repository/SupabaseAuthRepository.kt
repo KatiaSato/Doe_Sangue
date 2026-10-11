@@ -25,4 +25,17 @@ class SupabaseAuthRepository(
             Result.failure(exception)
         }
     }
+
+    override suspend fun signOut(): Result<Unit> {
+        return try {
+            dataSource.signOut()
+            Result.success(Unit)
+        } catch (exception: CancellationException) {
+            // Preserva o cancelamento da corrotina.
+            throw exception
+        } catch (exception: Exception) {
+            // Devolve a falha para quem solicitou o logout.
+            Result.failure(exception)
+        }
+    }
 }

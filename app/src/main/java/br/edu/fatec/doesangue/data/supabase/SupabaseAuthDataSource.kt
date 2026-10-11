@@ -2,6 +2,7 @@ package br.edu.fatec.doesangue.data.supabase
 
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 
@@ -26,4 +27,11 @@ class SupabaseAuthDataSource(
 
         return AuthenticatedUser(id = user.id)
     }
+
+    // Encerra somente a sessão atual.
+    suspend fun signOut() {
+        client.auth.awaitInitialization()
+        client.auth.signOut(scope = SignOutScope.LOCAL)
+    }
+
 }

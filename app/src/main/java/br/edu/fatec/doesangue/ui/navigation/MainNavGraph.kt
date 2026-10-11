@@ -1,5 +1,6 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -9,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
+import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionDetailScreen
@@ -37,6 +39,8 @@ fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
     schedulingViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
+    logoutViewModelFactory: ViewModelProvider.Factory,
+    onSignedOut: () -> Unit,
     onNavigateMain: (AppRoute) -> Unit,
     onFinishScheduling: () -> Unit,
 ) {
@@ -258,7 +262,20 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable<AppRoute.Settings> {
+            val logoutViewModel: LogoutViewModel = viewModel(
+                factory = logoutViewModelFactory,
+            )
+
+            val logoutUiState by logoutViewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(logoutUiState.isSignedOut) {
+                if (logoutUiState.isSignedOut) {
+                    onSignedOut()
+                }
+            }
             SettingsScreen(
+                logoutUiState = logoutUiState,
+                onSignOut = logoutViewModel::signOut,
                 onBack = {
                     navController.popBackStack()
                 },
