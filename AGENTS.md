@@ -114,6 +114,14 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - SessionRestoreFlowTest cobre cinco cenários de abertura com repositories fictícios, sem rede. Execução focada: cinco aprovados. Suíte ampliada no Pixel_6/Android 12: 32 aprovados, zero falhas/erros e um remoto ignorado, confirmados no XML. Ver docs/12-validacao.md para evidências e limites.
 - A usuária confirmou manualmente o roteiro com Supabase real: reabrir com conta sintética A conectada abriu Home com perfil Doador Demo A; reabrir após logout abriu boas-vindas. O agente não inspecionou armazenamento ou tokens. Testes em memória não verificam renovação, expiração, revogação ou recriação do processo. Não há observador global de mudanças de sessão durante o uso; a integração nova decide a entrada na abertura. Seções anteriores são checkpoints históricos.
 
+## Estrutura inicial de agendamentos — 11/10/2026
+
+- A primeira execução de agendamento_leitura_isolada.sql falhou por erro do agente no nome insufficient_privileges. Corrigido para insufficient_privilege. Após orientação de ROLLBACK de eventual transação abortada e repetição, captura confirma A vê somente A, B vê somente B e consulta anon bloqueada. É simulação administrativa de identidade/papel, sem login nem validação de JWT pela API.
+- Testes manuais posteriores: captura confirma INSERT com ID/estado/criado_em automáticos; COUNT(*)=0 após ROLLBACK foi relatado. CHECK de estado inválido, UNIQUE de idempotência com linhas canceladas, reserva ativa duplicada/cancelado coexistente e as duas FKs tiveram resultado esperado conforme relato. Scripts em supabase/tests usam ROLLBACK. Capacidade/concorrência, gravação pelo app e autenticação/isolamento A/B pela API continuam pendentes. Evidências em docs/12-validacao.md.
+- A usuária criou AppointmentStatus, Appointment e AppointmentRepository no domínio; ainda sem implementação nem gravação pelo botão Confirmar.
+- `20261011000100_criar_agendamento.sql` preparada localmente, com perfil/horário obrigatórios por FK, estados agendado/cancelado, idempotência por doador, unicidade parcial de reserva ativa, índice de contagem e RLS de leitura própria. Escrita direta e acesso à sequência de IDs foram revogados para public/anon/authenticated.
+- A usuária relatou aplicação manual sem erros da migração no desenvolvimento. Não reaplicar. Capturas confirmam a quarta tabela, RLS ativo, grants da tabela, definição da policy própria e sequência sem USAGE/SELECT/UPDATE para anon/authenticated. Cinco constraints e quatro índices estão presentes; filtros e unicidade dos índices parciais foram conferidos por captura. Testes manuais de comportamento e isolamento estão descritos acima; compileDebugKotlin passou para os modelos/contrato. Ver docs/09-banco-de-dados.md e docs/12-validacao.md. Capacidade e concorrência exigem operação no servidor ainda pendente; agendamento não comprova coleta.
+
 ## Revisão editorial — 06/10/2026
 
 

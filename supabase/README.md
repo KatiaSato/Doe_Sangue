@@ -1,5 +1,12 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Agendamentos — 11/10/2026
+
+- A usuária relatou execução manual sem erros de `migrations/20261011000100_criar_agendamento.sql` no projeto acadêmico de desenvolvimento. Não reaplicar no ambiente existente; em ambiente novo, ela é a quinta migração, após perfil e suas dependências.
+- O script cria a estrutura com duas FKs, estado, idempotência, índices e RLS de leitura própria, sem inserir registros. Capturas confirmam existência/RLS, privilégios da tabela, definição da policy, sequência sem acesso direto para anon/authenticated, cinco constraints e quatro índices (incluindo filtros/unicidade dos parciais). Testes manuais tiveram resultado esperado para defaults, estado inválido, idempotência, duplicidade ativa/cancelado coexistente e FKs inexistentes; captura posterior confirma leitura isolada A/B e bloqueio de anon. São simulações administrativas, sem comprovar autenticação ou JWT pela API; ver [validação](../docs/12-validacao.md).
+- Scripts em `tests/` são executados inteiros no SQL Editor como postgres, no desenvolvimento sintético, e encerram com ROLLBACK. Não são migrações nem alteram a massa permanente; não criar contas diretamente em auth.users. A sequência de IDs pode avançar mesmo com ROLLBACK.
+- Função de reserva com capacidade/concorrência e integração Android ainda estão pendentes. O sucesso da migração não significa que o aplicativo já grava agendamentos. O histórico da CLI continua sem conciliação; o agente não executou SQL remoto. Ver [estado do banco](../docs/09-banco-de-dados.md).
+
 ## Perfil do doador — 08/10/2026
 
 - `migrations/20261008000100_criar_perfil_doador.sql` foi executada manualmente pela usuária após as três migrações anteriores. Não reaplicar no ambiente existente.
