@@ -2,11 +2,13 @@
 
 ## Estado atual
 
-**Atualizado em 11/10/2026.** A usuária aplicou manualmente a migração de `agendamento`, que se soma a `unidade_coleta`, `horario_disponivel` e `perfil_doador`: quatro tabelas do domínio, com existência/RLS confirmados por captura. Os scripts definem três FKs entre tabelas do domínio (horário → unidade; agendamento → perfil e horário) e uma FK adicional do perfil para `auth.users`. Metadados de privilégios/constraints/índices e testes manuais de inserção, estado inválido, idempotência, duplicidade ativa, FKs inválidas e leitura isolada A/B/anon estão registrados em `12-validacao.md`, com seus limites. O Android consulta unidades/horários e guarda o ID selecionado no rascunho. Login por e-mail/senha e criação/leitura do perfil estão implementados e tiveram resultado manual esperado com a conta sintética A; captura confirma o perfil persistido. Cadastro real, gestão completa da sessão e gravação de agendamentos permanecem pendentes.
+**Atualizado em 12/10/2026.** Quatro tabelas do domínio estão aplicadas: `unidade_coleta`, `horario_disponivel`, `perfil_doador` e `agendamento`, com existência/RLS confirmados por captura. Há três FKs entre tabelas do domínio (horário → unidade; agendamento → perfil e horário) e uma adicional perfil → `auth.users`. A função `criar_agendamento` foi aplicada manualmente e testada quanto a criação, idempotência, negações, cancelados, acesso, isolamento e disputa simultânea A/B por uma vaga; a limpeza foi confirmada. Evidências e limites em [validação](12-validacao.md) e [checkpoint](checkpoints/2026-10-12-reserva-supabase.md). O Android consulta unidades/horários e conserva o ID no rascunho; login, perfil, logout local e restauração inicial já existem. Ainda não chama a função de reserva. Cadastro real, gestão completa da sessão e gravação de agendamentos pelo aplicativo permanecem pendentes; a modelagem e a massa acadêmicas não estão concluídas.
 
 A migração do perfil foi aplicada manualmente pela usuária. Capturas e relatos dos testes SQL confirmam RLS, privilégios por coluna, leitura própria com duas identidades simuladas, criação/edição própria como A, bloqueio de criação em nome de B e bloqueio de consulta anônima. Limites e evidências em [validação](12-validacao.md).
 
 A massa sintética confirmada compreende duas unidades, três horários e um perfil persistido (Doador Demo A), totalizando seis registros do domínio. Duas contas de teste existem no Supabase Auth, mas não são tabelas/registros do domínio para a meta acadêmica. Os perfis dos testes SQL anteriores foram temporários, com ROLLBACK; o perfil A atual foi criado pelo aplicativo e confirmado por captura da consulta no banco. Ainda não há seed ampliado de perfis nem os 200 registros acadêmicos exigidos.
+
+O teste concorrente de 12/10 acrescentou temporariamente oferta 13 e reserva 22, ambas removidas conforme captura da limpeza. Não foi repetida uma contagem global após essa remoção; as seis linhas acima são a massa anteriormente confirmada, sem somar dados temporários à meta acadêmica.
 
 ### Estrutura inicial de agendamentos — 11/10/2026
 
@@ -38,7 +40,7 @@ Atualização adicional de 07/10/2026: `horario_disponivel` foi criada manualmen
 - Constraints preservarão integridade e índices atenderão filtros frequentes.
 - RLS protegerá perfil, agendamentos e histórico; o doador não elevará papel, alterará estoque nem confirmará coleta.
 - Dados públicos não poderão revelar dados pessoais.
-- Agendamentos devem usar datas/horários disponibilizados por unidade, com revalidação de capacidade no servidor. Sábados, domingos e feriados não terão bloqueio universal. A tabela de horários e sua consulta estão implementadas; reserva e controle de capacidade ainda não. Decisão, responsabilidades e pendências em [disponibilidade de agendamento](15-disponibilidade-agendamento.md).
+- Agendamentos devem usar datas/horários disponibilizados por unidade, com revalidação de capacidade no servidor. Sábados, domingos e feriados não terão bloqueio universal. A função de reserva e controle de capacidade está aplicada e teve os resultados esperados nos roteiros manuais, incluindo o cenário concorrente A/B-capacidade 1; ligação da gravação ao Android permanece pendente. Decisão, responsabilidades e limites em [disponibilidade de agendamento](15-disponibilidade-agendamento.md).
 
 ## Critérios da entrega acadêmica — ainda não implementados
 
@@ -47,7 +49,7 @@ Atualização adicional de 07/10/2026: `horario_disponivel` foi criada manualmen
 - Consultas e alterações feitas pelo aplicativo devem refletir o banco; demonstrar filtros, busca, ordenação e relacionamentos com dados persistidos, não com listas fixas nas telas.
 - O Android acessará Auth e dados pela API do Supabase (incluindo PostgREST e operações server-side quando necessárias), com RLS e sem conexão direta ao PostgreSQL ou segredo administrativo no APK.
 
-O [recorte proposto de seis tabelas, PKs e FKs](05-modelo-de-dominio.md#recorte-relacional-de-seis-tabelas--proposta-para-revisão) mostra uma opção com UUID para o perfil vinculado ao Auth e `bigint GENERATED ALWAYS AS IDENTITY` para as demais tabelas. Auto-incremento é uma escolha de modelagem; o enunciado exige chave primária adequada, não auto-incremento em toda tabela. As três tabelas implementadas estão listadas no estado atual acima; as demais permanecem propostas.
+O [recorte proposto de seis tabelas, PKs e FKs](05-modelo-de-dominio.md#recorte-relacional-de-seis-tabelas--proposta-para-revisão) mostra uma opção com UUID para o perfil vinculado ao Auth e `bigint GENERATED ALWAYS AS IDENTITY` para as demais tabelas. Auto-incremento é uma escolha de modelagem; o enunciado exige chave primária adequada, não auto-incremento em toda tabela. As quatro tabelas implementadas estão listadas no estado atual acima; as demais permanecem propostas.
 
 ## Como popular os dados
 

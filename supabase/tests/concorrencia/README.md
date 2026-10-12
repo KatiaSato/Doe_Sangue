@@ -1,0 +1,17 @@
+# Teste manual de concorrência da reserva
+
+Desenvolvimento acadêmico, somente dados sintéticos. Capturas confirmam execução simultânea com capacidade 1: A retornou reserva 22 e espera de B pelo bloqueio=true; B recebeu falta de vagas e confirmou somente uma reserva ativa, de A. Captura da limpeza confirma oferta_removida=true e reservas_do_teste_removidas=true; oferta 13/reserva 22 removidas.
+
+1. Preparação já executada pela usuária: captura mostra ID **13**, início **2026-10-19 15:44:43.092005+00**, capacidade **1**. `preparar.sql` usa COMMIT; não repetir esta preparação. Os três roteiros abaixo conferem esse ID/início.
+2. Abrir o SQL Editor em **duas abas do navegador**, com consultas distintas. Deixar `sessao_a.sql` inteiro na aba A e `sessao_b.sql` inteiro na B, ambos como postgres, antes de executar.
+3. Executar A. Após cerca de dois segundos, iniciar B enquanto A ainda carrega. A cria a reserva como authenticated/identidade A simulada e sinaliza prontidão; B verifica que A está pronta e tenta reservar como authenticated/identidade B simulada. Não executar em sequência após a conclusão de A.
+4. A exige observar B aguardando seu bloqueio em outro backend, antes de COMMIT; a espera termina assim que detectada, com limite de 35 segundos. Resultado esperado: `b_aguardou_bloqueio_de_a=true` e ID da reserva. B exige a mensagem de falta de vagas, ausência de acesso à reserva de A e contagem administrativa de somente uma reserva ativa de A; termina com ROLLBACK.
+5. Depois de ambas terminarem e dos resultados serem conferidos, executar `limpar.sql` inteiro como postgres. Confere oferta por ID/início/unidade/capacidade e aceita somente zero ou uma reserva ativa de A, com ID 22 confirmado nas capturas; qualquer desvio interrompe sem excluir. Resultado esperado: `oferta_removida=true` e `reservas_do_teste_removidas=true`. Usa COMMIT; não remove unidades ou perfis existentes.
+
+Se A não detectar B a tempo, ou B for iniciado antes da prontidão de A, o roteiro falha e não comprova concorrência. Esperar ambas terminarem; executar ROLLBACK no SQL Editor se houver transação abortada. Conferir o estado antes de repetir; A recusa uma oferta já reservada. Se outra oferta for preparada, atualizar ID/início em **todos** os roteiros e registrar a nova evidência; não usar automaticamente os valores deste teste histórico.
+
+Ao contrário dos testes sequenciais com ROLLBACK, a oferta compartilhada e a reserva bem-sucedida precisam de COMMIT e limpeza posterior. Perfil B, se ausente, será preparado somente na transação B com ROLLBACK. Não cria tabelas ou funcionalidades de domínio novas.
+
+O roteiro exige evidência de espera real, usando [pg_blocking_pids no PostgreSQL](https://www.postgresql.org/docs/current/functions-info.html) e pg_stat_activity. A leitura das estatísticas é atualizada com [pg_stat_clear_snapshot](https://www.postgresql.org/docs/current/monitoring-stats.html), sem zerar contadores globais. A espera é limitada a 35 segundos, dentro do máximo configurável de 60 segundos do [painel Supabase](https://supabase.com/docs/guides/database/postgres/timeouts); limites locais menores podem interromper o roteiro. Não altera permanentemente configurações de banco, papéis ou função.
+
+O cenário validado é uma única vaga com duas sessões A/B, conforme capturas fornecidas pela usuária. Não é prova de todas as combinações de concorrência. Limpeza confirmada por captura; não repetir automaticamente este roteiro histórico. Simula identidades administrativamente; não verifica login ou JWT pela API.
