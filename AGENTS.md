@@ -2,7 +2,7 @@
 
 ## Objetivo e estado
 
-Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; unidades e horários sintéticos do agendamento são consultados no Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão. Login por e-mail/senha e criação/leitura do perfil estão integrados ao Supabase; cadastro, recuperação de senha e provedores sociais continuam visuais. Recorrência e sucesso ainda são visuais; confirmar não grava agendamento. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
+Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; unidades e horários sintéticos do agendamento são consultados no Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão. Login por e-mail/senha e criação/leitura do perfil estão integrados ao Supabase; cadastro, recuperação de senha e provedores sociais continuam visuais. Recorrência ainda é visual; a confirmação está ligada à função de reserva e a primeira gravação sintética pelo aplicativo foi confirmada. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
 
 ## Modo de tutoria — obrigatório ao retomar
 
@@ -141,8 +141,15 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - Busca a chave somente para esse doador; retorna o registro existente com estado atual, rejeitando reutilização para outro horário. RETURN NEXT adiciona a linha e RETURN encerra. Novo pedido após cancelamento precisa de nova chave; a futura UI deve respeitar o estado retornado.
 - A função busca oferta ativa/publicada, com FOR UPDATE no horário e FOR SHARE na unidade. Confere início futuro com clock_timestamp(), rejeita outra reserva ativa desse doador e compara a contagem de todos os agendamentos ativos com a capacidade. Recuperação idempotente acontece antes dessas validações de nova reserva. INSERT usa doador da sessão, horário validado, estado agendado e chave recebida; ID/criado_em vêm dos defaults. Criação/repetição, negações, cancelados, isolamento e cenário concorrente A/B com uma vaga verificados por capturas/relatos dos roteiros manuais; limpeza confirmada por captura. Decisões e responsabilidades em docs/15-disponibilidade-agendamento.md.
 
-## Revisão editorial — 06/10/2026
+## Confirmação no Android — 12/10/2026
 
+- DTO/mapper, DataSource RPC e repository estão ligados via AppContainer ao SchedulingViewModel. A usuária implementou a confirmação em pequenos passos; o botão agora chama `confirmAppointment`. Horário/chave são enviados, identidade e capacidade são decididas no servidor.
+- A chave é reutilizada após erro; mudar a seleção ou recarregar limpa o pedido local. Pendência bloqueia envio/alterações/Voltar. Apenas SCHEDULED abre sucesso com ID retornado e dados escolhidos; CANCELLED permanece na revisão. Rascunho/chave não sobrevivem à morte do processo.
+- Validação focada no Pixel_6/Android 12: dez testes de navegação e seis de confirmação aprovados, sem falhas; os seis novos foram conferidos no XML. Todos usam repositories fictícios. A usuária confirmou pelo aplicativo o ID 23; captura administrativa mostra reserva persistida do perfil sintético A, Demo A, 19/10/2026 às 08:00, agendado. Segunda intenção para o mesmo doador/horário exibiu erro na revisão; captura posterior confirma somente a reserva 23, agendada e com criado_em preservado. Preservar a reserva. Não houve gravação remota pelo agente. Ver docs/12-validacao.md e docs/15-disponibilidade-agendamento.md; isolamento A/B pela API, recuperação real com a mesma chave e perda real de resposta continuam pendentes. Próxima integração funcional: consulta dos agendamentos persistidos, ainda sem implementação.
+- Checkpoints anteriores que dizem que Confirmar é somente visual são históricos. Listagem/detalhe/cancelamento, recorrência e cadastro real continuam pendentes; não assumir que já foram integrados a partir da confirmação.
+
+
+## Revisão editorial — 06/10/2026
 
 - Orientações de idade, procedimentos e medicamentos revisadas após a Portaria GM/MS nº 11.685/2026, com fontes e data visíveis. Ver `docs/16-revisao-regras-doacao.md` para referências e limites.
 - Não reintroduzir a cadência trimestral nem datas futuras como recomendação universal. Recorrência ainda não está implementada; preservar a distinção entre agendamento e aptidão.

@@ -1,5 +1,6 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -9,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import br.edu.fatec.doesangue.domain.model.AppointmentStatus
 import br.edu.fatec.doesangue.presentation.scheduling.SchedulingViewModel
 
 import br.edu.fatec.doesangue.ui.screens.scheduling.ScheduleCenterScreen
@@ -120,22 +122,41 @@ fun NavGraphBuilder.schedulingNavGraph(
 
             // Observa o estado atual com unidade, data e horário.
             val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
+            val appointment = uiState.appointmentCreation.appointment
+
+            LaunchedEffect(appointment?.id, appointment?.status) {
+                if (appointment?.status == AppointmentStatus.SCHEDULED) {
+                    navController.navigate(AppRoute.ScheduleSuccess) {
+                        popUpTo<AppRoute.ScheduleConfirm> {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            }
             ScheduleConfirmScreen(
                 uiState = uiState,
                 onBack = {
                     navController.popBackStack()
                 },
-                onConfirm = {
-                    // Apenas reproduz o fluxo visual do protótipo.
-                    // Na etapa funcional, avançar somente após
-                    // a operação retornar sucesso e o ID persistido.
-                    navController.navigate(AppRoute.ScheduleSuccess)
-                },
+                onConfirm = schedulingViewModel::confirmAppointment,
             )
         }
 
-        composable<AppRoute.ScheduleSuccess> {
+        composable<AppRoute.ScheduleSuccess> { entry ->
+            val schedulingEntry = remember(entry) {
+                navController.getBackStackEntry<AppGraph.Scheduling>()
+            }
+
+            val schedulingViewModel: SchedulingViewModel = viewModel(
+                viewModelStoreOwner = schedulingEntry,
+                factory = schedulingViewModelFactory,
+            )
+
+            val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
+
             ScheduleSuccessScreen(
+                uiState = uiState,
                 onHome = onFinishScheduling,
             )
         }

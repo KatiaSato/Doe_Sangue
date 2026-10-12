@@ -15,17 +15,20 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.edu.fatec.doesangue.presentation.scheduling.SchedulingViewModel
 import br.edu.fatec.doesangue.BuildConfig
+import br.edu.fatec.doesangue.data.repository.SupabaseAppointmentRepository
 import br.edu.fatec.doesangue.data.repository.SupabaseDonationCenterRepository
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonationCenterDataSource
 import br.edu.fatec.doesangue.data.supabase.createDonationSupabaseClient
 import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
 import br.edu.fatec.doesangue.data.repository.SupabaseDonorProfileRepository
+import br.edu.fatec.doesangue.data.supabase.SupabaseAppointmentDataSource
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonorProfileDataSource
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.auth.SessionViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
+import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 
 // Ele é responsável por criar os objetos e fornecer suas dependências
 class AppContainer(
@@ -33,6 +36,7 @@ class AppContainer(
     private val timeSlotRepositoryOverride: DonationTimeSlotRepository? = null,
     private val authRepositoryOverride: AuthRepository? = null,
     private val donorProfileRepositoryOverride: DonorProfileRepository? = null,
+    private val appointmentRepositoryOverride: AppointmentRepository? = null,
 ) {
     // Cria o cliente com as configurações geradas pelo Gradle.
     private val supabaseClient by lazy {
@@ -67,6 +71,18 @@ class AppContainer(
     val donorProfileRepository: DonorProfileRepository by lazy {
         donorProfileRepositoryOverride ?: SupabaseDonorProfileRepository(
             dataSource = supabaseDonorProfileDataSource,
+        )
+    }
+
+    private val supabaseAppointmentDataSource by lazy {
+        SupabaseAppointmentDataSource(
+            client = supabaseClient,
+        )
+    }
+
+    val appointmentRepository: AppointmentRepository by lazy {
+        appointmentRepositoryOverride ?: SupabaseAppointmentRepository(
+            dataSource = supabaseAppointmentDataSource,
         )
     }
 
@@ -158,6 +174,7 @@ class AppContainer(
             SchedulingViewModel(
                 donationCenterRepository = donationCenterRepository,
                 getDonationTimeSlots = getDonationTimeSlots,
+                appointmentRepository = appointmentRepository,
             )
         }
     }

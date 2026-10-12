@@ -12,8 +12,10 @@ import kotlinx.coroutines.ensureActive
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import br.edu.fatec.doesangue.domain.model.DonationCenter
+import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 import br.edu.fatec.doesangue.domain.usecase.GetDonationTimeSlotsUseCase
+import java.util.UUID
 
 /*
 * Recebe o contrato de consulta às unidades.
@@ -23,6 +25,7 @@ import br.edu.fatec.doesangue.domain.usecase.GetDonationTimeSlotsUseCase
 class SchedulingViewModel(
     private val donationCenterRepository: DonationCenterRepository,
     private val getDonationTimeSlots: GetDonationTimeSlotsUseCase,
+    private val appointmentRepository: AppointmentRepository,
 ) : ViewModel() {
     /*
     SchedulingUiState() cria o estado inicial: nenhuma unidade selecionada.
@@ -36,16 +39,39 @@ class SchedulingViewModel(
     // Guarda a consulta em andamento para permitir seu cancelamento.
     private var timeSlotsJob: Job? = null
     // Inicia a consulta uma vez para cada nova instância do ViewModel.
+
+    private data class AppointmentRequest(
+        val timeSlotId: String,
+        val idempotencyKey: String,
+    )
+
+    private var appointmentRequest: AppointmentRequest? = null
+
     init {
         loadCenters()
+    }
+
+    // Essa função limpa a identidade do pedido e reinicia o estado de gravação
+    // Ela não cancela nem apaga uma reserva no banco; apenas limpa os dados locais
+    private fun resetAppointmentRequest() {
+        appointmentRequest = null
+
+        _uiState.update { current ->
+            current.copy(
+                appointmentCreation = AppointmentCreationUiState(),
+            )
+        }
     }
 
     // Recebe a unidade escolhida e atualiza o estado do preenchimento.
     // O copy cria um novo estado com a unidade escolhida. O StateFlow comunica essa atualização
     // Ao trocar de unidade, cancela a consulta e limpa as escolhas anteriores.
     fun selectCenter(center: DonationCenter) {
-        if (_uiState.value.selectedCenter?.id == center.id) return
+        val state = _uiState.value
+        if (state.appointmentCreation.isLoading) return
+        if (state.selectedCenter?.id == center.id) return
 
+        resetAppointmentRequest()
         timeSlotsJob?.cancel()
 
         _uiState.update { current ->
@@ -67,11 +93,14 @@ class SchedulingViewModel(
         val state = _uiState.value
 
         if (
+            state.appointmentCreation.isLoading ||
             state.selectedCenter == null ||
             state.selectedDate == date
         ) {
             return
         }
+
+        resetAppointmentRequest()
 
         _uiState.update { current ->
             current.copy(
@@ -86,6 +115,10 @@ class SchedulingViewModel(
 
     // Localiza e valida o registro de horário escolhido pelo seu ID.
     fun selectTimeSlot(slotId: String) {
+        val state = _uiState.value
+        if (state.appointmentCreation.isLoading) return
+
+        val previousSlotId = state.selectedTimeSlotId
         _uiState.update { current ->
             val center = current.selectedCenter ?: return@update current
             val date = current.selectedDate ?: return@update current
@@ -114,8 +147,86 @@ class SchedulingViewModel(
                 selectedTime = localStart.toLocalTime(),
             )
         }
+        if (_uiState.value.selectedTimeSlotId != previousSlotId) {
+            resetAppointmentRequest()
+        }
     }
 
+    fun confirmAppointment() {
+        val state = _uiState.value
+
+        if (
+            state.appointmentCreation.isLoading ||
+            state.appointmentCreation.appointment != null ||
+            state.isLoadingTimeSlots ||
+            state.timeSlotsErrorMessage != null
+        ) {
+            return
+        }
+
+        val slotId = state.selectedTimeSlotId ?: return
+
+        val center = state.selectedCenter ?: return
+        val date = state.selectedDate ?: return
+
+        val slot = state.timeSlots.firstOrNull {
+            it.id == slotId && it.centerId == center.id
+        } ?: return
+
+        val localStart = slot.startsAt.atZone(ZoneId.of(center.timeZoneId))
+        if (localStart.toLocalDate() != date) return
+        if (localStart.toLocalTime() != state.selectedTime) return
+
+        /*
+        Se já existe um pedido, reutilizamos sua chave. Caso contrário, criamos e guardamos um novo.
+        Isso permitirá tentar novamente após uma falha sem gerar outra reserva.
+         */
+        val request = appointmentRequest ?: AppointmentRequest(
+            timeSlotId = slotId,
+            idempotencyKey = UUID.randomUUID().toString(),
+        ).also {
+            appointmentRequest = it
+        }
+
+        // marca o início da gravação e limpa a mensagem de erro anterio
+        _uiState.update { current ->
+            current.copy(
+                appointmentCreation = AppointmentCreationUiState(
+                    isLoading = true,
+                ),
+            )
+        }
+
+        // viewModelScope.launch inicia a corrotina para chamar a função suspensa.
+        // O repository recebe o horário e a chave que guardamos.
+        // ensureActive() impede continuar se a corrotina tiver sido cancelada
+        viewModelScope.launch {
+            val result = appointmentRepository.createAppointment(
+                timeSlotId = request.timeSlotId,
+                idempotencyKey = request.idempotencyKey,
+            )
+
+            ensureActive()
+
+            _uiState.update { current ->
+                current.copy(
+                    appointmentCreation = result.fold(              // O fold escolhe entre os dois caminhos do Result
+                        onSuccess = { appointment ->
+                            AppointmentCreationUiState(
+                                appointment = appointment,
+                            )
+                        },
+                        onFailure = {
+                            AppointmentCreationUiState(
+                                errorMessage =
+                                    "Não foi possível confirmar o agendamento. Tente novamente.",
+                            )
+                        },
+                    ),
+                )
+            }
+        }
+    }
 
     // Consulta os horários da unidade e da data selecionadas.
     /* Essa função:
@@ -126,9 +237,12 @@ class SchedulingViewModel(
      */
     fun loadTimeSlots() {
         val state = _uiState.value
+        if (state.appointmentCreation.isLoading) return
+
         val center = state.selectedCenter ?: return
         val date = state.selectedDate ?: return
 
+        resetAppointmentRequest()
         timeSlotsJob?.cancel()
 
         _uiState.update { current ->

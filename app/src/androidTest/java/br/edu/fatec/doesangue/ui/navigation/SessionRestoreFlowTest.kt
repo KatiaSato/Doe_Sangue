@@ -40,6 +40,7 @@ class SessionRestoreFlowTest {
     private fun openApp() {
         val container = AppContainer(
             centerRepositoryOverride = FakeDonationCenterRepository(),
+            appointmentRepositoryOverride = FakeAppointmentRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             authRepositoryOverride = auth,
             donorProfileRepositoryOverride = FakeDonorProfileRepository(),

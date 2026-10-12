@@ -32,6 +32,7 @@ class LoginFlowTest {
     private fun openLogin() {
         val container = AppContainer(
             centerRepositoryOverride = FakeDonationCenterRepository(),
+            appointmentRepositoryOverride = FakeAppointmentRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             authRepositoryOverride = repository,
             donorProfileRepositoryOverride = FakeDonorProfileRepository(),

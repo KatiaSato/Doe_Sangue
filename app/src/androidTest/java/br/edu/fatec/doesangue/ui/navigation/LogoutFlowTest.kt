@@ -43,6 +43,7 @@ class LogoutFlowTest {
         }
         val container = AppContainer(
             centerRepositoryOverride = FakeDonationCenterRepository(),
+            appointmentRepositoryOverride = FakeAppointmentRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             authRepositoryOverride = auth,
             donorProfileRepositoryOverride = profiles,

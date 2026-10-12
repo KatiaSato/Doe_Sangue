@@ -32,6 +32,7 @@ class ProfileFlowTest {
     private fun openProfile() {
         val container = AppContainer(
             centerRepositoryOverride = FakeDonationCenterRepository(),
+            appointmentRepositoryOverride = FakeAppointmentRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             authRepositoryOverride = FakeAuthRepository(),
             donorProfileRepositoryOverride = repository,

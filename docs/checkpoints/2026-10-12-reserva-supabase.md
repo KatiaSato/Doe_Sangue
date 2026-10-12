@@ -2,6 +2,8 @@
 
 ## Retomada
 
+**Atualização posterior na mesma conversa:** a usuária integrou repository, ViewModel, revisão e sucesso à chamada RPC. O estado atual está em [integração da confirmação](../15-disponibilidade-agendamento.md#integração-da-confirmação-no-android--12102026) e os resultados em [validação](../12-validacao.md). Dez testes de navegação e seis de confirmação passaram. A usuária informou ID 23 no aplicativo e mostrou consulta administrativa confirmando a reserva persistida de Demo A em 19/10/2026 às 08:00, do perfil sintético A. Segunda intenção exibiu erro na revisão; consulta posterior mostrou somente a reserva 23, preservada. Preservar esse registro; isolamento A/B pela API e recuperação real com a mesma chave ainda precisam de validação. Próxima integração funcional: consulta dos agendamentos persistidos, em pequenos passos. Este checkpoint registra a conclusão anterior do banco; seus próximos passos Android são históricos. As regras de tutoria continuam obrigatórias.
+
 Projeto: `C:\Users\katia\Documents\Apps\DoeSangue`. A usuária implementa acompanhando pequenos passos e explicações em português. Ler `AGENTS.md`, este checkpoint e apenas os arquivos relacionados ao próximo passo; não percorrer todo o repositório.
 
 **MODO DE TUTORIA: a usuária escreve o código de produção. O agente mostra um trecho curto, explica e aguarda a implementação. Não criar nem editar automaticamente arquivos Kotlin, mesmo um DTO ou mapper isolado. “Continuar” significa apresentar o próximo passo didático.**

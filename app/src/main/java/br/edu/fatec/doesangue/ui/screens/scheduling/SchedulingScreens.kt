@@ -1,5 +1,6 @@
 package br.edu.fatec.doesangue.ui.screens.scheduling
 
+import androidx.activity.compose.BackHandler
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.edu.fatec.doesangue.domain.model.AppointmentStatus
 import br.edu.fatec.doesangue.ui.components.DonationDatePickerDialog
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
@@ -68,7 +70,12 @@ fun ScheduleCenterScreen(
     onContinue: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
 ) {
-    DsScreen(title = "Agendar doação", onBack = onBack, bottomRoute = AppRoute.ScheduleCenter, onNavigate = onNavigate) {
+    DsScreen(
+        title = "Agendar doação",
+        onBack = onBack,
+        bottomRoute = AppRoute.ScheduleCenter,
+        onNavigate = onNavigate
+    ) {
         ScheduleHeader(1)
         Text("Escolha uma unidade", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
@@ -251,8 +258,10 @@ fun ScheduleRecurrenceScreen(onBack: () -> Unit, onContinue: () -> Unit) {
         SelectionCard("Somente este agendamento", "Sem repetição automática", selected = true)
         Spacer(Modifier.height(18.dp))
         InfoCard {
-            Text("A recorrência ainda não está disponível. Consulte o hemocentro sobre o intervalo adequado entre doações. Agendar não confirma aptidão clínica.",
-                style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
+            Text(
+                "A recorrência ainda não está disponível. Consulte o hemocentro sobre o intervalo adequado entre doações. Agendar não confirma aptidão clínica.",
+                style = MaterialTheme.typography.bodyMedium, color = InkSecondary
+            )
         }
         Spacer(Modifier.height(28.dp))
         PrimaryButton("Continuar", onContinue)
@@ -266,7 +275,20 @@ fun ScheduleConfirmScreen(
     onBack: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    DsScreen(title = "Confirmar agendamento", onBack = onBack) {
+    val creation = uiState.appointmentCreation
+
+    val canNavigate =
+        !creation.isLoading &&
+                creation.appointment?.status != AppointmentStatus.SCHEDULED
+
+    BackHandler(enabled = !canNavigate) {
+        // Aguarda a resposta e o encaminhamento para o resultado.
+    }
+
+    DsScreen(
+        title = "Confirmar agendamento",
+        onBack = if (canNavigate) onBack else null,     //Isso controla tanto a seta da tela quanto o Voltar do Android
+    ) {
         ScheduleHeader(4)
         Text("Revise os dados", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
@@ -290,12 +312,42 @@ fun ScheduleConfirmScreen(
             ReviewRow("Recorrência", "Sem repetição automática")
         }
         Spacer(Modifier.height(22.dp))
-        Text("♡  Obrigada por doar!", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = BloodRed, style = MaterialTheme.typography.titleMedium)
+        Text(
+            "♡  Obrigada por doar!",
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            color = BloodRed,
+            style = MaterialTheme.typography.titleMedium
+        )
         Spacer(Modifier.height(80.dp))
+        creation.errorMessage?.let { message -> //O ?.let executa esse trecho somente quando existe uma mensagem de erro. A tela mostrará a mensagem enviada pelo ViewModel
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(12.dp))
+        }
+        if (creation.appointment?.status == AppointmentStatus.CANCELLED) {
+            Text(
+                text = "Este pedido está cancelado. Ele não representa uma reserva ativa.",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(12.dp))
+        }
         PrimaryButton(
-            text = "Confirmar agendamento",
+            text = if (creation.isLoading) {
+                "Confirmando..."
+            } else {
+                "Confirmar agendamento"
+            },
             onClick = onConfirm,
-            enabled = uiState.selectedCenter != null &&
+            enabled = !creation.isLoading &&
+                    creation.appointment == null &&
+                    uiState.selectedCenter != null &&
                     uiState.selectedDate != null &&
                     uiState.selectedTime != null &&
                     uiState.selectedTimeSlotId != null,
@@ -305,33 +357,96 @@ fun ScheduleConfirmScreen(
 
 @Composable
 private fun ReviewRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
-        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
+    Row(Modifier
+        .fillMaxWidth()
+        .padding(vertical = 10.dp)) {
+        Text(
+            label,
+            Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+            color = InkSecondary
+        )
         Text(value, style = MaterialTheme.typography.labelMedium, color = Ink)
     }
 }
 
 @Composable
-fun ScheduleSuccessScreen(onHome: () -> Unit) {
+fun ScheduleSuccessScreen(
+    uiState: SchedulingUiState,
+    onHome: () -> Unit,
+) {
+    val appointment = uiState.appointmentCreation.appointment
+
+    if (appointment?.status != AppointmentStatus.SCHEDULED) {
+        DsScreen {
+            Spacer(Modifier.height(110.dp))
+            CenteredMessage(
+                "!",
+                "Confirmação indisponível",
+                "Os dados do agendamento não estão disponíveis nesta tela.",
+            )
+            Spacer(Modifier.height(32.dp))
+            PrimaryButton("Ir para o início", onHome)
+        }
+        return
+    }
+    val date = uiState.selectedDate
+        ?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        ?: "Data não informada"
+
+    val time = uiState.selectedTime
+        ?.format(DateTimeFormatter.ofPattern("HH:mm"))
+        ?: "Horário não informado"
     DsScreen {
         Spacer(Modifier.height(110.dp))
-        CenteredMessage("✓", "Agendamento confirmado!", "Sua doação está marcada para\n12/09/2026 às 14:00")
+        CenteredMessage(
+            "✓",
+            "Agendamento confirmado!",
+            "Seu agendamento é para\n$date às $time"
+        )
         Spacer(Modifier.height(34.dp))
         InfoCard {
-            Text("Hemocentro Campinas", style = MaterialTheme.typography.titleMedium)
-            Text("Rua Carlos Chagas, 480", style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
-            Text("Sem repetição automática", style = MaterialTheme.typography.bodyMedium, color = BloodRed)
+            Text(
+                text = uiState.selectedCenter?.name ?: "Unidade não informada",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = uiState.selectedCenter?.address ?: "Endereço não informado",
+                style = MaterialTheme.typography.bodyMedium,
+                color = InkSecondary,
+            )
+            Text(
+                "Sem repetição automática",
+                style = MaterialTheme.typography.bodyMedium,
+                color = BloodRed
+            )
         }
         Spacer(Modifier.height(18.dp))
-        Text("Vamos lembrar você antes da doação ♡", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = InkSecondary)
+        Text(
+            text = "Número do agendamento: ${appointment.id}",
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            color = InkSecondary,
+        )
         Spacer(Modifier.height(56.dp))
         PrimaryButton("Ir para o início", onHome)
     }
 }
 
 @Composable
-fun AppointmentDetailScreen(onBack: () -> Unit, onChange: () -> Unit, onEditRoutine: () -> Unit, onCancel: () -> Unit, onNavigate: (AppRoute) -> Unit) {
-    DsScreen(title = "Detalhe do agendamento", onBack = onBack, bottomRoute = AppRoute.DonationsAppointments, onNavigate = onNavigate) {
+fun AppointmentDetailScreen(
+    onBack: () -> Unit,
+    onChange: () -> Unit,
+    onEditRoutine: () -> Unit,
+    onCancel: () -> Unit,
+    onNavigate: (AppRoute) -> Unit
+) {
+    DsScreen(
+        title = "Detalhe do agendamento",
+        onBack = onBack,
+        bottomRoute = AppRoute.DonationsAppointments,
+        onNavigate = onNavigate
+    ) {
         Spacer(Modifier.height(20.dp))
         AppointmentCard()
         Spacer(Modifier.height(22.dp))
@@ -340,7 +455,13 @@ fun AppointmentDetailScreen(onBack: () -> Unit, onChange: () -> Unit, onEditRout
         SecondaryButton("Editar rotina", onEditRoutine)
         TextAction("Cancelar agendamento", onCancel, Modifier.align(Alignment.CenterHorizontally))
         Spacer(Modifier.height(22.dp))
-        InfoCard { Text("A aptidão final será confirmada na triagem.", style = MaterialTheme.typography.bodyMedium, color = InkSecondary) }
+        InfoCard {
+            Text(
+                "A aptidão final será confirmada na triagem.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = InkSecondary
+            )
+        }
     }
 }
 
@@ -355,21 +476,47 @@ private fun AppointmentCard() {
             Text("12 SETEMBRO 2026", style = MaterialTheme.typography.titleMedium, color = BloodRed)
             Text("14:00", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Ink)
             Text("Hemocentro Campinas", style = MaterialTheme.typography.titleMedium)
-            Text("Rua Carlos Chagas, 480", style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
+            Text(
+                "Rua Carlos Chagas, 480",
+                style = MaterialTheme.typography.bodyMedium,
+                color = InkSecondary
+            )
             Spacer(Modifier.height(10.dp))
-            Text("Sem repetição automática", style = MaterialTheme.typography.bodyMedium, color = BloodRed)
-            Text("Lembrete ativo ✓", style = MaterialTheme.typography.bodySmall, color = InkSecondary)
+            Text(
+                "Sem repetição automática",
+                style = MaterialTheme.typography.bodyMedium,
+                color = BloodRed
+            )
+            Text(
+                "Lembrete ativo ✓",
+                style = MaterialTheme.typography.bodySmall,
+                color = InkSecondary
+            )
         }
     }
 }
 
 @Composable
-fun CancelAppointmentScreen(onBack: () -> Unit, onCancel: () -> Unit, onNavigate: (AppRoute) -> Unit) {
-    DsScreen(title = "Meu agendamento", onBack = onBack, bottomRoute = AppRoute.DonationsAppointments, onNavigate = onNavigate) {
+fun CancelAppointmentScreen(
+    onBack: () -> Unit,
+    onCancel: () -> Unit,
+    onNavigate: (AppRoute) -> Unit
+) {
+    DsScreen(
+        title = "Meu agendamento",
+        onBack = onBack,
+        bottomRoute = AppRoute.DonationsAppointments,
+        onNavigate = onNavigate
+    ) {
         Spacer(Modifier.height(28.dp))
         AppointmentCard()
         Spacer(Modifier.height(52.dp))
-        Text("Deseja cancelar este agendamento?", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium)
+        Text(
+            "Deseja cancelar este agendamento?",
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium
+        )
         Spacer(Modifier.height(22.dp))
         PrimaryButton("Manter agendamento", onBack)
         Spacer(Modifier.height(12.dp))
@@ -381,11 +528,17 @@ fun CancelAppointmentScreen(onBack: () -> Unit, onCancel: () -> Unit, onNavigate
 fun EditRoutineScreen(onBack: () -> Unit) {
     DsScreen(title = "Editar rotina", onBack = onBack) {
         Spacer(Modifier.height(18.dp))
-        Text("Sem repetição automática", style = MaterialTheme.typography.titleLarge, color = BloodRed)
+        Text(
+            "Sem repetição automática",
+            style = MaterialTheme.typography.titleLarge,
+            color = BloodRed
+        )
         Spacer(Modifier.height(24.dp))
         InfoCard {
-            Text("A recorrência ainda não está disponível. O intervalo entre doações depende dos critérios aplicáveis e da avaliação do hemocentro.",
-                style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
+            Text(
+                "A recorrência ainda não está disponível. O intervalo entre doações depende dos critérios aplicáveis e da avaliação do hemocentro.",
+                style = MaterialTheme.typography.bodyMedium, color = InkSecondary
+            )
         }
         Spacer(Modifier.height(42.dp))
         PrimaryButton("Voltar", onBack)
@@ -396,7 +549,11 @@ fun EditRoutineScreen(onBack: () -> Unit) {
 fun AppointmentCancelledScreen(onNew: () -> Unit, onHome: () -> Unit) {
     DsScreen {
         Spacer(Modifier.height(170.dp))
-        CenteredMessage("✓", "Agendamento cancelado", "Nenhum agendamento futuro foi criado automaticamente")
+        CenteredMessage(
+            "✓",
+            "Agendamento cancelado",
+            "Nenhum agendamento futuro foi criado automaticamente"
+        )
         Spacer(Modifier.height(100.dp))
         PrimaryButton("Fazer novo agendamento", onNew)
         TextAction("Voltar ao início", onHome, Modifier.align(Alignment.CenterHorizontally))

@@ -41,6 +41,7 @@ class DonationRestrictionsTest {
             val appContainer = remember {
                 AppContainer(
                     centerRepositoryOverride = FakeDonationCenterRepository(),
+                    appointmentRepositoryOverride = FakeAppointmentRepository(),
                     timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
                     authRepositoryOverride = FakeAuthRepository(),
                     donorProfileRepositoryOverride = FakeDonorProfileRepository(),
