@@ -4,6 +4,14 @@
 
 Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; unidades e horários sintéticos do agendamento são consultados no Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão. Login por e-mail/senha e criação/leitura do perfil estão integrados ao Supabase; cadastro, recuperação de senha e provedores sociais continuam visuais. Recorrência e sucesso ainda são visuais; confirmar não grava agendamento. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
 
+## Modo de tutoria — obrigatório ao retomar
+
+- **A usuária escreve o código de produção. O agente orienta e revisa.** Não criar, preencher ou editar arquivos de produção automaticamente, mesmo que a mudança seja pequena ou envolva apenas um DTO, mapper ou DataSource.
+- Mostrar um único passo curto por resposta: indicar o arquivo/local, fornecer o trecho necessário e explicar sua função. Aguardar a usuária implementar e responder antes de conferir e apresentar o próximo passo.
+- “Vamos”, “continuar”, “prosseguir”, “feito” e pedidos de checkpoint mantêm esse modo; não autorizam o agente a implementar produção. Só alterar produção diretamente quando a usuária pedir explicitamente que o agente faça aquela alteração.
+- Documentação, roteiros de teste, verificações e operações Git autorizadas podem ser executados pelo agente. Isso não autoriza avançar automaticamente a implementação do aplicativo.
+- Preservar arquivos gerados por outras conversas. Antes de apagar/reverter ou decidir que esses arquivos substituem as etapas de aprendizado, combinar a retomada com a usuária.
+
 ## Stack e estrutura
 
 - Kotlin, Android nativo, Jetpack Compose.

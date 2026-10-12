@@ -4,9 +4,23 @@
 
 Projeto: `C:\Users\katia\Documents\Apps\DoeSangue`. A usuária implementa acompanhando pequenos passos e explicações em português. Ler `AGENTS.md`, este checkpoint e apenas os arquivos relacionados ao próximo passo; não percorrer todo o repositório.
 
+**MODO DE TUTORIA: a usuária escreve o código de produção. O agente mostra um trecho curto, explica e aguarda a implementação. Não criar nem editar automaticamente arquivos Kotlin, mesmo um DTO ou mapper isolado. “Continuar” significa apresentar o próximo passo didático.**
+
 **Etapa da função de reserva no banco concluída, com testes SQL manuais e limpeza confirmados. O Android ainda não grava agendamentos. A modelagem acadêmica inteira não está concluída.**
 
-Próximo passo: integrar a função ao Android, começando pelo DTO e mapper do agendamento, mantendo o contrato existente. Não entregar a funcionalidade inteira pronta. A usuária autorizou commit e push desta etapa antes de retomar em nova conversa.
+Próximo passo didático planejado: orientar a criação do DTO, um trecho por vez; mapper e DataSource serão etapas posteriores, cada uma após confirmação da usuária. Manter o contrato existente. A usuária autorizou commit e push da etapa do banco antes de retomar em nova conversa.
+
+## Correção da retomada — 12/10/2026
+
+A conversa “Criar DTO e mapper do agendamento” interpretou “pequenos passos” como autorização para implementar e gerou estes três arquivos, ainda sem commit:
+
+- `app/src/main/java/br/edu/fatec/doesangue/data/supabase/dto/AppointmentDto.kt`
+- `app/src/main/java/br/edu/fatec/doesangue/data/supabase/mapper/AppointmentMapper.kt`
+- `app/src/main/java/br/edu/fatec/doesangue/data/supabase/SupabaseAppointmentDataSource.kt`
+
+Essa produção automática não corresponde ao modo de aprendizado desejado. Os arquivos foram preservados; não apagar, alterar, integrar ou commitar esses arquivos como parte da correção do checkpoint. Antes de continuar, combinar com a usuária como retomar o aprendizado desses trechos. O código gerado não significa que ela já realizou essas etapas. A conversa está idle na conferência; nenhum aviso foi enviado a ela por ferramenta de mensagens.
+
+Commit do banco concluído e enviado: `1903172b366fe8d7184198bf5189c7b94df87b1c`. A correção de tutoria é documental e separada dos três arquivos Kotlin novos. Conferir o Git ao retomar; a árvore passou a conter esses arquivos não rastreados após a conversa nova.
 
 ## Git e arquivos desta etapa
 
@@ -14,7 +28,7 @@ Próximo passo: integrar a função ao Android, começando pelo DTO e mapper do 
 - Este checkpoint acompanha a versão da função de reserva e seus testes. O hash do commit que o contém pode ser consultado no Git; não gravar aqui o próprio hash, que muda ao editar o documento.
 - Conjunto desta etapa: nova migração da função; sete scripts `supabase/tests/criar_agendamento_*.sql`; cinco arquivos em `supabase/tests/concorrencia/`; documentação atualizada e este checkpoint.
 - Commit/push autorizados em 12/10/2026. Ao retomar, conferir último commit, árvore de trabalho e sincronização com o remoto; a confirmação do envio fica na resposta final desta conversa. Incluir as versões finais, não a criação vazia que estava inicialmente no índice.
-- Documentação: `AGENTS.md`, `docs/09-banco-de-dados.md`, `docs/12-validacao.md`, `docs/15-disponibilidade-agendamento.md`, `supabase/README.md` e instruções do teste concorrente. Nenhum código Android foi alterado nesta etapa.
+- Documentação da etapa do banco: `AGENTS.md`, `docs/09-banco-de-dados.md`, `docs/12-validacao.md`, `docs/15-disponibilidade-agendamento.md`, `supabase/README.md` e instruções do teste concorrente. Nenhum código Android foi alterado nessa etapa; os três arquivos posteriores estão registrados na correção da retomada acima.
 
 ## Aplicado no desenvolvimento — não reaplicar
 
@@ -68,7 +82,7 @@ São simulações administrativas de papéis/identidades, não login nem verific
 - Kotlin/Compose; MVVM, Repository, StateFlow, corrotinas e DI manual. Manter domain/data/presentation/ui separados e NavController somente na navegação.
 - Unidades e horários vêm do Supabase; unidade/data/horário/ID ficam no rascunho. Perfil, login, logout local e restauração inicial de sessão já implementados. Cadastro, recuperação de senha, provedores sociais e recorrência ainda visuais; falta observador global de sessão durante o uso.
 - `domain/model/Appointment.kt` já contém id, donorId, timeSlotId, status e createdAt; status SCHEDULED/CANCELLED. `domain/repository/AppointmentRepository.kt`: `suspend createAppointment(timeSlotId: String, idempotencyKey: String): Result<Appointment>`.
-- Arquivos Kotlin estão sob `app/src/main/java/br/edu/fatec/doesangue/`. Confirmar em `ui/navigation/SchedulingNavGraph.kt` ainda é navegação visual. Não há implementação de AppointmentRepository, chamada RPC ou estados de gravação.
+- Arquivos Kotlin estão sob `app/src/main/java/br/edu/fatec/doesangue/`. No commit do banco, Confirmar em `ui/navigation/SchedulingNavGraph.kt` ainda era navegação visual, sem implementação de AppointmentRepository, chamada RPC ou estados de gravação. A conversa nova acrescentou um DataSource ainda não integrado e sem commit, conforme correção acima; não tratar isso como aprendizado concluído ou reserva já ligada ao botão.
 - Começar por DTO/mapper em data/supabase, depois DataSource/RPC, repository e composição em di/AppContainer. Preservar CancellationException; tratar retorno de uma linha e estado retornado explicitamente.
 - Depois ligar SchedulingViewModel e revisão com carregamento/erro/nova tentativa/sucesso. Uma chave identifica um pedido lógico: reutilizar nas tentativas após falha/perda de resposta, sem gerar outra a cada clique. Novas escolhas/pedido exigem nova chave. Não navegar para sucesso de reserva ativa se o servidor devolver cancelado.
 - Preservar agrupamento `and` dos filtros gte/lt em inicio (Supabase Kotlin 3.6.0 descarta um limite quando há chaves duplicadas fora do grupo). Não alterar esta consulta fora do escopo.
