@@ -1,5 +1,12 @@
 # Validação
 
+## Mostrar/ocultar senha no login — 13/10/2026
+
+- A usuária implementou estado local `passwordVisible`, transformação condicional e botão textual Mostrar/Ocultar em `LoginScreen`. Senha inicialmente oculta; botão desabilitado durante o envio. A alteração preserva o valor digitado e o callback existente. O ícone de olho foi adiado por decisão da usuária.
+- `assembleDebug`: BUILD SUCCESSFUL. A usuária confirmou o roteiro manual de ocultação inicial e alternância sem perda de texto; sem captura adicional.
+- `connectedDebugAndroidTest` focado em `LoginFlowTest`, Pixel_5/Android 12: **três aprovados, zero falhas/erros/ignorados**, conferidos no XML; BUILD SUCCESSFUL. Suíte existente, sem novos testes, com repository fictício: valida campos vazios, falha/nova tentativa com envio da senha sem alterações e bloqueio/duplicidade durante o envio. A alternância Mostrar/Ocultar tem evidência manual; os testes existentes não acionam esse botão. Não houve validação de login remoto nesta rodada.
+- `git diff --check` passou. Nenhuma mudança no banco, migração, repository ou ViewModel. Diagrama em [visibilidade da senha](19-diagrama-sequencia-visibilidade-senha.md).
+
 ## Detalhes da reserva pelo ID — 13/10/2026
 
 - Diagrama da etapa apresentado antes do código em [detalhe pelo ID](18-diagrama-sequencia-detalhe.md). A usuária implementou estado/ViewModel, fábrica que recebe ID, passagem da função pela navegação, rota tipada e tela. O botão de cada cartão emite seu ID; o destino usa `toRoute()` e fornece o ID ao ViewModel. A consulta reutiliza `getMyAppointments()` e localiza o ID na lista própria, com Loading/Loaded/NotFound/Error. Dados exibidos vêm do servidor, com fuso da unidade e estado preservados. Detalhe/cancelamento visual antigo permanece separado; nenhuma nova operação de escrita ou migração.

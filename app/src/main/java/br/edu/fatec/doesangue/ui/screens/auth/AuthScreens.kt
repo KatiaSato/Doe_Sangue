@@ -21,12 +21,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import br.edu.fatec.doesangue.presentation.auth.LoginUiState
 import br.edu.fatec.doesangue.R
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
@@ -50,6 +52,7 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     DsScreen {
         Spacer(Modifier.height(54.dp))
@@ -82,7 +85,19 @@ fun LoginScreen(
             placeholder = { Text("Digite sua senha") },
             singleLine = true,
             enabled = !uiState.isLoading,
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
+            trailingIcon = {
+                TextButton(
+                    onClick = { passwordVisible = !passwordVisible },
+                    enabled = !uiState.isLoading,
+                ) {
+                    Text(if (passwordVisible) "Ocultar" else "Mostrar")
+                }
+            },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
             ),

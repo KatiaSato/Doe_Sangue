@@ -2,6 +2,8 @@
 
 ## Diagrama de sequência implementado — 13/10/2026
 
+A melhoria de interface está descrita no [diagrama de visibilidade da senha](19-diagrama-sequencia-visibilidade-senha.md), apresentado antes da implementação guiada: alternância local no campo de login. A implementação foi revisada e compilou; a usuária confirmou a alternância manualmente e os três testes existentes de login passaram. O ícone de olho foi adiado para uma versão futura.
+
 A comunicação entre tela/navegação, ViewModel, repository, DataSource, API Supabase e PostgreSQL está descrita no [diagrama de sequência da listagem de agendamentos](17-diagrama-sequencia-listagem.md). Ele representa o fluxo implementado, com StateFlow, consulta autenticada e conversão da resposta. As seções datadas abaixo conservam os checkpoints históricos da arquitetura.
 
 O [diagrama de sequência dos detalhes pelo ID](18-diagrama-sequencia-detalhe.md) foi apresentado antes da implementação guiada da etapa. O destino agora recebe o ID da reserva, usa estado/ViewModel próprio e reutiliza a consulta da conta; sete testes instrumentados do detalhe passaram com repositories fictícios. Captura confirma os dados do detalhe de 23; retorno pela seta à lista confirmado por relato. Ver resultados e limites em [validação](12-validacao.md).
