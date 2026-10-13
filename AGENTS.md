@@ -149,6 +149,11 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - Checkpoints anteriores que dizem que Confirmar é somente visual são históricos. Listagem/detalhe/cancelamento, recorrência e cadastro real continuam pendentes; não assumir que já foram integrados a partir da confirmação.
 
 
+## Consulta dos próprios agendamentos — etapa iniciada em 12/10/2026
+
+- A usuária criou AppointmentSummary, contrato getMyAppointments, DTO/mapper e chamada RPC no DataSource/repository. Aplicativo e testes compilaram; dois repositories fictícios foram adaptados pelo agente, com leitura ainda não configurada. ViewModel/tela pendentes.
+- A usuária relatou aplicação manual da migração 20261012000200_consultar_meus_agendamentos.sql com resultado esperado. Não reaplicar. Capturas confirmam configuração (SECURITY DEFINER/STABLE/search_path vazio, EXECUTE somente authenticated), leitura própria A/B com formato completo, acesso/vazio e oferta oculta/passada/cancelada com policies públicas preservadas. Reserva 23 preservada. São identidades simuladas, sem JWT pela API. Captura da conferência final pós-ROLLBACK confirma 2 unidades, 3 horários, 1 perfil, 1 agendamento, zero unidades temporárias e zero outras reservas no horário de 23; sete registros do domínio. Três testes locais do JSON/mapper passaram, conferidos no XML; sem HTTP real. Lint final: 31 avisos e zero erros. Etapa SQL concluída nesse recorte. Retomada em docs/checkpoints/2026-10-12-consulta-agendamentos.md. Preservar reserva 23. Próxima integração: estado/ViewModel/tela de listagem, um passo por resposta. A usuária autorizou commit/push desta etapa; conferir sincronização no Git ao retomar. Ver docs/12-validacao.md e supabase/README.md.
+
 ## Revisão editorial — 06/10/2026
 
 - Orientações de idade, procedimentos e medicamentos revisadas após a Portaria GM/MS nº 11.685/2026, com fontes e data visíveis. Ver `docs/16-revisao-regras-doacao.md` para referências e limites.

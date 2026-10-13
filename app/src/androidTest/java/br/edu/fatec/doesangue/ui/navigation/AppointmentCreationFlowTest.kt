@@ -11,6 +11,7 @@ import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.domain.model.Appointment
+import br.edu.fatec.doesangue.domain.model.AppointmentSummary
 import br.edu.fatec.doesangue.domain.model.AppointmentStatus
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import br.edu.fatec.doesangue.presentation.scheduling.SchedulingViewModel
@@ -262,6 +263,9 @@ class AppointmentCreationFlowTest {
     private data class Request(val slotId: String, val key: String)
 
     private class ControlledAppointmentRepository : AppointmentRepository {
+        override suspend fun getMyAppointments(): Result<List<AppointmentSummary>> =
+            Result.failure(UnsupportedOperationException("Este roteiro testa somente a criação."))
+
         val calls = mutableListOf<Request>()
         val records = mutableMapOf<String, Appointment>()
         var answer: suspend (Request) -> Result<Appointment> = { Result.success(saved(it)) }

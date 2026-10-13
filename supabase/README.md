@@ -1,5 +1,11 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Consulta dos próprios agendamentos — etapa iniciada em 12/10/2026
+
+- `migrations/20261012000200_consultar_meus_agendamentos.sql`: sétima migração, depende das tabelas já criadas. Aplicação manual relatada pela usuária com resultado esperado. Não reaplicar; histórico da CLI ainda não conciliado.
+- Função de leitura sem parâmetros, STABLE, SECURITY DEFINER e search_path vazio; exige auth.uid() e restringe a consulta ao próprio doador. Retorna objeto JSON com campos explícitos da reserva e nome/início/fuso por JOIN, incluindo ofertas inativas/unidades não publicadas das reservas próprias. EXECUTE somente a authenticated; nenhuma policy pública foi ampliada.
+- Capturas dos quatro roteiros (`configuracao`, `leitura_isolada`, `acesso_vazio`, `oferta_oculta`) confirmam configuração/permissões, leitura própria A/B e formato completo, lista vazia, acesso sem identidade/anon negado, leitura própria de reservas com oferta oculta/passada/cancelada, consulta pública preservada e reserva 23 preservada. Testes simulam identidades administrativamente, sem JWT pela API, com fixtures em ROLLBACK. Captura de `tests/consultar_meus_agendamentos_conferencia_final.sql` confirma 2 unidades, 3 horários, 1 perfil e 1 agendamento; zero unidades temporárias, zero outras reservas no horário de 23 e 23 agendado. A chamada Android está preparada e compilou; ViewModel/tela ainda pendentes. Retomada em [checkpoint de leitura](../docs/checkpoints/2026-10-12-consulta-agendamentos.md), evidências em [validação](../docs/12-validacao.md); seções históricas abaixo devem ser lidas com suas datas.
+
 ## Função de reserva — 12/10/2026
 
 - A usuária relatou aplicação manual de `migrations/20261012000100_criar_funcao_agendamento.sql` com “Success. No rows returned”. É a sexta migração e depende das cinco anteriores. Não reaplicar no desenvolvimento existente; o histórico da CLI continua sem conciliação.

@@ -1,8 +1,10 @@
 package br.edu.fatec.doesangue.data.supabase
 
 import br.edu.fatec.doesangue.data.supabase.dto.AppointmentDto
+import br.edu.fatec.doesangue.data.supabase.dto.AppointmentSummaryDto
 import br.edu.fatec.doesangue.data.supabase.mapper.toDomain
 import br.edu.fatec.doesangue.domain.model.Appointment
+import br.edu.fatec.doesangue.domain.model.AppointmentSummary
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
@@ -40,5 +42,17 @@ class SupabaseAppointmentDataSource(
             "A reserva deve retornar exatamente um agendamento."
         }
         return appointments.single().toDomain()
+    }
+
+    suspend fun getMyAppointments(): List<AppointmentSummary> {
+        client.auth.awaitInitialization()
+        checkNotNull(client.auth.currentUserOrNull()) {
+            "É necessário entrar para consultar os agendamentos."
+        }
+
+        return client.postgrest
+            .rpc("consultar_meus_agendamentos", buildJsonObject {})
+            .decodeList<AppointmentSummaryDto>()
+            .map { it.toDomain() }
     }
 }

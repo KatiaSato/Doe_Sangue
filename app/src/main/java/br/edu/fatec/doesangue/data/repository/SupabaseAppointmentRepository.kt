@@ -2,6 +2,7 @@ package br.edu.fatec.doesangue.data.repository
 
 import br.edu.fatec.doesangue.data.supabase.SupabaseAppointmentDataSource
 import br.edu.fatec.doesangue.domain.model.Appointment
+import br.edu.fatec.doesangue.domain.model.AppointmentSummary
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -19,6 +20,16 @@ class SupabaseAppointmentRepository(
                 idempotencyKey = idempotencyKey,
             )
             Result.success(appointment)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Result.failure(exception)
+        }
+    }
+
+    override suspend fun getMyAppointments(): Result<List<AppointmentSummary>> {
+        return try {
+            Result.success(dataSource.getMyAppointments())
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {

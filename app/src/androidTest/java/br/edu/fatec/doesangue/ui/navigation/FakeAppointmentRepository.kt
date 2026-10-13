@@ -1,6 +1,7 @@
 package br.edu.fatec.doesangue.ui.navigation
 
 import br.edu.fatec.doesangue.domain.model.Appointment
+import br.edu.fatec.doesangue.domain.model.AppointmentSummary
 import br.edu.fatec.doesangue.domain.model.AppointmentStatus
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import java.time.Instant
@@ -8,6 +9,9 @@ import java.time.Instant
 // Responde em memória nos testes de navegação; não chama o Supabase.
 class FakeAppointmentRepository : AppointmentRepository {
     private val appointmentsByKey = mutableMapOf<String, Appointment>()
+
+    override suspend fun getMyAppointments(): Result<List<AppointmentSummary>> =
+        Result.failure(UnsupportedOperationException("Consulta ainda não configurada neste teste."))
 
     override suspend fun createAppointment(
         timeSlotId: String,
