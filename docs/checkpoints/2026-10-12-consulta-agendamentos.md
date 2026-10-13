@@ -1,5 +1,14 @@
 # Checkpoint — consulta dos próprios agendamentos — 12/10/2026
 
+## Retomada atual — detalhe por ID, 13/10/2026
+
+- A listagem foi commitada e enviada em `4d449cc`. Depois, a usuária pediu diagramas antes de novas etapas: fluxo da listagem em `docs/17-diagrama-sequencia-listagem.md` e detalhe em `docs/18-diagrama-sequencia-detalhe.md`, apresentado como proposta antes da implementação guiada.
+- A usuária já implementou estado/ViewModel do detalhe, fábrica por ID, passagem da função pela navegação, rota `AppointmentDetailById`, tela e botão nos cartões. A consulta reutiliza a RPC de lista própria e procura o ID; nenhum SQL novo. Rotas visuais antigas permanecem separadas.
+- Compilação e Lint passaram (31 avisos/zero erros). Sete testes do detalhe, seis da listagem e dez de navegação passaram no Pixel_5/Android 12, com repositories fictícios, sem falhas/erros/ignorados, conferidos nos XMLs; são duas execuções. Primeira tentativa não iniciou por emulador offline; a conexão foi restabelecida.
+- Verificação manual concluída nesse recorte: captura confirma listagem com botão e dados no detalhe de 23 (Unidade Demo A, 19/10/2026 às 08:00, Agendado); retorno pela seta à lista mantendo 23 confirmado por relato. Preservar 23; não reaplicar migrações. A usuária autorizou commit/push do detalhe e diagramas em 13/10; conferir versão e sincronização no Git ao retomar. Depois definir a próxima etapa em tutoria, começando por diagrama. Ver resultados e limites em `docs/12-validacao.md`.
+
+O registro abaixo conserva o estado histórico de 12/10 e da etapa anterior de listagem.
+
 Atualização de 13/10: estado/ViewModel, fábrica, navegação e listagem foram implementados pela usuária em pequenos passos. Seis testes instrumentados de leitura com repositories fictícios passaram. Três capturas do roteiro manual com sessões reais A → B → A confirmam a reserva 23 como A, vazio como B e reaparecimento de 23 como A, sem alteração dos dados exibidos. Lint: 31 avisos e zero erros. Detalhes por ID e cancelamento persistido permanecem pendentes. A usuária autorizou commit/push desta etapa em 13/10; conferir versão e sincronização no Git ao retomar. Depois, retomar detalhes vinculados ao ID em pequenos passos. O commit da etapa de 12/10 é `df2b866`; o restante deste checkpoint registra seu estado histórico. Ver [validação atual](../12-validacao.md).
 
 ## Retomada obrigatória em modo de tutoria

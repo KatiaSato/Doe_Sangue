@@ -69,6 +69,7 @@ fun DonationHistoryScreen(onBack: () -> Unit, onAppointments: () -> Unit, onNavi
 fun DonationAppointmentsScreen(
     uiState: AppointmentsUiState,
     onRetry: () -> Unit,
+    onOpenDetails: (String) -> Unit,
     onBack: () -> Unit,
     onHistory: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
@@ -115,6 +116,11 @@ fun DonationAppointmentsScreen(
                             Text(summary.centerName)
                             Text("Agendamento ${summary.appointment.id}")
                             Text(statusLabel, color = BloodRed)
+                            Spacer(Modifier.height(12.dp))
+                            PrimaryButton(
+                                text = "Ver detalhes",
+                                onClick = { onOpenDetails(summary.appointment.id) },
+                            )
                         }
                         Spacer(Modifier.height(12.dp))
                     }

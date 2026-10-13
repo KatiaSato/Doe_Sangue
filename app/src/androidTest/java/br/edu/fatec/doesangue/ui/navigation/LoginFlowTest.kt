@@ -49,6 +49,7 @@ class LoginFlowTest {
                     loginViewModelFactory = factory,
                     profileViewModelFactory = container.profileViewModelFactory,
                     appointmentsViewModelFactory = container.appointmentsViewModelFactory,
+                    appointmentDetailViewModelFactory = container::appointmentDetailViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = container.sessionViewModelFactory,
                 )

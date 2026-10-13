@@ -1,5 +1,11 @@
 # Doe Sangue — arquitetura
 
+## Diagrama de sequência implementado — 13/10/2026
+
+A comunicação entre tela/navegação, ViewModel, repository, DataSource, API Supabase e PostgreSQL está descrita no [diagrama de sequência da listagem de agendamentos](17-diagrama-sequencia-listagem.md). Ele representa o fluxo implementado, com StateFlow, consulta autenticada e conversão da resposta. As seções datadas abaixo conservam os checkpoints históricos da arquitetura.
+
+O [diagrama de sequência dos detalhes pelo ID](18-diagrama-sequencia-detalhe.md) foi apresentado antes da implementação guiada da etapa. O destino agora recebe o ID da reserva, usa estado/ViewModel próprio e reutiliza a consulta da conta; sete testes instrumentados do detalhe passaram com repositories fictícios. Captura confirma os dados do detalhe de 23; retorno pela seta à lista confirmado por relato. Ver resultados e limites em [validação](12-validacao.md).
+
 ## Estado implementado em 06/10/2026
 
 A escolha de unidade usa `ScheduleCenterScreen` → `SchedulingViewModel` → contrato `DonationCenterRepository` → `SupabaseDonationCenterRepository` → `SupabaseDonationCenterDataSource` → PostgREST. DTO e mapper mantêm o formato remoto dentro de `data`; StateFlow expõe lista, carregamento, erro e seleção. O repository propaga cancelamento e retorna outras exceções em `Result.failure`.

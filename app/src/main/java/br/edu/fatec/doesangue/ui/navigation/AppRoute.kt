@@ -75,6 +75,11 @@ sealed interface AppRoute {
     data object AppointmentDetail : AppRoute
 
     @Serializable
+    data class AppointmentDetailById(
+        val appointmentId: String,
+    ) : AppRoute
+
+    @Serializable
     data object CancelAppointment : AppRoute
 
     @Serializable

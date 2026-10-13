@@ -17,6 +17,8 @@ fun DoeSangueApp() {
         loginViewModelFactory = appContainer.loginViewModelFactory,
         profileViewModelFactory = appContainer.profileViewModelFactory,
         appointmentsViewModelFactory = appContainer.appointmentsViewModelFactory,
+        appointmentDetailViewModelFactory =
+            appContainer::appointmentDetailViewModelFactory,
         logoutViewModelFactory = appContainer.logoutViewModelFactory,
         sessionViewModelFactory = appContainer.sessionViewModelFactory,
     )

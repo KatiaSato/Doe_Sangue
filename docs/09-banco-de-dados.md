@@ -6,6 +6,8 @@
 
 A migração do perfil foi aplicada manualmente pela usuária. Capturas e relatos dos testes SQL confirmam RLS, privilégios por coluna, leitura própria com duas identidades simuladas, criação/edição própria como A, bloqueio de criação em nome de B e bloqueio de consulta anônima. Limites e evidências em [validação](12-validacao.md).
 
+Ainda em 13/10, o detalhe por ID foi ligado à navegação e a um ViewModel próprio, reutilizando a consulta da conta e selecionando o ID na resposta. Sete testes do detalhe com dados fictícios passaram, além da regressão de listagem/navegação. Captura confirma os dados do detalhe da reserva 23, e o retorno à lista foi confirmado por relato. Não houve nova tabela, FK, RPC ou migração nesta etapa. Cancelamento persistido e ampliação do modelo/seed acadêmico continuam pendentes. Ver [diagrama da etapa](18-diagrama-sequencia-detalhe.md).
+
 A conferência final dos testes de leitura confirma duas unidades, três horários, um perfil persistido (Doador Demo A) e um agendamento (reserva 23), totalizando sete registros do domínio. Duas contas de teste existem no Supabase Auth, mas não são tabelas/registros do domínio para a meta acadêmica. Perfil A e reserva 23 foram criados pelo aplicativo; os dados dos roteiros de leitura ficaram em ROLLBACK. Ainda não há seed ampliado nem os 200 registros acadêmicos exigidos.
 
 O teste concorrente de 12/10 acrescentou temporariamente oferta 13 e reserva 22, ambas removidas conforme captura da limpeza. A contagem global atual vem da conferência final posterior dos testes de leitura, sem somar dados temporários à meta acadêmica.

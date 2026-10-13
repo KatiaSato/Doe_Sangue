@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
+import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailViewModel
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
@@ -21,6 +22,7 @@ import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignDetailScreen
 import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignsScreen
 import br.edu.fatec.doesangue.ui.screens.centers.CenterDetailScreen
 import br.edu.fatec.doesangue.ui.screens.centers.CentersScreen
+import br.edu.fatec.doesangue.ui.screens.donations.AppointmentDetailByIdScreen
 import br.edu.fatec.doesangue.ui.screens.donations.DonationAppointmentsScreen
 import br.edu.fatec.doesangue.ui.screens.donations.DonationHistoryScreen
 import br.edu.fatec.doesangue.ui.screens.profile.AboutScreen
@@ -41,6 +43,7 @@ fun NavGraphBuilder.mainNavGraph(
     schedulingViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
     appointmentsViewModelFactory: ViewModelProvider.Factory,
+    appointmentDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
     logoutViewModelFactory: ViewModelProvider.Factory,
     onSignedOut: () -> Unit,
     onNavigateMain: (AppRoute) -> Unit,
@@ -112,6 +115,11 @@ fun NavGraphBuilder.mainNavGraph(
             DonationAppointmentsScreen(
                 uiState = appointmentsUiState,
                 onRetry = appointmentsViewModel::loadAppointments,
+                onOpenDetails = { appointmentId ->
+                    onNavigateMain(
+                        AppRoute.AppointmentDetailById(appointmentId),
+                    )
+                },
                 onBack = {
                     navController.navigateBackOrHome()
                 },
@@ -122,6 +130,33 @@ fun NavGraphBuilder.mainNavGraph(
                         }
                         launchSingleTop = true
                     }
+                },
+                onNavigate = onNavigateMain,
+            )
+        }
+
+        composable<AppRoute.AppointmentDetailById> { entry ->
+            /*
+            toRoute() recupera o ID transportado pela navegação.
+            Esse ID entra na fábrica, que cria o ViewModel para consultar a reserva.
+            A tela recebe o estado e os callbacks
+             */
+            val route = entry.toRoute<AppRoute.AppointmentDetailById>()
+
+            val detailViewModel: AppointmentDetailViewModel = viewModel(
+                factory = appointmentDetailViewModelFactory(
+                    route.appointmentId,
+                ),
+            )
+
+            val detailUiState by
+            detailViewModel.uiState.collectAsStateWithLifecycle()
+
+            AppointmentDetailByIdScreen(
+                uiState = detailUiState,
+                onRetry = detailViewModel::loadAppointment,
+                onBack = {
+                    navController.navigateBackOrHome()
                 },
                 onNavigate = onNavigateMain,
             )
