@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
+import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
@@ -39,6 +40,7 @@ fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
     schedulingViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
+    appointmentsViewModelFactory: ViewModelProvider.Factory,
     logoutViewModelFactory: ViewModelProvider.Factory,
     onSignedOut: () -> Unit,
     onNavigateMain: (AppRoute) -> Unit,
@@ -101,7 +103,15 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable<AppRoute.DonationsAppointments> {
+            val appointmentsViewModel: AppointmentsViewModel = viewModel(
+                factory = appointmentsViewModelFactory,
+            )
+
+            val appointmentsUiState by
+            appointmentsViewModel.uiState.collectAsStateWithLifecycle()
             DonationAppointmentsScreen(
+                uiState = appointmentsUiState,
+                onRetry = appointmentsViewModel::loadAppointments,
                 onBack = {
                     navController.navigateBackOrHome()
                 },
@@ -112,9 +122,6 @@ fun NavGraphBuilder.mainNavGraph(
                         }
                         launchSingleTop = true
                     }
-                },
-                onDetails = {
-                    navController.navigate(AppRoute.AppointmentDetail)
                 },
                 onNavigate = onNavigateMain,
             )

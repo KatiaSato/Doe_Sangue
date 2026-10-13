@@ -65,6 +65,7 @@ class AppNavigationTest {
                         appContainer.schedulingViewModelFactory,
                     loginViewModelFactory = appContainer.loginViewModelFactory,
                     profileViewModelFactory = appContainer.profileViewModelFactory,
+                    appointmentsViewModelFactory = appContainer.appointmentsViewModelFactory,
                     logoutViewModelFactory = appContainer.logoutViewModelFactory,
                     sessionViewModelFactory = appContainer.sessionViewModelFactory,
                 )
@@ -240,16 +241,17 @@ class AppNavigationTest {
     }
 
     @Test
-    fun cancellationReturnsToListWithoutReopeningOldDetail() {
+    fun prototypeCancellationReturnsToProfileWithoutReopeningOldDetail() {
         enterMain()
-        tapTab("Doações")
-        tap("Agendamentos")
-        tap("Ver detalhes")
+        // O detalhe/cancelamento visual continua acessível pelo Perfil.
+        // A listagem persistida ainda não abre detalhes por ID.
+        tapTab("Perfil")
+        tap("Meu agendamento")
         tap("Cancelar agendamento")
         tap("Cancelar agendamento")
         assertRoute<AppRoute.AppointmentCancelled>()
         compose.runOnIdle { navController.popBackStack() }
-        assertRoute<AppRoute.DonationsAppointments>()
+        assertRoute<AppRoute.Profile>()
         assertNoPreviousScreen()
     }
 

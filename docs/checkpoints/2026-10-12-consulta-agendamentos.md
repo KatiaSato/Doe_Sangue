@@ -1,5 +1,7 @@
 # Checkpoint — consulta dos próprios agendamentos — 12/10/2026
 
+Atualização de 13/10: estado/ViewModel, fábrica, navegação e listagem foram implementados pela usuária em pequenos passos. Seis testes instrumentados de leitura com repositories fictícios passaram. Três capturas do roteiro manual com sessões reais A → B → A confirmam a reserva 23 como A, vazio como B e reaparecimento de 23 como A, sem alteração dos dados exibidos. Lint: 31 avisos e zero erros. Detalhes por ID e cancelamento persistido permanecem pendentes. A usuária autorizou commit/push desta etapa em 13/10; conferir versão e sincronização no Git ao retomar. Depois, retomar detalhes vinculados ao ID em pequenos passos. O commit da etapa de 12/10 é `df2b866`; o restante deste checkpoint registra seu estado histórico. Ver [validação atual](../12-validacao.md).
+
 ## Retomada obrigatória em modo de tutoria
 
 Projeto: `C:\Users\katia\Documents\Apps\DoeSangue`. Ler AGENTS.md, este registro e os arquivos diretamente relacionados ao próximo passo. A usuária escreve produção; o agente confere, explica e fornece somente um trecho curto por resposta. Não criar/editar Kotlin de produção ou migrações automaticamente. Testes e documentação podem ser preparados pelo agente. A usuária preferiu continuar na mesma conversa; este checkpoint não autoriza abrir outra nem implementar os passos pendentes.

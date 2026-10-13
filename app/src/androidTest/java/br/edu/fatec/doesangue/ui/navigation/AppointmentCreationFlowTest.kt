@@ -61,6 +61,7 @@ class AppointmentCreationFlowTest {
                     schedulingViewModelFactory = factory,
                     loginViewModelFactory = container.loginViewModelFactory,
                     profileViewModelFactory = container.profileViewModelFactory,
+                    appointmentsViewModelFactory = container.appointmentsViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = container.sessionViewModelFactory,
                 )

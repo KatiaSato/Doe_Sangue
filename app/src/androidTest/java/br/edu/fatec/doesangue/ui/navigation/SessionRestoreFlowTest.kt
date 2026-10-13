@@ -56,6 +56,7 @@ class SessionRestoreFlowTest {
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
                     loginViewModelFactory = container.loginViewModelFactory,
                     profileViewModelFactory = container.profileViewModelFactory,
+                    appointmentsViewModelFactory = container.appointmentsViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = sessionFactory,
                 )

@@ -29,6 +29,7 @@ import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.auth.SessionViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
+import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
 
 // Ele é responsável por criar os objetos e fornecer suas dependências
 class AppContainer(
@@ -127,6 +128,14 @@ class AppContainer(
 
     val getDonationOverview = GetDonationOverviewUseCase(donationOverviewRepository)
 
+    // Cria o ViewModel que consulta os agendamentos da conta.
+    val appointmentsViewModelFactory = viewModelFactory {
+        initializer {
+            AppointmentsViewModel(
+                repository = appointmentRepository,
+            )
+        }
+    }
     // Cria o ViewModel do perfil com o repository configurado.
     val profileViewModelFactory = viewModelFactory {
         initializer {

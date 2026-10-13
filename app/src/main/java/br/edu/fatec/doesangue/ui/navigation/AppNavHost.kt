@@ -17,6 +17,7 @@ fun AppNavHost(
     schedulingViewModelFactory: ViewModelProvider.Factory,
     loginViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
+    appointmentsViewModelFactory: ViewModelProvider.Factory,
     logoutViewModelFactory: ViewModelProvider.Factory,
     sessionViewModelFactory: ViewModelProvider.Factory,
 ) {
@@ -109,6 +110,7 @@ fun AppNavHost(
             navController = navController,
             schedulingViewModelFactory = schedulingViewModelFactory,
             profileViewModelFactory = profileViewModelFactory,
+            appointmentsViewModelFactory = appointmentsViewModelFactory,
             logoutViewModelFactory = logoutViewModelFactory,
             onSignedOut = {
                 navController.navigate(AppGraph.Auth) {

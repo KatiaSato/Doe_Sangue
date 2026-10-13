@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.edu.fatec.doesangue.domain.model.AppointmentStatus
+import br.edu.fatec.doesangue.presentation.appointments.AppointmentsUiState
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
@@ -26,6 +28,8 @@ import br.edu.fatec.doesangue.ui.theme.BloodRed
 import br.edu.fatec.doesangue.ui.theme.BloodRedSoft
 import br.edu.fatec.doesangue.ui.theme.Ink
 import br.edu.fatec.doesangue.ui.theme.InkSecondary
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun DonationHistoryScreen(onBack: () -> Unit, onAppointments: () -> Unit, onNavigate: (AppRoute) -> Unit) {
@@ -62,23 +66,59 @@ fun DonationHistoryScreen(onBack: () -> Unit, onAppointments: () -> Unit, onNavi
 }
 
 @Composable
-fun DonationAppointmentsScreen(onBack: () -> Unit, onHistory: () -> Unit, onDetails: () -> Unit, onNavigate: (AppRoute) -> Unit) {
+fun DonationAppointmentsScreen(
+    uiState: AppointmentsUiState,
+    onRetry: () -> Unit,
+    onBack: () -> Unit,
+    onHistory: () -> Unit,
+    onNavigate: (AppRoute) -> Unit,
+) {
     DsScreen(title = "Minhas doações", onBack = onBack, bottomRoute = AppRoute.DonationsAppointments, onNavigate = onNavigate) {
         DonationTabs(history = false, onHistory = onHistory, onAppointments = {})
         Spacer(Modifier.height(22.dp))
-        Text("PRÓXIMA DOAÇÃO", style = MaterialTheme.typography.labelSmall, color = BloodRed)
-        Spacer(Modifier.height(8.dp))
-        Card(
-            colors = CardDefaults.cardColors(containerColor = BloodRed),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onDetails),
-        ) {
-            Column(Modifier.padding(18.dp)) {
-                Text("12 de setembro • 14:00", style = MaterialTheme.typography.titleLarge, color = Color.White)
-                Text("Hemocentro Campinas", style = MaterialTheme.typography.bodyMedium, color = Color.White)
-                Text("Sem repetição automática", style = MaterialTheme.typography.bodySmall, color = Color.White)
-                Spacer(Modifier.height(14.dp))
-                PrimaryButton("Ver detalhes", onDetails)
+        when (val state = uiState) {
+            AppointmentsUiState.Loading -> {
+                Text("Carregando agendamentos…")
+            }
+
+            is AppointmentsUiState.Error -> {
+                Text(
+                    text = state.message,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(12.dp))
+                PrimaryButton("Tentar novamente", onRetry)
+            }
+
+            is AppointmentsUiState.Loaded -> {
+                if (state.appointments.isEmpty()) {
+                    Text("Você ainda não possui agendamentos.")
+                } else {
+                    state.appointments.forEach { summary ->
+                        val localStart = summary.startsAt.atZone(
+                            ZoneId.of(summary.timeZoneId),
+                        )
+                        val dateTime = localStart.format(
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy • HH:mm"),
+                        )
+                        val statusLabel = when (summary.appointment.status) {
+                            AppointmentStatus.SCHEDULED -> "Agendado"
+                            AppointmentStatus.CANCELLED -> "Cancelado"
+                        }
+
+                        InfoCard {
+                            Text(
+                                text = dateTime,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Ink,
+                            )
+                            Text(summary.centerName)
+                            Text("Agendamento ${summary.appointment.id}")
+                            Text(statusLabel, color = BloodRed)
+                        }
+                        Spacer(Modifier.height(12.dp))
+                    }
+                }
             }
         }
         Spacer(Modifier.height(28.dp))

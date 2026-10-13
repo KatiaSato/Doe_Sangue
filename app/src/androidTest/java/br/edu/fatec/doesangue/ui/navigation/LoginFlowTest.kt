@@ -48,6 +48,7 @@ class LoginFlowTest {
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
                     loginViewModelFactory = factory,
                     profileViewModelFactory = container.profileViewModelFactory,
+                    appointmentsViewModelFactory = container.appointmentsViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = container.sessionViewModelFactory,
                 )

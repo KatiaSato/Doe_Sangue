@@ -11,7 +11,7 @@ class FakeAppointmentRepository : AppointmentRepository {
     private val appointmentsByKey = mutableMapOf<String, Appointment>()
 
     override suspend fun getMyAppointments(): Result<List<AppointmentSummary>> =
-        Result.failure(UnsupportedOperationException("Consulta ainda não configurada neste teste."))
+        Result.success(emptyList())
 
     override suspend fun createAppointment(
         timeSlotId: String,
