@@ -1,5 +1,9 @@
 # Doe Sangue — arquitetura
 
+## Cancelamento no banco — 14/10/2026
+
+O [diagrama de cancelamento persistido](20-diagrama-sequencia-cancelamento.md) foi apresentado antes do código. A usuária implementou/aplicou a tabela de eventos e a função SQL com validação de dono/prazo, repetição segura e gravação atômica. Testes manuais, cenário concorrente e limpeza final confirmados por capturas; identidades simuladas, sem login/JWT pela API. A integração Android continua proposta: estado e coordenação no ViewModel, navegação em ui/navigation. Retomada em [checkpoint](checkpoints/2026-10-14-cancelamento-supabase.md).
+
 ## Diagrama de sequência implementado — 13/10/2026
 
 A melhoria de interface está descrita no [diagrama de visibilidade da senha](19-diagrama-sequencia-visibilidade-senha.md), apresentado antes da implementação guiada: alternância local no campo de login. A implementação foi revisada e compilou; a usuária confirmou a alternância manualmente e os três testes existentes de login passaram. O ícone de olho foi adiado para uma versão futura.

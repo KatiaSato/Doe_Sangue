@@ -1,5 +1,7 @@
 # Checkpoint — consulta dos próprios agendamentos — 12/10/2026
 
+**Retomada mais recente:** [cancelamento no Supabase — 14/10/2026](2026-10-14-cancelamento-supabase.md). SQL, testes manuais e limpeza concluídos nesse recorte; integração Android pendente. O registro abaixo conserva etapas históricas. Modo de tutoria obrigatório.
+
 ## Retomada atual — detalhe por ID, 13/10/2026
 
 - A listagem foi commitada e enviada em `4d449cc`. Depois, a usuária pediu diagramas antes de novas etapas: fluxo da listagem em `docs/17-diagrama-sequencia-listagem.md` e detalhe em `docs/18-diagrama-sequencia-detalhe.md`, apresentado como proposta antes da implementação guiada.

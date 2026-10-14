@@ -1,5 +1,9 @@
 # Doe Sangue — regras de negócio
 
+## Decisão de cancelamento — 14/10/2026
+
+A usuária aprovou, para o ambiente acadêmico sintético, permitir cancelar o próprio agendamento antes do horário de início, sem antecedência adicional. O prazo será validado no servidor. A operação ainda não está implementada; registro da transição e comportamento de repetição serão definidos na etapa descrita em [cancelamento persistido](20-diagrama-sequencia-cancelamento.md). A tabela abaixo conserva a proposta histórica da Sprint 0; o prazo de RN008 agora tem esta decisão para o recorte acadêmico.
+
 **Sprint 0 — proposta para revisão.** São invariantes do domínio propostos, não validações existentes no app. Onde falta autoridade externa ou decisão de produto, a regra registra explicitamente a pendência. Requisitos associados estão em [02](02-requisitos.md).
 
 | ID | Regra / restrição | Origem e decisão | RF |
