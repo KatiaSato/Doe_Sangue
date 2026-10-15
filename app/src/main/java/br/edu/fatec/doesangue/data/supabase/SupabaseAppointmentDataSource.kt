@@ -55,4 +55,36 @@ class SupabaseAppointmentDataSource(
             .decodeList<AppointmentSummaryDto>()
             .map { it.toDomain() }
     }
+
+    /*
+    Esse metodo envia somente o ID da reserva à função do banco.
+    O servidor identifica o doador e verifica o prazo e a autorização
+     */
+    suspend fun cancelAppointment(
+        appointmentId: String,
+    ): Appointment {
+        val reservationId = appointmentId.toLong()
+        require(reservationId > 0) {
+            "Informe um agendamento válido."
+        }
+
+        client.auth.awaitInitialization()
+        checkNotNull(client.auth.currentUserOrNull()) {
+            "É necessário entrar para cancelar."
+        }
+
+        val parameters = buildJsonObject {
+            put("p_agendamento_id", reservationId)
+        }
+
+        val appointments = client.postgrest
+            .rpc("cancelar_agendamento", parameters)
+            .decodeList<AppointmentDto>()
+
+        check(appointments.size == 1) {
+            "O cancelamento deve retornar exatamente um agendamento."
+        }
+
+        return appointments.single().toDomain()
+    }
 }

@@ -36,4 +36,22 @@ class SupabaseAppointmentRepository(
             Result.failure(exception)
         }
     }
+
+    /*
+    O repository entrega o resultado ao ViewModel como sucesso ou falha
+    Preservamos CancellationException para respeitar a interrupção da corrotina
+     */
+    override suspend fun cancelAppointment(
+        appointmentId: String,
+    ): Result<Appointment> {
+        return try {
+            Result.success(
+                dataSource.cancelAppointment(appointmentId)
+            )
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Result.failure(exception)
+        }
+    }
 }

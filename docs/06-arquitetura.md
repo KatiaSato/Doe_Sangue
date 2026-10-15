@@ -2,7 +2,11 @@
 
 ## Cancelamento no banco — 14/10/2026
 
-O [diagrama de cancelamento persistido](20-diagrama-sequencia-cancelamento.md) foi apresentado antes do código. A usuária implementou/aplicou a tabela de eventos e a função SQL com validação de dono/prazo, repetição segura e gravação atômica. Testes manuais, cenário concorrente e limpeza final confirmados por capturas; identidades simuladas, sem login/JWT pela API. A integração Android continua proposta: estado e coordenação no ViewModel, navegação em ui/navigation. Retomada em [checkpoint](checkpoints/2026-10-14-cancelamento-supabase.md).
+**Evolução posterior no Android:** cancelamento integrado e percurso real concluído neste recorte. Captura mostra reserva temporária 39 Cancelado e 23 Agendado; evento/autor/instante de 39 conferidos administrativamente. Limpeza confirmou oferta 24/reserva 39/evento removidos e original 23 preservada. Vinte testes focados passaram, LintDebug com 31 avisos/zero erros. Sem auditoria completa de JWT/API ou perda real de resposta; os parágrafos abaixo conservam o estado anterior ao teste real. Ver docs/12-validacao.md.
+
+A integração do aplicativo começou pelo [diagrama de cancelamento no Android](21-diagrama-sequencia-cancelamento-android.md), apresentado como proposta antes do contrato/código. A usuária implementou contrato, DataSource/repository, estado/ViewModel e confirmação no detalhe, reutilizando DTO/modelo da reserva e a função SQL já aplicada. A tela bloqueia saída durante envio e a lista consulta novamente ao retomar, com decisões de navegação em ui/navigation. Vinte testes instrumentados de detalhe/cancelamento/listagem passaram com repositories fictícios. Cancelamento real pela API e conferência/limpeza da reserva temporária ainda pendentes; preservar 23.
+
+O [diagrama de cancelamento persistido](20-diagrama-sequencia-cancelamento.md) foi apresentado antes do código. A usuária implementou/aplicou a tabela de eventos e a função SQL com validação de dono/prazo, repetição segura e gravação atômica. Testes manuais, cenário concorrente e limpeza final confirmados por capturas; identidades simuladas, sem login/JWT pela API. O [checkpoint](checkpoints/2026-10-14-cancelamento-supabase.md) registra a conclusão do banco e a evolução posterior do Android; o diagrama da integração distingue implementação e validação real pendente.
 
 ## Diagrama de sequência implementado — 13/10/2026
 

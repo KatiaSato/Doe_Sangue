@@ -8,6 +8,9 @@ import java.time.Instant
 
 // Responde em memória nos testes de navegação; não chama o Supabase.
 class FakeAppointmentRepository : AppointmentRepository {
+    override suspend fun cancelAppointment(appointmentId: String): Result<Appointment> =
+        Result.failure(UnsupportedOperationException("Cancelamento não configurado neste roteiro."))
+
     private val appointmentsByKey = mutableMapOf<String, Appointment>()
 
     override suspend fun getMyAppointments(): Result<List<AppointmentSummary>> =

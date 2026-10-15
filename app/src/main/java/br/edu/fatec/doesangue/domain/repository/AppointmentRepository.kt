@@ -12,4 +12,10 @@ interface AppointmentRepository {
 
     // Consulta os agendamentos da conta autenticada.
     suspend fun getMyAppointments(): Result<List<AppointmentSummary>>
+
+    // Cancela um agendamento da conta autenticada.
+    // O contrato recebe o ID e devolve a reserva retornada pelo servidor.
+    suspend fun cancelAppointment(
+        appointmentId: String,
+    ): Result<Appointment>
 }

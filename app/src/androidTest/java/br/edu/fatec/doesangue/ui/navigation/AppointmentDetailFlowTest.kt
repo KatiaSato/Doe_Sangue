@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.espresso.Espresso.pressBack
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.domain.model.Appointment
 import br.edu.fatec.doesangue.domain.model.AppointmentStatus
@@ -29,7 +30,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.Instant
 
-/** Navegação, ViewModel e tela reais; sessão e reservas somente em memória, sem rede. */
+/** Detalhe e cancelamento com navegação, ViewModel e tela reais; dados em memória, sem rede. */
 @RunWith(AndroidJUnit4::class)
 class AppointmentDetailFlowTest {
     @get:Rule
@@ -105,7 +106,7 @@ class AppointmentDetailFlowTest {
 
     private fun tap(text: String) {
         val node = compose.onNodeWithText(text)
-        if (text in listOf("Entrar", "Configurações", "Sair da conta", "Tentar novamente")) {
+        if (text in listOf("Entrar", "Configurações", "Sair da conta", "Tentar novamente", "Cancelar agendamento")) {
             node.performScrollTo()
         }
         node.performClick()
@@ -150,9 +151,10 @@ class AppointmentDetailFlowTest {
         tap("‹")
         compose.runOnIdle {
             assertTrue(nav.currentDestination?.hasRoute<AppRoute.DonationsAppointments>() == true)
-            assertEquals(2, repository.readOwners.size)
+            assertEquals(3, repository.readOwners.size)
         }
         compose.onNodeWithText("Agendamento 701").assertExists()
+        compose.onNodeWithText("Unidade Sintética Tóquio Atualizada").assertExists()
     }
 
     @Test
@@ -226,10 +228,13 @@ class AppointmentDetailFlowTest {
         compose.runOnIdle { repository.answer = { response.await() } }
         openDetails()
         val oldModel = model
+        // A consulta do detalhe continua pendente; a lista retomada pode consultar os dados atuais.
+        compose.runOnIdle {
+            repository.answer = { Result.success(repository.records["test-user-a"].orEmpty()) }
+        }
         tap("‹")
         compose.runOnIdle {
             assertEquals(1, repository.cancelledReads)
-            repository.answer = { Result.success(repository.records["test-user-a"].orEmpty()) }
         }
         openDetails(index = 1)
         compose.runOnIdle {
@@ -270,8 +275,178 @@ class AppointmentDetailFlowTest {
         compose.onNodeWithText("Agendamento 702").assertExists()
         compose.onNodeWithText("Agendamento 701").assertDoesNotExist()
         compose.runOnIdle {
-            assertEquals(listOf("test-user-a", "test-user-a", "test-user-b", "test-user-b", "test-user-b"), repository.readOwners)
+            assertEquals(listOf("test-user-a", "test-user-a", "test-user-b", "test-user-b", "test-user-b", "test-user-b"), repository.readOwners)
         }
+    }
+
+    @Test
+    fun dismissingConfirmationDoesNotCancelReservation() {
+        openApp()
+        openList()
+        openDetails()
+        tap("Cancelar agendamento")
+        compose.onNodeWithText("Cancelar agendamento?").assertExists()
+        tap("Manter agendamento")
+        compose.onNodeWithText("Cancelar agendamento?").assertDoesNotExist()
+        tap("Cancelar agendamento")
+        pressBack()
+        compose.waitForIdle()
+        compose.onNodeWithText("Cancelar agendamento?").assertDoesNotExist()
+        compose.onNodeWithText("Agendado").assertExists()
+        compose.runOnIdle {
+            assertTrue(repository.cancelCalls.isEmpty())
+            assertEquals(AppointmentStatus.SCHEDULED, repository.records["test-user-a"]!!.single().appointment.status)
+        }
+    }
+
+    @Test
+    fun cancellationUsesSelectedIdAndRefreshesListAfterSystemBack() {
+        repository.records["test-user-a"] = listOf(summary("701"), summary("702"))
+        openApp()
+        openList()
+        openDetails(index = 1)
+        tap("Cancelar agendamento")
+        tap("Sim, cancelar")
+        compose.onNodeWithText("Cancelado").assertExists()
+        compose.onNodeWithText("Cancelar agendamento").assertDoesNotExist()
+        compose.onNodeWithText("Agendamento 702").assertExists()
+        compose.runOnIdle {
+            model.cancelAppointment()
+            assertEquals(listOf("test-user-a" to "702"), repository.cancelCalls)
+            assertEquals(summary("701"), repository.records["test-user-a"]!![0])
+            assertEquals(summary("702").appointment.copy(status = AppointmentStatus.CANCELLED), repository.records["test-user-a"]!![1].appointment)
+        }
+        pressBack()
+        compose.waitForIdle()
+        compose.onNodeWithText("Agendamento 701").assertExists()
+        compose.onNodeWithText("Agendamento 702").assertExists()
+        compose.onNodeWithText("Agendado").assertExists()
+        compose.onNodeWithText("Cancelado").assertExists()
+        compose.runOnIdle {
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.DonationsAppointments>() == true)
+            assertEquals(3, repository.readOwners.size)
+        }
+    }
+
+    @Test
+    fun pendingCancellationPreservesDetailsAndBlocksDuplicateReadAndNavigation() {
+        val response = CompletableDeferred<Result<Appointment>>()
+        repository.cancelAnswer = { _, _ -> response.await() }
+        openApp()
+        openList()
+        openDetails()
+        tap("Cancelar agendamento")
+        tap("Sim, cancelar")
+        compose.onNodeWithText("Cancelando…").assertIsNotEnabled()
+        compose.onNodeWithText("Agendamento 701").assertExists()
+        compose.onNodeWithText("Agendado").assertExists()
+        compose.onNodeWithText("‹").assertDoesNotExist()
+        tapTab("Perfil")
+        pressBack()
+        compose.waitForIdle()
+        compose.runOnIdle {
+            repeat(3) {
+                model.cancelAppointment()
+                model.loadAppointment()
+            }
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.AppointmentDetailById>() == true)
+            assertEquals(listOf("test-user-a" to "701"), repository.cancelCalls)
+            assertEquals(2, repository.readOwners.size)
+            response.complete(repository.cancelStored("test-user-a", "701"))
+        }
+        compose.waitForIdle()
+        compose.onNodeWithText("Cancelado").assertExists()
+        compose.onNodeWithText("‹").assertExists()
+        tap("‹")
+        compose.onNodeWithText("Cancelado").assertExists()
+    }
+
+    @Test
+    fun cancellationFailurePreservesDetailsAndRetryUsesSameId() {
+        repository.cancelAnswer = { _, _ -> Result.failure(IllegalStateException("falha-interna-sintetica")) }
+        openApp()
+        openList()
+        openDetails()
+        tap("Cancelar agendamento")
+        tap("Sim, cancelar")
+        compose.onNodeWithText(CANCEL_ERROR).assertExists()
+        compose.onNodeWithText("falha-interna-sintetica").assertDoesNotExist()
+        compose.onNodeWithText("Agendado").assertExists()
+        compose.onNodeWithText("Agendamento 701").assertExists()
+        compose.onNodeWithText("Cancelar agendamento").assertIsEnabled()
+        compose.runOnIdle {
+            assertEquals(summary("701"), repository.records["test-user-a"]!!.single())
+            repository.cancelAnswer = { owner, id -> repository.cancelStored(owner, id) }
+        }
+        tap("Cancelar agendamento")
+        tap("Sim, cancelar")
+        compose.onNodeWithText("Cancelado").assertExists()
+        compose.onNodeWithText(CANCEL_ERROR).assertDoesNotExist()
+        compose.runOnIdle {
+            assertEquals(listOf("test-user-a" to "701", "test-user-a" to "701"), repository.cancelCalls)
+        }
+    }
+
+    @Test
+    fun retryAfterSimulatedLostResponseRecoversAlreadyCancelledReservation() {
+        repository.cancelAnswer = { owner, id ->
+            repository.cancelStored(owner, id)
+            Result.failure(IllegalStateException("resposta-perdida-sintetica"))
+        }
+        openApp()
+        openList()
+        openDetails()
+        tap("Cancelar agendamento")
+        tap("Sim, cancelar")
+        compose.onNodeWithText(CANCEL_ERROR).assertExists()
+        compose.onNodeWithText("Agendado").assertExists()
+        compose.runOnIdle {
+            assertEquals(AppointmentStatus.CANCELLED, repository.records["test-user-a"]!!.single().appointment.status)
+            repository.cancelAnswer = { owner, id -> repository.cancelStored(owner, id) }
+        }
+        tap("Cancelar agendamento")
+        tap("Sim, cancelar")
+        compose.onNodeWithText("Cancelado").assertExists()
+        compose.runOnIdle {
+            assertEquals(1, repository.storedCancellations)
+            assertEquals(listOf("test-user-a" to "701", "test-user-a" to "701"), repository.cancelCalls)
+        }
+    }
+
+    @Test
+    fun unexpectedIdOrScheduledResponseDoesNotShowCancellationSuccess() {
+        repository.cancelAnswer = { _, _ -> Result.success(summary("999").appointment.copy(status = AppointmentStatus.CANCELLED)) }
+        openApp()
+        openList()
+        openDetails()
+        tap("Cancelar agendamento")
+        tap("Sim, cancelar")
+        compose.onNodeWithText(CANCEL_ERROR).assertExists()
+        compose.onNodeWithText("Agendamento 701").assertExists()
+        compose.onNodeWithText("Agendamento 999").assertDoesNotExist()
+        compose.onNodeWithText("Cancelado").assertDoesNotExist()
+        compose.runOnIdle { repository.cancelAnswer = { _, _ -> Result.success(summary("701").appointment) } }
+        tap("Cancelar agendamento")
+        tap("Sim, cancelar")
+        compose.onNodeWithText(CANCEL_ERROR).assertExists()
+        compose.onNodeWithText("Agendado").assertExists()
+        compose.onNodeWithText("Cancelar agendamento").assertIsEnabled()
+        compose.runOnIdle { assertEquals(2, repository.cancelCalls.size) }
+    }
+
+    @Test
+    fun restoredConfirmationStillRequiresExplicitConfirmationToCancel() {
+        openApp()
+        openList()
+        openDetails()
+        tap("Cancelar agendamento")
+        restoration.emulateSavedInstanceStateRestore()
+        compose.waitForIdle()
+        compose.onNodeWithText("Cancelar agendamento?").assertExists()
+        compose.runOnIdle { assertTrue(repository.cancelCalls.isEmpty()) }
+        tap("Manter agendamento")
+        compose.onNodeWithText("Agendado").assertExists()
+        compose.runOnIdle { assertTrue(repository.cancelCalls.isEmpty()) }
     }
 
     @Test
@@ -313,9 +488,33 @@ class AppointmentDetailFlowTest {
     private class ControlledAppointmentRepository(private val auth: ControlledAuthRepository) : AppointmentRepository {
         val records = mutableMapOf<String, List<AppointmentSummary>>()
         val readOwners = mutableListOf<String>()
+        val cancelCalls = mutableListOf<Pair<String, String>>()
+        var storedCancellations = 0
+        var cancelAnswer: suspend (String, String) -> Result<Appointment> = { owner, id ->
+            cancelStored(owner, id)
+        }
         var cancelledReads = 0
         var answer: suspend (String) -> Result<List<AppointmentSummary>> = { owner ->
             Result.success(records[owner].orEmpty())
+        }
+
+        override suspend fun cancelAppointment(appointmentId: String): Result<Appointment> {
+            val owner = checkNotNull(auth.user).id
+            cancelCalls += owner to appointmentId
+            return cancelAnswer(owner, appointmentId)
+        }
+
+        // Repetição e gravação somente em memória; não verifica a função SQL nem JWT.
+        fun cancelStored(owner: String, id: String): Result<Appointment> {
+            val original = records[owner].orEmpty().firstOrNull { it.appointment.id == id }
+                ?: return Result.failure(IllegalArgumentException("Reserva de teste não encontrada."))
+            if (original.appointment.status == AppointmentStatus.CANCELLED) {
+                return Result.success(original.appointment)
+            }
+            val updated = original.copy(appointment = original.appointment.copy(status = AppointmentStatus.CANCELLED))
+            records[owner] = records[owner].orEmpty().map { if (it.appointment.id == id) updated else it }
+            storedCancellations++
+            return Result.success(updated.appointment)
         }
 
         override suspend fun getMyAppointments(): Result<List<AppointmentSummary>> {
@@ -349,5 +548,6 @@ class AppointmentDetailFlowTest {
     private companion object {
         const val ERROR = "Não foi possível carregar o agendamento. Tente novamente."
         const val NOT_FOUND = "Agendamento não encontrado ou indisponível."
+        const val CANCEL_ERROR = "Não foi possível cancelar o agendamento. Tente novamente."
     }
 }

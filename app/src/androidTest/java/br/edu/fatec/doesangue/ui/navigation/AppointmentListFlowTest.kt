@@ -248,6 +248,9 @@ class AppointmentListFlowTest {
     }
 
     private class ControlledAppointmentRepository(private val auth: ControlledAuthRepository) : AppointmentRepository {
+        override suspend fun cancelAppointment(appointmentId: String): Result<Appointment> =
+            Result.failure(UnsupportedOperationException("Este roteiro testa somente leitura."))
+
         val readOwners = mutableListOf<String>()
         val records = mutableMapOf<String, List<AppointmentSummary>>()
         var cancelledReads = 0

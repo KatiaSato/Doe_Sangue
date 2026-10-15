@@ -4,6 +4,8 @@ Registro de decisão — 06/10/2026. A usuária aprovou a direção funcional e 
 
 ## Cancelamento no servidor — 14/10/2026
 
+**Evolução posterior no Android:** a usuária integrou o cancelamento ao detalhe por ID, confirmação, bloqueio de saída durante envio, erro/nova tentativa e atualização da lista ao retomar. Vinte testes focados passaram com repositories fictícios, LintDebug com 31 avisos/zero erros. Roteiro real: reserva temporária 39 cancelada no aplicativo, lista preservando 23 Agendado e evento/autor/instante de 39 conferidos administrativamente. Limpeza confirmou oferta 24/reserva 39/evento removidos e 23 preservada. Não repetir os roteiros; JWT/tráfego e perda real de resposta não foram inspecionados. O parágrafo seguinte conserva o checkpoint anterior do banco.
+
 A usuária aprovou cancelamento próprio antes do início, sem antecedência adicional, e implementou/aplicou `cancelar_agendamento(bigint)` com registro em `agendamento_cancelamento`. Prazo pelo relógio do servidor após bloqueios perfil → horário → reserva; estado/evento na mesma transação, repetição preservando o resultado e liberação da ocupação ao deixar `agendado`. Capturas confirmam regras/acesso/atomicidade, isolamento rejeitado e concorrência A-cancelamento/B-criação com uma vaga. Limpeza e massa final conferidas: sete registros originais, sem eventos persistentes do teste, reserva 23 agendada. São identidades administrativas simuladas; integração Android e JWT pela API ainda pendentes. Ver [checkpoint](checkpoints/2026-10-14-cancelamento-supabase.md) e [validação](12-validacao.md). Não reaplicar a migração nem repetir o cenário histórico.
 
 ## Confirmado

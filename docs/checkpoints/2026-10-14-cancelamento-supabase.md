@@ -1,5 +1,13 @@
 # Checkpoint — cancelamento no Supabase — 14/10/2026
 
+## Atualização final da integração Android
+
+A usuária concluiu contrato/RPC/repository, estado/ViewModel, confirmação e bloqueio de saída durante envio; lista recarrega ao retomar. Vinte testes focados aprovados no Pixel_5/Android 12 (14 detalhe/cancelamento e seis listagem), zero falhas/erros/ignorados, LintDebug com 31 avisos/zero erros. São testes com repositories fictícios; implementação de produção escrita pela usuária.
+
+Teste real orientado: preparação manual criou oferta 24/reserva 39 para A; captura do aplicativo mostrou 39 Cancelado e 23 Agendado. Consulta administrativa confirmou um evento de 39, autor_confere=true e cancelado_em 2026-10-15 02:28:24.572206+00; 23 agendado, sem evento, data original preservada. Captura final da limpeza específica confirma oferta/reserva/evento removidos e original 23 preservada. Não repetir os roteiros nem reaplicar migrações; nenhuma operação remota executada pelo agente. Não houve auditoria de JWT/tráfego ou perda real de resposta. Ver docs/12-validacao.md.
+
+Commit/push desta integração Android autorizados pela usuária após a limpeza. Conferir commit resultante e sincronização no Git ao retomar. Modelagem/seed acadêmicos continuam pendentes (sexta tabela e 200 registros). Manter tutoria em um passo por resposta e apresentar diagrama antes de nova etapa. As seções abaixo são checkpoints históricos desta evolução; suas pendências não substituem esta atualização final.
+
 ## Retomada obrigatória
 
 Projeto: `C:\Users\katia\Documents\Apps\DoeSangue`. Ler AGENTS.md, este checkpoint e somente os arquivos relacionados ao próximo passo.
@@ -39,11 +47,21 @@ Todas as execuções remotas foram manuais pela usuária. O agente preparou test
 
 ## Git na criação do checkpoint
 
+**Retomada após registro:** commit/push concluídos em `19497a932c1be0d389e41f295fc98328195f306e` (`feat: implementa cancelamento seguro de agendamentos no banco`). Ao iniciar a integração Android, main estava limpa e sincronizada (0/0). O diagrama da nova etapa foi salvo em `docs/21-diagrama-sequencia-cancelamento-android.md`; primeiro passo orientado será acrescentar o contrato, pela usuária. Os itens abaixo conservam o instante anterior ao commit; conferir o Git atual ao retomar.
+
 - Branch `main`; base `62c10d024f60b79e0e821061352b24fbde3ba3bc` (`feat: permite mostrar e ocultar senha no login`). HEAD e origin/main estavam iguais (0/0).
 - Na criação do checkpoint, migração, roteiros e documentação estavam locais e ainda não commitados/enviados; a migração apareceu parcialmente preparada no índice (AM). Na sequência, a usuária autorizou commit/push em 14/10. Incluir a versão completa atual, não somente o rascunho do índice. Não incluir local.properties ou credenciais. Conferir no Git o commit resultante e sua sincronização ao retomar.
 - Conferir status/log/sincronização ao retomar; esta seção registra o instante do checkpoint, não substitui o Git atual. Não fazer commit/push desta etapa sem autorização aplicável da usuária.
 
 ## Próximo passo: integração Android em tutoria
+
+**Conferência posterior do banco:** captura da consulta somente leitura confirma 39 cancelado com exatamente um evento, autor_confere=true e cancelado_em **2026-10-15 02:28:24.572206+00**. Reserva 23 segue agendada, sem evento, criado_em original **2026-10-12 23:14:35.586383+00**. Próxima ação: executar manualmente a limpeza específica `supabase/tests/cancelar_agendamento_android_limpar.sql`, que remove somente reserva marcada 39, seu evento e oferta 24. Limpeza ainda pendente; não repetir preparação nem cancelar 23.
+
+**Resultado posterior do aplicativo:** captura mostra lista com **39 Cancelado** (21/10/2026 às 23:23) e **23 Agendado** (19/10/2026 às 08:00), ambas Demo A, após orientação para cancelar somente 39 como A. Próxima ação: conferir evento/autor/instante com o roteiro somente leitura `cancelar_agendamento_android_conferir.sql`, depois limpeza específica. A captura não mostra diálogo/detalhe final nem tráfego/JWT. Não repetir preparação e preservar 23; histórico abaixo conserva pendências anteriores.
+
+**Preparação do teste real confirmada posteriormente por captura:** reserva temporária **39**, horário **24**, início local **2026-10-21 23:23:41.215538**, estado agendado, original 23 preservada. A usuária executou o roteiro específico de preparação, que termina em COMMIT; não repetir. Próxima ação: testar o cancelamento de **39** no Android com conta A, conferir o evento/estado e a lista, depois executar somente a limpeza específica. Cancelamento real e limpeza ainda pendentes. Preservar 23. Os parágrafos abaixo conservam estados anteriores desta retomada.
+
+**Evolução posterior ao checkpoint do banco:** a usuária implementou a integração Android orientada pelo diagrama de `docs/21-diagrama-sequencia-cancelamento-android.md`: contrato/RPC/repository, estado/ViewModel, confirmação e bloqueio de saída durante envio. A lista recarrega ao retomar, preservando a consulta inicial do ViewModel. Vinte testes focados passaram no Pixel_5/Android 12 (14 detalhe/cancelamento e seis listagem), sem falhas/erros/ignorados, com dados fictícios e sem rede. Ver `docs/12-validacao.md`. Próxima ação: executar manualmente a preparação específica `supabase/tests/cancelar_agendamento_android_preparar.sql`, guardar IDs e testar **somente a nova reserva** no Android; conferir evento/estado e depois usar a limpeza específica. Esses dois roteiros ainda não foram executados remotamente. Preservar 23. Alterações Android/testes/documentação ainda locais, sem novo commit/push autorizado. O roteiro abaixo conserva a transição original do banco para o Android.
 
 O aplicativo cria, lista e abre detalhes por ID; o detalhe integrado **ainda não cancela**. Telas antigas de cancelamento permanecem visuais. Nenhum Kotlin de produção foi alterado nesta etapa do banco.
 

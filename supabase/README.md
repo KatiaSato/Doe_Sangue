@@ -1,5 +1,12 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Cancelamento integrado ao Android — conclusão do roteiro de 14/10/2026
+
+- `tests/cancelar_agendamento_android_preparar.sql`: executado manualmente pela usuária, com COMMIT; criou oferta temporária 24/reserva 39 para A, sem alterar 23. Identidade administrativa simulada somente na preparação. Não repetir.
+- Após orientação para cancelar somente 39 pelo app, captura da lista mostra 39 Cancelado e 23 Agendado. `tests/cancelar_agendamento_android_conferir.sql`, somente leitura como postgres, confirmou 39 cancelado com um evento, autor_confere=true e instante preenchido; 23 agendado, zero eventos e criado_em original preservado. Não foi inspecionado JWT/tráfego.
+- `tests/cancelar_agendamento_android_limpar.sql`: execução manual confirmada por captura, com oferta_removida/reserva_removida/evento_removido=true e original 23 preservada. Remove somente fixture marcada pela chave sintética, seu evento e sua oferta; confere dados completos de 23 antes/depois. Não repetir. A massa anterior de sete registros permanece preservada no escopo do roteiro, sem nova contagem global.
+- Integração Android escrita pela usuária; 20 testes focados sem rede aprovados e LintDebug com 31 avisos/zero erros. Nenhuma nova migração nesta integração; não reaplicar DDL. Evidências e limites em [validação](../docs/12-validacao.md) e [checkpoint atualizado](../docs/checkpoints/2026-10-14-cancelamento-supabase.md). Seções abaixo são históricas.
+
 ## Cancelamento — preparação local em 14/10/2026
 
 - `migrations/20261014000100_criar_cancelamento_agendamento.sql`: oitava migração, após as sete existentes. Escrita pela usuária em pequenos passos e revisada estaticamente; aplicação manual relatada em 14/10 após orientação de execução completa. Capturas posteriores conferem configuração/permissões e estrutura; resultados dos testes abaixo. Não reaplicar automaticamente esta migração nem as anteriores.

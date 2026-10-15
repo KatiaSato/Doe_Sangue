@@ -10,6 +10,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailViewModel
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
@@ -105,11 +107,21 @@ fun NavGraphBuilder.mainNavGraph(
             )
         }
 
-        composable<AppRoute.DonationsAppointments> {
+        composable<AppRoute.DonationsAppointments> { entry ->
             val appointmentsViewModel: AppointmentsViewModel = viewModel(
                 factory = appointmentsViewModelFactory,
             )
 
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                val alreadyOpened =
+                    entry.savedStateHandle.get<Boolean>("appointmentsOpened") == true
+
+                entry.savedStateHandle["appointmentsOpened"] = true
+
+                if (alreadyOpened) {
+                    appointmentsViewModel.loadAppointments()
+                }
+            }
             val appointmentsUiState by
             appointmentsViewModel.uiState.collectAsStateWithLifecycle()
             DonationAppointmentsScreen(
@@ -155,6 +167,7 @@ fun NavGraphBuilder.mainNavGraph(
             AppointmentDetailByIdScreen(
                 uiState = detailUiState,
                 onRetry = detailViewModel::loadAppointment,
+                onCancel = detailViewModel::cancelAppointment,
                 onBack = {
                     navController.navigateBackOrHome()
                 },

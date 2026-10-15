@@ -265,6 +265,9 @@ class AppointmentCreationFlowTest {
     private data class Request(val slotId: String, val key: String)
 
     private class ControlledAppointmentRepository : AppointmentRepository {
+        override suspend fun cancelAppointment(appointmentId: String): Result<Appointment> =
+            Result.failure(UnsupportedOperationException("Este roteiro testa somente a criação."))
+
         override suspend fun getMyAppointments(): Result<List<AppointmentSummary>> =
             Result.failure(UnsupportedOperationException("Este roteiro testa somente a criação."))
 

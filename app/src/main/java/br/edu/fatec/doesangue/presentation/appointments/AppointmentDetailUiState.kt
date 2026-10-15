@@ -7,6 +7,8 @@ sealed interface AppointmentDetailUiState {
 
     data class Loaded(
         val appointment: AppointmentSummary,
+        val isCancelling: Boolean = false,
+        val cancellationError: String? = null,
     ) : AppointmentDetailUiState
 
     data object NotFound : AppointmentDetailUiState
