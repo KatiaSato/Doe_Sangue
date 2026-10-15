@@ -2,12 +2,22 @@
 
 ## Objetivo e estado
 
+**Fechamento de 15/10/2026:** F16/F18/F01/F11/F12 implementados e nova Home aprovada no Figma. Estoque/histórico somente fictícios, de publicação manual. Migração nova e seed/repetição executados pela usuária; capturas confirmam integridade, permissões, leitura isolada A=2/C=1, RLS, configuração das funções e 16 estoques/3 históricos. Reserva original 23 agendada/dados=true. Não reaplicar SQL nem cancelar 23. Esquema versionado: nove tabelas/dez FKs do domínio; total global previsto de 33 registros ainda sem conferência independente; massa de 200 pendente.
+
+**Correção final:** Instant.parse rejeitava no Android o timestamp com +00:00, embora passasse no JDK local. ReadRecordsMapper usa OffsetDateTime.parse(...).toInstant(), conforme padrão existente. Após correção: seis testes JVM e dois Android aprovados, incluindo leitura real dos oito estoques pelo SDK e offsets/frações offline em ambos os mappers. APKs/Lint aprovados (zero erros/32 avisos). Validações anteriores: 27 locais, 32 instrumentados e SQL local isolado; evidências/limites em docs/12. Usuária confirmou funcionamento após a correção e pediu encerrar com commit do conjunto. Histórico A/C pela UI e estoque de A após correção ainda precisam de conferência manual; não apresentar esses percursos como já realizados.
+
+**Retomada:** docs/checkpoints/2026-10-15-home-estoque-historico.md, docs/26, docs/28 e docs/30. Commit do conjunto autorizado; push novo não solicitado. Retomar tutoria para novas funcionalidades, sem executar automaticamente o backlog. Registros posteriores deste arquivo conservam checkpoints históricos quando descrevem etapas já concluídas.
+
 Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegação existem; unidades e horários sintéticos do agendamento são consultados no Supabase. Unidade, data e horário são mantidos no rascunho em StateFlow e exibidos na revisão. Login por e-mail/senha e criação/leitura do perfil estão integrados ao Supabase; cadastro, recuperação de senha e provedores sociais continuam visuais. Recorrência ainda é visual; a confirmação está ligada à função de reserva e a primeira gravação sintética pelo aplicativo foi confirmada. Explique decisões em português e mantenha a solução compreensível para apresentação acadêmica. A usuária implementa acompanhando pequenos passos; não entregar funcionalidades inteiras prontas sem solicitação. Ver `docs/14-integracao-unidades.md` e `docs/15-disponibilidade-agendamento.md`.
 
 ## Modo de tutoria — obrigatório ao retomar
 
-- **A usuária escreve o código de produção. O agente orienta e revisa.** Não criar, preencher ou editar arquivos de produção automaticamente, mesmo que a mudança seja pequena ou envolva apenas um DTO, mapper ou DataSource.
-- Mostrar um único passo curto por resposta: indicar o arquivo/local, fornecer o trecho necessário e explicar sua função. Aguardar a usuária implementar e responder antes de conferir e apresentar o próximo passo.
+- **Delegação específica posterior em 15/10/2026:** a usuária pediu que o agente implemente diretamente F18 (privacidade/termos), F01 (Home), F11 (estoque) e F12 (histórico). Aprovou publicação manual no Supabase de níveis fictícios Estável/Alerta/Crítico e registros fictícios de doação; aplicativo somente consulta. Agendamento/cancelamento não confirmam coleta nem modificam estoque. Diagrama, arquivos e estado em docs/28. Essa delegação não autoriza migrações/seed remotos, outros IDs ou novo commit/push. Preservar 23 e perfis A/C; após esse recorte, retomar tutoria para as outras funcionalidades.
+
+- **Autorização posterior da usuária em 15/10/2026:** o agente pode implementar diretamente conteúdo estático e ajustes visuais simples dentro do escopo solicitado, quando não envolverem nova funcionalidade, camada ou conceito a ensinar. A usuária pediu explicitamente a implementação do FAQ. Essa autorização complementa as regras abaixo: funcionalidades, contratos, persistência, regras de negócio e conceitos novos continuam em tutoria; em caso de escopo misto, separar a parte simples da etapa didática. Não usar essa preferência como autorização para executar automaticamente todo o backlog ou operações remotas/Git. Diagramas continuam antes de etapas com fluxo; o fluxo existente do FAQ foi apresentado e registrado em docs/27 antes da edição.
+
+- **Nas etapas didáticas, a usuária escreve o código de produção; o agente orienta e revisa.** Não criar, preencher ou editar produção automaticamente nessas etapas, mesmo que seja apenas um DTO, mapper ou DataSource. Conteúdo estático e ajustes visuais simples dentro da autorização posterior acima são exceção; não estender essa exceção a camadas, regras ou novas funcionalidades.
+- Nas etapas didáticas, mostrar um único passo curto por resposta: indicar o arquivo/local, fornecer o trecho necessário e explicar sua função. Aguardar a usuária implementar e responder antes de conferir e apresentar o próximo passo.
 - Orientação da usuária em 13/10/2026: antes de iniciar cada nova etapa, apresentar um diagrama de sequência para explicar quem conversa com quem, quais chamadas são feitas e como as respostas retornam. Relacionar os participantes aos arquivos e às camadas do projeto. Distinguir o fluxo já implementado do fluxo proposto para a etapa; salvar o diagrama na documentação e manter a tutoria em pequenos passos depois dessa visão inicial. A próxima etapa, detalhes da reserva pelo ID, também deve começar pelo diagrama.
 - “Vamos”, “continuar”, “prosseguir”, “feito” e pedidos de checkpoint mantêm esse modo; não autorizam o agente a implementar produção. Só alterar produção diretamente quando a usuária pedir explicitamente que o agente faça aquela alteração.
 - Documentação, roteiros de teste, verificações e operações Git autorizadas podem ser executados pelo agente. Isso não autoriza avançar automaticamente a implementação do aplicativo.
@@ -29,13 +39,22 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - Na tela Meu perfil, exibir somente o tipo sanguíneo selecionado/persistido; não manter a grade com todas as opções aberta na visualização normal. As opções devem aparecer apenas durante uma ação explícita de edição. Preservar a possibilidade de atualizar o próprio tipo e a opção Não sei; esta solicitação se refere ao Perfil, não remove a seleção do cadastro.
 - Regra registrada para implementação futura em tutoria. O mecanismo visual da edição será definido nessa etapa; não editar produção agora. Arquivo diretamente relacionado: ui/screens/profile/ProfileContent.kt e componente BloodTypePicker; testes de perfil precisarão acompanhar o novo percurso quando implementado.
 
+## Pendências visuais registradas pela usuária — 15/10/2026
+
+- Atualização posterior: F16 (FAQ) concluído diretamente pelo agente a pedido da usuária, dentro da autorização de conteúdo estático. Nove perguntas/respostas visíveis em ProfileScreens.kt; fontes e limites em docs/27. assembleDebug/Lint aprovados (31 avisos/zero erros), sem nova suíte/validação visual no emulador. Inventário docs/26 marca F16 implementado; não refazer. Outros IDs não foram implementados a partir dessa autorização, e o novo conjunto documental/FAQ ainda está sem commit/push solicitado.
+
+- Varredura posterior solicitada pela usuária concluída e consolidada em `docs/26-pendencias-funcionais.md`: IDs F01–F19 (funcionalidades/integrações), T01–T06 (continuidade/melhorias a decidir), A01–A05 (ajustes finais) e B01–B05 (entrega acadêmica). Fonte principal para escolher a próxima etapa. Encontrados atalhos de Home/Meu agendamento ainda ligados a protótipos, histórico/total fixos e lacunas além das três capturas. Não confundir esses acessos antigos com a lista/detalhe/cancelamento persistidos já concluídos. Usuária escolherá a sequência; não iniciar implementação a partir do inventário.
+
+- Após Google/Facebook, a usuária também pediu anotar estoque (incluindo Ver todos), aba Unidades (lista/detalhe, busca, mapa e distâncias) e destinos de Configurações: edição completa do perfil, segurança/troca de senha, notificações, FAQ/respostas, Fale conosco/envio e revisão de Sobre/privacidade/termos. Inventário com estado, arquivos e limites em `docs/26-pendencias-funcionais.md`. Não implementar a partir da anotação; manter tutoria/diagrama antes de cada etapa.
+- Distinguir pendências do que já funciona: logout, consulta de unidades/horários no agendamento, perfil/tipo persistidos e campanhas. Lista/detalhe da aba Unidades e formulário Editar perfil de Configurações ainda são visuais. Estoque futuro continua sintético e separado de agendamentos/coleta; regras e dados não estão definidos. Campanhas/erros concluídos e enviados em ff21bf0; não reabrir essas etapas por causa dos protótipos restantes.
+
 ## Stack e estrutura
 
 - Kotlin, Android nativo, Jetpack Compose.
 - Arquitetura planejada: MVVM com Repository, StateFlow e corrotinas.
 - Backend: PostgreSQL/PostgREST integrado a unidades, horários e perfil; Supabase Auth integrado ao login por e-mail/senha.
 - Tema acadêmico aceito pelo professor: Clínica/Hospital — atendimento humano. Supabase foi sugerido por ele; ambiente de desenvolvimento acadêmico confirmado pela usuária, somente dados sintéticos e sem reservas em hemocentros reais.
-- Autenticação planejada: e-mail/senha e Google. Para e-mail/senha, mínimo de 8 caracteres com maiúscula, minúscula, número e símbolo, aplicado no Auth e explicado na UI.
+- Autenticação: login por e-mail/senha implementado. Em 15/10/2026, após encerrar campanhas e mensagens de erro, a usuária pediu registrar que **login com Google e login com Facebook continuam pendentes**. Botões sociais são apenas visuais; faltam configuração dos provedores, integração Android/Supabase, retorno da autenticação, ligação ao perfil e testes. Pedido de anotação não autoriza iniciar a implementação; manter tutoria e diagrama antes dessa etapa. Para e-mail/senha, mínimo de 8 caracteres com maiúscula, minúscula, número e símbolo, a conferir no Auth e explicado na UI.
 - `domain/`: modelos, contratos e casos de uso sem dependência da UI.
 - `data/`: fontes de dados e implementações dos repositories; demo e Supabase devem permanecer separados.
 - `presentation/`: ViewModels e estados imutáveis, sem componentes Compose.
@@ -70,7 +89,7 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - Briefing local fornecido em 30/08/2026.
 - Figma: `Doe Sangue — Android App — Education`, nó `9:8`; requer inventário antes das telas.
 - Enunciado acadêmico recebido: `Aula 07 - LBD - M - Projeto Integrador Especificação e Critérios - 16.09.pdf` (fornecido pela usuária, fora do repositório).
-- Pendentes: recorrência, cardinalidades finais, matriz de permissões completa, distribuição do seed, conta do professor e confirmação do `applicationId`.
+- Pendentes: login com Google e Facebook (registro explícito da usuária em 15/10/2026), recorrência, cardinalidades finais, matriz de permissões completa, distribuição do seed, conta do professor e confirmação do `applicationId`.
 
 ## Atualização de navegação — 23/09/2026
 

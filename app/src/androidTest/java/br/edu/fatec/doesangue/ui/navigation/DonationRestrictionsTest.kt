@@ -40,6 +40,8 @@ class DonationRestrictionsTest {
         restoration.setContent {
             val appContainer = remember {
                 AppContainer(
+            bloodStockRepositoryOverride = FakeBloodStockRepository(),
+            donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
                     appointmentRepositoryOverride = FakeAppointmentRepository(),
@@ -74,6 +76,9 @@ class DonationRestrictionsTest {
                         registrationViewModelFactory = appContainer.registrationViewModelFactory,
                         campaignsViewModelFactory = appContainer.campaignsViewModelFactory,
                         campaignDetailViewModelFactory = appContainer::campaignDetailViewModelFactory,
+                    homeViewModelFactory = isolatedHomeFactory(),
+                    bloodStockViewModelFactory = appContainer.bloodStockViewModelFactory,
+                    donationHistoryViewModelFactory = appContainer.donationHistoryViewModelFactory,
                     )
                 }
             }
@@ -97,7 +102,7 @@ class DonationRestrictionsTest {
         compose.onNodeWithText("Consultar medicamentos").assertDoesNotExist()
         compose.onNodeWithText("Antes de doar").performScrollTo().assertIsDisplayed()
         screenshot("inicio")
-        tap("Consultar restrições")
+        tap("Antes de doar")
         screenshot("categorias")
         val cases = listOf(
             Triple("Uso de medicamentos", "PrEP e PEP", "https://bvsms.saude.gov.br/bvs/saudelegis/gm/2026/prt11685_03_07_2026.html"),
@@ -126,7 +131,7 @@ class DonationRestrictionsTest {
     }
 
     @Test fun updatedGuidanceKeepsConditionsVisible() {
-        tap("Consultar restrições")
+        tap("Antes de doar")
         tap("Idade e peso")
         compose.onNodeWithText("após os 70 anos, mediante avaliação médica", substring = true)
             .performScrollTo().assertIsDisplayed()
@@ -143,7 +148,7 @@ class DonationRestrictionsTest {
     }
 
     @Test fun detailRestoresAndSystemBackKeepsHierarchy() {
-        tap("Consultar restrições")
+        tap("Antes de doar")
         tap("Vacinas e procedimentos")
         restoration.emulateSavedInstanceStateRestore()
         compose.onNodeWithText("Piercings").assertExists()
@@ -155,7 +160,7 @@ class DonationRestrictionsTest {
 
     @Test fun scheduledHomeAndUnavailableBrowser() {
         compose.runOnIdle { nav.navigate(AppRoute.HomeScheduled) }
-        tap("Consultar restrições")
+        tap("Antes de doar")
         tap("Uso de medicamentos")
         browserUnavailable = true
         compose.onNode(hasText("Fonte:", substring = true) and hasClickAction())
@@ -164,7 +169,7 @@ class DonationRestrictionsTest {
             .performScrollTo().assertIsDisplayed()
         tap("Restrições")
         tap("Início")
-        compose.runOnIdle { assertTrue(nav.currentDestination?.hasRoute<AppRoute.HomeScheduled>() == true) }
+        compose.runOnIdle { assertTrue(nav.currentDestination?.hasRoute<AppRoute.Home>() == true) }
     }
 
     private fun tap(label: String) {

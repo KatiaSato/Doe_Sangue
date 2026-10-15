@@ -34,6 +34,8 @@ class RegistrationFlowTest {
 
     private fun openApp() {
         val container = AppContainer(
+            bloodStockRepositoryOverride = FakeBloodStockRepository(),
+            donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             authRepositoryOverride = auth, donorProfileRepositoryOverride = FakeDonorProfileRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),

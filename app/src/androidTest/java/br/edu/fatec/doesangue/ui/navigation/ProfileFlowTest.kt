@@ -33,6 +33,8 @@ class ProfileFlowTest {
 
     private fun openProfile() {
         val container = AppContainer(
+            bloodStockRepositoryOverride = FakeBloodStockRepository(),
+            donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             appointmentRepositoryOverride = FakeAppointmentRepository(),
@@ -58,6 +60,9 @@ class ProfileFlowTest {
                     registrationViewModelFactory = container.registrationViewModelFactory,
                     campaignsViewModelFactory = container.campaignsViewModelFactory,
                     campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
+                    homeViewModelFactory = isolatedHomeFactory(),
+                    bloodStockViewModelFactory = container.bloodStockViewModelFactory,
+                    donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
                 )
             }
         }

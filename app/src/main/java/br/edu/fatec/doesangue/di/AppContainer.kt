@@ -37,6 +37,15 @@ import br.edu.fatec.doesangue.data.supabase.SupabaseCampaignDataSource
 import br.edu.fatec.doesangue.presentation.auth.RegistrationViewModel
 import br.edu.fatec.doesangue.presentation.campaigns.CampaignsViewModel
 import br.edu.fatec.doesangue.presentation.campaigns.CampaignDetailViewModel
+import br.edu.fatec.doesangue.domain.repository.BloodStockRepository
+import br.edu.fatec.doesangue.domain.repository.DonationHistoryRepository
+import br.edu.fatec.doesangue.data.repository.SupabaseBloodStockRepository
+import br.edu.fatec.doesangue.data.repository.SupabaseDonationHistoryRepository
+import br.edu.fatec.doesangue.data.supabase.SupabaseBloodStockDataSource
+import br.edu.fatec.doesangue.data.supabase.SupabaseDonationHistoryDataSource
+import br.edu.fatec.doesangue.presentation.home.HomeViewModel
+import br.edu.fatec.doesangue.presentation.stock.BloodStockViewModel
+import br.edu.fatec.doesangue.presentation.donations.DonationHistoryViewModel
 
 // Ele é responsável por criar os objetos e fornecer suas dependências
 class AppContainer(
@@ -46,7 +55,24 @@ class AppContainer(
     private val donorProfileRepositoryOverride: DonorProfileRepository? = null,
     private val appointmentRepositoryOverride: AppointmentRepository? = null,
     private val campaignRepositoryOverride: CampaignRepository? = null,
+    private val bloodStockRepositoryOverride: BloodStockRepository? = null,
+    private val donationHistoryRepositoryOverride: DonationHistoryRepository? = null,
 ) {
+    val bloodStockRepository: BloodStockRepository by lazy {
+        bloodStockRepositoryOverride ?: SupabaseBloodStockRepository(SupabaseBloodStockDataSource(supabaseClient))
+    }
+    val donationHistoryRepository: DonationHistoryRepository by lazy {
+        donationHistoryRepositoryOverride ?: SupabaseDonationHistoryRepository(SupabaseDonationHistoryDataSource(supabaseClient))
+    }
+    val homeViewModelFactory = viewModelFactory {
+        initializer { HomeViewModel(donorProfileRepository, appointmentRepository, campaignRepository, bloodStockRepository) }
+    }
+    val bloodStockViewModelFactory = viewModelFactory {
+        initializer { BloodStockViewModel(bloodStockRepository) }
+    }
+    val donationHistoryViewModelFactory = viewModelFactory {
+        initializer { DonationHistoryViewModel(donationHistoryRepository) }
+    }
     val campaignRepository: CampaignRepository by lazy {
         campaignRepositoryOverride ?: SupabaseCampaignRepository(SupabaseCampaignDataSource(supabaseClient))
     }

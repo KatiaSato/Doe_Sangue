@@ -24,6 +24,9 @@ fun AppNavHost(
     registrationViewModelFactory: ViewModelProvider.Factory,
     campaignsViewModelFactory: ViewModelProvider.Factory,
     campaignDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
+    homeViewModelFactory: ViewModelProvider.Factory,
+    bloodStockViewModelFactory: ViewModelProvider.Factory,
+    donationHistoryViewModelFactory: ViewModelProvider.Factory,
 ) {
     // Define como abrir destinos solicitados pelas telas
     // e pela barra inferior.
@@ -120,6 +123,9 @@ fun AppNavHost(
             logoutViewModelFactory = logoutViewModelFactory,
             campaignsViewModelFactory = campaignsViewModelFactory,
             campaignDetailViewModelFactory = campaignDetailViewModelFactory,
+            homeViewModelFactory = homeViewModelFactory,
+            bloodStockViewModelFactory = bloodStockViewModelFactory,
+            donationHistoryViewModelFactory = donationHistoryViewModelFactory,
             onSignedOut = {
                 navController.navigate(AppGraph.Auth) {
                     // Remove as telas da conta que acabou de sair.
@@ -131,7 +137,7 @@ fun AppNavHost(
             },
             onNavigateMain = ::navigateMain,
             onFinishScheduling = {
-                navController.navigate(AppRoute.HomeScheduled) {
+                navController.navigate(AppRoute.Home) {
                     // Encerra o percurso visual de agendamento.
                     // Voltar não deve reabrir as etapas concluídas.
                     popUpTo<AppGraph.Main> {

@@ -24,5 +24,8 @@ fun DoeSangueApp() {
         registrationViewModelFactory = appContainer.registrationViewModelFactory,
         campaignsViewModelFactory = appContainer.campaignsViewModelFactory,
         campaignDetailViewModelFactory = appContainer::campaignDetailViewModelFactory,
+        homeViewModelFactory = appContainer.homeViewModelFactory,
+        bloodStockViewModelFactory = appContainer.bloodStockViewModelFactory,
+        donationHistoryViewModelFactory = appContainer.donationHistoryViewModelFactory,
     )
 }

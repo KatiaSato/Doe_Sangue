@@ -49,6 +49,8 @@ class AppNavigationTest {
         restoration.setContent {
             val appContainer = remember {
                 AppContainer(
+            bloodStockRepositoryOverride = FakeBloodStockRepository(),
+            donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
                     appointmentRepositoryOverride = FakeAppointmentRepository(),
@@ -73,6 +75,9 @@ class AppNavigationTest {
                     registrationViewModelFactory = appContainer.registrationViewModelFactory,
                     campaignsViewModelFactory = appContainer.campaignsViewModelFactory,
                     campaignDetailViewModelFactory = appContainer::campaignDetailViewModelFactory,
+                    homeViewModelFactory = isolatedHomeFactory(),
+                    bloodStockViewModelFactory = appContainer.bloodStockViewModelFactory,
+                    donationHistoryViewModelFactory = appContainer.donationHistoryViewModelFactory,
                 )
             } // Fecha DoeSangueTheme
         } // Fecha restoration.setContent — faltou esta chave
@@ -186,7 +191,7 @@ class AppNavigationTest {
             .performScrollTo().performClick()
         assertRoute<AppRoute.ScheduleSuccess>()
         tap("Ir para o início")
-        assertRoute<AppRoute.HomeScheduled>()
+        assertRoute<AppRoute.Home>()
         assertNoPreviousScreen()
     }
 
@@ -253,15 +258,12 @@ class AppNavigationTest {
     }
 
     @Test
-    fun prototypeCancellationReturnsToProfileWithoutReopeningOldDetail() {
+    fun profileAppointmentShortcutOpensPersistedListAndReturnsToProfile() {
         enterMain()
-        // O detalhe/cancelamento visual continua acessível pelo Perfil.
-        // A listagem persistida ainda não abre detalhes por ID.
         tapTab("Perfil")
         tap("Meu agendamento")
-        tap("Cancelar agendamento")
-        tap("Cancelar agendamento")
-        assertRoute<AppRoute.AppointmentCancelled>()
+        assertRoute<AppRoute.DonationsAppointments>()
+        compose.onNodeWithText("Você ainda não possui agendamentos.").assertExists()
         compose.runOnIdle { navController.popBackStack() }
         assertRoute<AppRoute.Profile>()
         assertNoPreviousScreen()

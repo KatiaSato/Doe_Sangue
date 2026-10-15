@@ -60,6 +60,8 @@ class AppointmentDetailFlowTest {
                 Result.failure(UnsupportedOperationException("Este teste não cria perfis."))
         }
         val container = AppContainer(
+            bloodStockRepositoryOverride = FakeBloodStockRepository(),
+            donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
@@ -90,6 +92,9 @@ class AppointmentDetailFlowTest {
                     registrationViewModelFactory = container.registrationViewModelFactory,
                     campaignsViewModelFactory = container.campaignsViewModelFactory,
                     campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
+                    homeViewModelFactory = isolatedHomeFactory(),
+                    bloodStockViewModelFactory = container.bloodStockViewModelFactory,
+                    donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
                 )
             }
         }

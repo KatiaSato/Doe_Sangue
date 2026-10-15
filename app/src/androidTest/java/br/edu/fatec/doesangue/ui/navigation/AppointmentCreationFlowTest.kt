@@ -38,6 +38,8 @@ class AppointmentCreationFlowTest {
 
     private fun openScheduling() {
         val container = AppContainer(
+            bloodStockRepositoryOverride = FakeBloodStockRepository(),
+            donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
@@ -69,6 +71,9 @@ class AppointmentCreationFlowTest {
                     registrationViewModelFactory = container.registrationViewModelFactory,
                     campaignsViewModelFactory = container.campaignsViewModelFactory,
                     campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
+                    homeViewModelFactory = isolatedHomeFactory(),
+                    bloodStockViewModelFactory = container.bloodStockViewModelFactory,
+                    donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
                 )
             }
         }
@@ -117,7 +122,7 @@ class AppointmentCreationFlowTest {
             UUID.fromString(repository.calls.single().key)
         }
         tap("Ir para o início")
-        assertRoute<AppRoute.HomeScheduled>()
+        assertRoute<AppRoute.Home>()
         compose.runOnIdle { assertNull(nav.previousBackStackEntry) }
         openCenterSelection()
         finishDraft()

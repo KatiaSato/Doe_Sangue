@@ -18,7 +18,11 @@ import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionDetailScreen
-import br.edu.fatec.doesangue.ui.screens.home.HomeScheduledScreen
+import br.edu.fatec.doesangue.presentation.home.HomeViewModel
+import br.edu.fatec.doesangue.presentation.stock.BloodStockViewModel
+import br.edu.fatec.doesangue.presentation.donations.DonationHistoryViewModel
+import br.edu.fatec.doesangue.ui.screens.stock.BloodStockScreen
+import br.edu.fatec.doesangue.ui.screens.profile.PrivacyTermsScreen
 import br.edu.fatec.doesangue.ui.screens.home.HomeScreen
 import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignDetailScreen
 import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignsReadScreen
@@ -52,6 +56,9 @@ fun NavGraphBuilder.mainNavGraph(
     logoutViewModelFactory: ViewModelProvider.Factory,
     campaignsViewModelFactory: ViewModelProvider.Factory,
     campaignDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
+    homeViewModelFactory: ViewModelProvider.Factory,
+    bloodStockViewModelFactory: ViewModelProvider.Factory,
+    donationHistoryViewModelFactory: ViewModelProvider.Factory,
     onSignedOut: () -> Unit,
     onNavigateMain: (AppRoute) -> Unit,
     onFinishScheduling: () -> Unit,
@@ -59,19 +66,29 @@ fun NavGraphBuilder.mainNavGraph(
     navigation<AppGraph.Main>(
         startDestination = AppRoute.Home,
     ) {
-        composable<AppRoute.Home> {
+        composable<AppRoute.Home> { entry ->
+            val model: HomeViewModel = viewModel(factory = homeViewModelFactory)
+            val state by model.uiState.collectAsStateWithLifecycle()
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                if (entry.savedStateHandle.get<Boolean>("homeOpened") == true) model.load()
+                entry.savedStateHandle["homeOpened"] = true
+            }
             HomeScreen(
+                state = state, onRetry = model::load,
                 onNavigate = onNavigateMain,
             )
         }
 
         composable<AppRoute.HomeScheduled> {
-            // Variante visual do protótipo.
-            // Futuramente, a Home exibirá os agendamentos
-            // conforme o estado fornecido pelo ViewModel.
-            HomeScheduledScreen(
-                onNavigate = onNavigateMain,
-            )
+            // Compatibilidade com destinos antigos restaurados; conteúdo vem da Home atual.
+            LaunchedEffect(Unit) { onNavigateMain(AppRoute.Home) }
+        }
+
+        composable<AppRoute.BloodStock> {
+            val model: BloodStockViewModel = viewModel(factory = bloodStockViewModelFactory)
+            val state by model.uiState.collectAsStateWithLifecycle()
+            BloodStockScreen(state, model::load,
+                onBack = { navController.navigateBackOrHome() }, onNavigate = onNavigateMain)
         }
 
         composable<AppRoute.Restrictions> {
@@ -93,8 +110,15 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         // Doações
-        composable<AppRoute.DonationsHistory> {
+        composable<AppRoute.DonationsHistory> { entry ->
+            val model: DonationHistoryViewModel = viewModel(factory = donationHistoryViewModelFactory)
+            val state by model.uiState.collectAsStateWithLifecycle()
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                if (entry.savedStateHandle.get<Boolean>("historyOpened") == true) model.load()
+                entry.savedStateHandle["historyOpened"] = true
+            }
             DonationHistoryScreen(
+                state = state, onRetry = model::load,
                 onBack = {
                     navController.navigateBackOrHome()
                 },
@@ -319,7 +343,7 @@ fun NavGraphBuilder.mainNavGraph(
                     onNavigateMain(AppRoute.DonationsHistory)
                 },
                 onAppointment = {
-                    navController.navigate(AppRoute.AppointmentDetail)
+                    navController.navigate(AppRoute.DonationsAppointments)
                 },
                 onSettings = {
                     navController.navigate(AppRoute.Settings)
@@ -401,7 +425,12 @@ fun NavGraphBuilder.mainNavGraph(
         composable<AppRoute.About> {
             AboutScreen(
                 onBack = { navController.popBackStack() },
+                onPrivacy = { navController.navigate(AppRoute.PrivacyTerms) },
             )
+        }
+
+        composable<AppRoute.PrivacyTerms> {
+            PrivacyTermsScreen(onBack = { navController.navigateBackOrHome() })
         }
 
         // Inclui o fluxo de agendamento dentro da área principal.

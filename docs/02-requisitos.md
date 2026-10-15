@@ -1,12 +1,16 @@
 # Doe Sangue — requisitos
 
+**Varredura funcional de 15/10/2026:** o [inventário consolidado](26-pendencias-funcionais.md) compara telas/rotas com contratos, ViewModels, fontes e SQL e fornece IDs para escolha da próxima etapa. Distingue funcionalidades ausentes, integrações parciais, decisões de produto, ajustes finais e critérios acadêmicos. Não considerar todos os itens automaticamente obrigatórios nem implementar sem a escolha da usuária. O fluxo persistido de agendamento/cancelamento e campanhas não deve ser refeito por causa dos atalhos antigos de protótipo.
+
+**Pendências complementares registradas em 15/10/2026:** Google/Facebook, estoque, aba Unidades/busca/mapa/distâncias e funcionalidades ainda visuais de Configurações estão inventariadas em [26 — pendências funcionais](26-pendencias-funcionais.md). O inventário distingue logout/perfil/tipo/unidades no agendamento já integrados de telas ainda estáticas. As marcações da Sprint 0 abaixo são históricas quando descrevem funcionalidades posteriormente integradas; consultar docs/12 e o inventário para o estado atual. Pedido de anotação, sem autorização para implementar automaticamente ou definição de prioridade.
+
 **Sprint 0 — proposta para revisão.** `IMPLEMENTADO` significa comportamento comprovado no código; `PARCIAL/UI` significa tela ou navegação sem regra/dado funcional; `PLANEJADO` significa sem implementação. O rótulo MVP é uma proposta, não autorização para implementar. Referências de regras estão em [03](03-regras-de-negocio.md) e de casos em [04](04-casos-de-uso.md).
 
 ## Requisitos funcionais
 
 | ID | Etapa / estado atual | Requisito testável | Regras / caso |
 | --- | --- | --- | --- |
-| RF001 | MVP / PARCIAL/UI | Autenticar o doador por e-mail/senha ou conta Google antes de criar ou consultar agendamentos privados; sessão inválida não acessa esses dados. A ativação dos dois provedores ainda não foi implementada. | RN001, RN002 / CU001 |
+| RF001 | MVP / PARCIAL | Autenticar o doador por e-mail/senha, Google ou Facebook antes de criar ou consultar agendamentos privados; sessão inválida não acessa esses dados. Login por e-mail/senha integrado. **Google e Facebook pendentes**, explicitamente registrados pela usuária em 15/10/2026: botões ainda visuais, sem integração/configuração dos provedores nem testes desses percursos. | RN001, RN002 / CU001 |
 | RF002 | MVP / PARCIAL/UI | Após autenticação, consultar e exibir os dados mínimos do próprio perfil, sem expor o de outra pessoa. Campos, criação do perfil e recuperação de falha após cadastro Auth: **DECISÃO PENDENTE**. | RN002 / CU001 |
 | RF003 | MVP / PARCIAL/UI | Listar apenas unidades publicadas com identidade, endereço e horário de atendimento informados pela fonte; abrir detalhe da unidade selecionada. | RN003 / CU002 |
 | RF004 | MVP / PARCIAL/UI | Após escolher uma unidade, apresentar datas e horários disponíveis recebidos de fonte autorizada; indisponibilidade/falha não pode aparecer como horário reservável. | RN003, RN004 / CU003 |

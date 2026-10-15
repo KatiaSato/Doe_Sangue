@@ -56,12 +56,14 @@ fun DsScreen(
     bottomRoute: AppRoute? = null,
     onNavigate: (AppRoute) -> Unit = {},
     scrollable: Boolean = true,
+    bottomBarContent: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
-            if (bottomRoute != null) DsBottomBar(bottomRoute, onNavigate)
+            if (bottomBarContent != null) bottomBarContent()
+            else if (bottomRoute != null) DsBottomBar(bottomRoute, onNavigate)
         },
     ) { padding ->
         val scroll = if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier

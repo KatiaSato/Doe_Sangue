@@ -238,22 +238,53 @@ private fun NotificationRow(title: String, subtitle: String, checked: Boolean) {
 @Composable
 fun FaqScreen(onBack: () -> Unit) {
     DsScreen(title = "Dúvidas frequentes", onBack = onBack) {
+        Text(
+            "Encontre orientações sobre a doação e sobre o uso do aplicativo.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = InkSecondary,
+        )
+        Spacer(Modifier.height(16.dp))
         listOf(
-            "Quem pode doar sangue?",
-            "Quanto tempo dura uma doação?",
-            "Com que frequência posso doar?",
-            "Preciso estar em jejum?",
-            "Como cancelar um agendamento?",
-            "Onde vejo minhas doações?",
-        ).forEach { question ->
+            "Quem pode doar sangue?" to
+                "A equipe do hemocentro avalia os critérios de saúde e a aptidão na triagem. " +
+                "Consulte as orientações em Antes de doar, na tela Início, e confirme suas dúvidas com a unidade.",
+            "Quanto tempo dura uma doação?" to
+                "O Ministério da Saúde estima cerca de 40 minutos para o processo completo, " +
+                "incluindo cadastro, avaliações, coleta e lanche. O tempo pode variar conforme o atendimento da unidade.",
+            "Com que frequência posso doar?" to
+                "O intervalo depende do tipo de doação e da avaliação do hemocentro. " +
+                "Confirme com a equipe quando poderá retornar. O aplicativo não calcula uma próxima data de aptidão.",
+            "Preciso estar em jejum?" to
+                "Não. Vá alimentado e descansado e siga as orientações de preparo do hemocentro.",
+            "O agendamento garante que poderei doar?" to
+                "Não. O agendamento organiza o atendimento; a aptidão é avaliada na triagem. " +
+                "Neste projeto acadêmico, unidades e horários são fictícios e não representam reservas em hemocentros reais.",
+            "Como cancelar um agendamento?" to
+                "Abra Doações, selecione Agendamentos e toque em Ver detalhes no registro desejado. " +
+                "Depois, escolha Cancelar agendamento e confirme. O cancelamento é permitido somente antes do horário de início.",
+            "Onde vejo meus agendamentos e minhas doações?" to
+                "Consulte seus registros em Doações → Agendamentos. Um agendamento não comprova uma doação realizada. " +
+                "A aba Histórico consulta registros fictícios publicados pela administração e calcula o total desses registros.",
+            "Posso me cadastrar sem saber meu tipo sanguíneo?" to
+                "Sim. Escolha Não sei no cadastro. Você pode atualizar essa informação na tela Perfil. " +
+                "O tipo informado é autodeclarado e não substitui a avaliação do serviço de saúde.",
+            "Como funciona o filtro de campanhas por tipo sanguíneo?" to
+                "Selecione Todos ou um tipo na tela Campanhas. As campanhas gerais aparecem em qualquer filtro; " +
+                "as demais aparecem para os tipos divulgados. O filtro não calcula compatibilidade sanguínea.",
+        ).forEach { (question, answer) ->
             InfoCard {
-                Row(Modifier.fillMaxWidth()) {
-                    Text(question, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                    Text("›", color = BloodRed)
-                }
+                Text(question, style = MaterialTheme.typography.titleMedium, color = Ink)
+                Spacer(Modifier.height(8.dp))
+                Text(answer, style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
             }
             Spacer(Modifier.height(12.dp))
         }
+        Text(
+            "Orientações gerais: Ministério da Saúde (gov.br/saude) e Hemocentro Unicamp. " +
+                "Conteúdo revisado em 15/10/2026. A avaliação individual é feita pelo hemocentro.",
+            style = MaterialTheme.typography.bodySmall,
+            color = InkSecondary,
+        )
     }
 }
 
@@ -272,7 +303,7 @@ fun ContactScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onPrivacy: () -> Unit) {
     DsScreen(title = "Sobre o app", onBack = onBack) {
         Spacer(Modifier.height(100.dp))
         CenteredMessage("♦", "Doe Sangue", "Um pequeno ato que salva vidas.")
@@ -287,8 +318,38 @@ fun AboutScreen(onBack: () -> Unit) {
         Spacer(Modifier.height(64.dp))
         Row(Modifier.fillMaxWidth()) {
             Text("Versão", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-            Text("1.0.0", style = MaterialTheme.typography.labelMedium)
+            Text(br.edu.fatec.doesangue.BuildConfig.VERSION_NAME, style = MaterialTheme.typography.labelMedium)
         }
-        SettingsRow("Privacidade e termos", {})
+        SettingsRow("Privacidade e termos", onPrivacy)
+    }
+}
+
+@Composable
+fun PrivacyTermsScreen(onBack: () -> Unit) {
+    DsScreen(title = "Privacidade e termos", onBack = onBack) {
+        Text("Projeto acadêmico Doe Sangue", style = MaterialTheme.typography.titleLarge)
+        Text("Informações sobre esta versão • 15/10/2026", style = MaterialTheme.typography.bodySmall)
+        Spacer(Modifier.height(16.dp))
+        listOf(
+            "Uso de demonstração" to "Unidades, horários, campanhas, estoques e histórico são fictícios. " +
+                "O aplicativo não realiza reservas em hemocentros reais e não substitui atendimento, triagem ou avaliação de aptidão.",
+            "Conta e perfil" to "O Supabase Auth gerencia e-mail, senha e sessão. O perfil guarda nome de exibição e tipo sanguíneo autodeclarado, " +
+                "incluindo Não sei. Não informe dados clínicos ou de terceiros para esta demonstração.",
+            "Dados consultados e persistidos" to "O aplicativo consulta unidades e campanhas publicadas. Reservas, cancelamentos, perfil e histórico " +
+                "são vinculados à conta. Estoques e registros de doação desta versão são demonstrações publicadas manualmente; agendar não confirma coleta.",
+            "Acesso aos dados" to "As consultas privadas identificam a conta pela sessão. As regras do servidor limitam o acesso do doador aos próprios " +
+                "registros e impedem que ele publique estoques ou confirme doações. A administração do projeto possui acesso pelo Supabase.",
+            "Sessão neste dispositivo" to "A sessão permite reabrir o aplicativo conectado. Use Configurações → Sair da conta ao terminar em um dispositivo compartilhado. " +
+                "Sair encerra a sessão local; não exclui a conta nem os registros no servidor.",
+            "Limites desta versão" to "A exclusão de conta pelo aplicativo, um canal de solicitações de privacidade e prazos de retenção ainda não foram definidos " +
+                "para uma operação pública. Fale conosco permanece demonstrativo. Esta página informa o funcionamento do protótipo acadêmico e deverá ser revista antes de uso público.",
+        ).forEach { (title, body) ->
+            InfoCard {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+                Text(body, style = MaterialTheme.typography.bodyMedium)
+            }
+            Spacer(Modifier.height(12.dp))
+        }
     }
 }

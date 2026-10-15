@@ -43,6 +43,9 @@ sealed interface AppRoute {
     data object HomeScheduled : AppRoute
 
     @Serializable
+    data object BloodStock : AppRoute
+
+    @Serializable
     data object Restrictions : AppRoute
 
     @Serializable
@@ -129,4 +132,7 @@ sealed interface AppRoute {
 
     @Serializable
     data object About : AppRoute
+
+    @Serializable
+    data object PrivacyTerms : AppRoute
 }

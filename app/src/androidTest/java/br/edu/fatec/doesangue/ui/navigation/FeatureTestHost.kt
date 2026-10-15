@@ -10,6 +10,7 @@ internal fun FeatureTestHost(
     container: AppContainer, nav: NavHostController,
     registrationFactory: ViewModelProvider.Factory = container.registrationViewModelFactory,
     campaignsFactory: ViewModelProvider.Factory = container.campaignsViewModelFactory,
+    homeFactory: ViewModelProvider.Factory = isolatedHomeFactory(),
 ) {
     AppNavHost(
         navController = nav,
@@ -23,5 +24,8 @@ internal fun FeatureTestHost(
         registrationViewModelFactory = registrationFactory,
         campaignsViewModelFactory = campaignsFactory,
         campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
+        homeViewModelFactory = homeFactory,
+        bloodStockViewModelFactory = container.bloodStockViewModelFactory,
+        donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
     )
 }

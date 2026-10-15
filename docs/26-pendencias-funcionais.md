@@ -1,0 +1,93 @@
+# Varredura funcional e pendências — 15/10/2026
+
+**Novo recorte autorizado:** F18/F01/F11/F12 implementados e testados localmente por delegação específica: 27 testes locais, 32 instrumentados, APK/Lint (zero erros/32 avisos) e SQL PostgreSQL isolado aprovados. F11/F12 ainda aguardam migração/seed/testes no Supabase; não considerar integração remota concluída. Publicação manual de dados fictícios aprovada. Estado/diagrama/arquivos em [docs/28](28-home-estoque-historico-privacidade.md). Os demais IDs continuam pendentes; as descrições da varredura original abaixo são históricas quando tratam desses quatro itens.
+
+**Atualização posterior:** F16 (FAQ) implementado diretamente a pedido da usuária, com perguntas/respostas estáticas e referências; validação/fechamento em docs/27. Não muda as demais pendências ou autoriza executá-las automaticamente. Conteúdo estático/ajustes simples dentro do escopo solicitado podem ser feitos pelo agente; funcionalidades/camadas/conceitos novos permanecem em tutoria.
+
+## Objetivo, método e limites
+
+A usuária pediu uma varredura antes dos ajustes finais para escolher a sequência de implementação. Este documento substitui o inventário inicial das três capturas e consolida também Google/Facebook. É uma análise estática de telas, rotas, ações vazias, estados/ViewModels, contratos, fontes de dados, composição de dependências, manifest, migrações e documentação relevante. Referência de código: ff21bf0; as anotações posteriores ainda são locais.
+
+Não é uma nova execução completa de testes nem auditoria do ambiente remoto. A última validação do marco anterior teve 12 testes locais, 20 instrumentados, APKs e Lint aprovados (31 avisos/zero erros); evidências e limites em docs/12. Última conferência remota por captura: 14 registros do domínio. Nenhuma produção ou configuração remota foi alterada nesta varredura. Os IDs abaixo permitem escolher uma etapa; lista de pendências não significa que tudo seja requisito obrigatório do professor ou que já exista autorização para implementar.
+
+## Base já implementada — não refazer
+
+- Login por e-mail/senha, cadastro com escolha explícita do tipo (incluindo Não sei), criação automática do perfil no cadastro, leitura do perfil e edição do próprio tipo.
+- Logout local e decisão inicial de entrada a partir da sessão restaurada.
+- Mensagens específicas de erros conhecidos no login/cadastro e formato de e-mail validado localmente.
+- Consulta Supabase de unidades e horários no fluxo de agendamento, rascunho em memória e revisão.
+- Confirmação persistida no servidor com capacidade, identidade, idempotência e bloqueios; SQL de concorrência já exercitado nos recortes documentados.
+- Lista própria de agendamentos, detalhe por ID e cancelamento antes do início com evento persistido; atualização da lista ao retornar.
+- Campanhas publicadas: lista/filtro Todos ou tipo exato (com gerais incluídas), detalhe e seed mínimo repetível.
+- Conteúdo informativo de restrições com categorias, detalhes e links de fontes. Conteúdo estático informativo não exige banco por si só.
+- Sete tabelas e sete FKs entre tabelas do domínio, mais perfil→Auth: os mínimos de seis tabelas/cinco FKs já foram atingidos. Não considerar tabelas futuras obrigatórias apenas para atingir esse mínimo.
+
+## Funcionalidades e integrações para escolher
+
+| ID | Funcionalidade | O que falta e evidência principal |
+| --- | --- | --- |
+| F01 | Home e atalhos com dados persistidos | Implementado: nome, próxima reserva e campanhas por ID; atalhos reais. Redesenho aprovado no Figma e testado; estoque integrado à API remota após correção de datas. Conferência completa do percurso real ainda parcial. Ver docs/28 e docs/30. |
+| F02 | Aba Unidades: lista e detalhe | Usar repository existente de unidades publicadas, estados de consulta e ID da unidade escolhida. CenterScreens.kt mantém lista/detalhe fixos; CenterDetail não recebe ID. A consulta no agendamento já funciona. |
+| F03 | Buscar unidades | Transformar VisualField de busca em entrada funcional e aplicar a consulta/filtro definido. Ainda não existe busca em CenterScreens.kt. |
+| F04 | Mapa e distâncias | “Ver no mapa” tem ação vazia e distâncias são literais. Definir coordenadas, mapa, origem da distância e uso de localização antes de integrar; DonationCenter não possui coordenadas hoje. Não inventar distância calculada. |
+| F05 | Login Google | Botão sem ação; faltam provedor, integração/retorno no Android e comportamento de perfil/sessão/testes. AuthRepository só oferece e-mail/senha. |
+| F06 | Login Facebook | Mesma lacuna de integração do provedor, com botão visual próprio. Registrado explicitamente pela usuária; não presumir que implementar Google conclui Facebook. |
+| F07 | Recuperar senha | ForgotPasswordScreen tem campo visual e “Enviar link” vazio. Falta pedido ao Auth, retorno do link, tela de nova senha e estados de resultado. |
+| F08 | Alterar senha em Configurações | SecurityScreen tem campos visuais e ação vazia. Falta integração Auth, validação e tratamento de falhas/sucesso. É diferente da recuperação. |
+| F09 | Completar experiência de confirmação de e-mail | Cadastro já distingue sessão disponível de confirmação pendente, e a conta C foi confirmada. Ainda faltam reenvio e retorno por link ao app; manifest não declara links de entrada e EmailVerification apenas orienta ir ao e-mail e depois entrar. Não marcar confirmação inteira como inexistente. |
+| F10 | Edição completa do perfil | EditProfileScreen mostra dados fixos e salvar vazio; contrato só atualiza tipo sanguíneo. Definir campos necessários/editáveis e persistir os aprovados. Nome/e-mail/telefone/nascimento visuais não significam que todos já façam parte do cadastro contratado. E-mail pertence ao Auth; tipo já pode ser salvo no Perfil. |
+| F11 | Estoque/necessidade por unidade e tipo | Implementado; migração/seed/repetição/testes SQL remotos aprovados. Leitura real pelo SDK retorna oito tipos só de Demo A; usuária confirmou funcionamento após correção do parser Android. Conferência visual de A após correção ainda pendente. Níveis manuais fictícios com fonte/atualização; reserva não altera estoque. |
+| F12 | Histórico de doações e total | Implementado; migração/seed/testes remotos aprovados com A=2/C=1 isolados por identidade administrativa simulada. Conversão de datas corrigida/testada no Android. Conferência visual com sessões reais A/C ainda pendente. Registros fictícios de publicação manual; doador não confirma coleta. |
+| F13 | Remarcar agendamento | “Alterar agendamento” existe no detalhe antigo, mas não há operação de alteração em AppointmentRepository nem RPC correspondente. Definir prazo/regras e transferência de capacidade sem perder a reserva original em falha. É uma opção de escopo distinta de cancelar/criar novo, que já funcionam. |
+| F14 | Recorrência/rotina | Tela do agendamento aceita apenas “Somente este agendamento”; EditRoutine informa indisponibilidade. Faltam definição de significado, modelo e operação. Não adotar cadência médica ou reservas futuras automáticas a partir do protótipo. |
+| F15 | Notificações e lembretes | Switches de Configurações são fixos; não há preferência funcional ou entrega. “Próximos lembretes” informa ausência e cartão antigo diz “Lembrete ativo” sem envio. Definir canais, consentimento, preferências, agendamento/entrega e cancelamento; depende da definição de rotina se incluir recorrência. |
+| F16 | FAQ com respostas — implementado | Nove perguntas/respostas locais em cartões, referências/data e distinção entre simulação, agendamento e coleta. Implementação direta autorizada; sem nova camada/tabela. Ver docs/27 para validação e limites. |
+| F17 | Fale conosco | Campos e envio são visuais. Definir canal/destino de atendimento e implementar entrada, validação e resultado. Não existe infraestrutura de envio comprovada. |
+| F18 | Acesso a privacidade e termos | Implementado localmente: Sobre abre página informativa do protótipo e mostra versão real. Define dados usados, sessão, acessos e limites acadêmicos. Operação pública ainda exige definir responsável/canal/retenção/exclusão; não há promessa de serviços não implementados. |
+| F19 | Erros específicos fora do Auth | Mensagens de login/cadastro foram concluídas. Criação/cancelamento de reserva, consultas e perfil ainda usam fallbacks genéricos. Evoluir classificação onde houver causa identificável, por exemplo indisponibilidade/conflito/prazo, com mensagem/ação adequada e sem expor detalhes privados. Não reabrir o recorte de Auth já concluído. |
+
+Nenhum painel administrativo é presumido como obrigatório: publicação manual de unidades/horários/campanhas no Supabase foi a escolha adotada. Estoque, histórico, recorrência e remarcação precisam de decisões de domínio antes do código; não são apenas ligar botões.
+
+## Continuidade e melhorias técnicas para decidir
+
+| ID | Pendência | Estado / decisão necessária |
+| --- | --- | --- |
+| T01 | Sessão expirada/revogada durante o uso | Restauração inicial existe; não há observador global de sessão com encaminhamento para novo login durante Main. Backend continua protegendo dados via Auth/RLS. Implementar experiência de recuperação e testar expiração/renovação/revogação. |
+| T02 | Rascunho e repetição após encerramento do processo | Seleção e chave de idempotência ficam no SchedulingViewModel. Definir recuperação após recriação do processo/perda de resposta, sem guardar senha/token manualmente; a proteção no servidor já existe. |
+| T03 | Disponibilidade antes de confirmar | Consulta de horários filtra unidade/dia e RLS de ativo/publicação; não calcula vagas restantes nem elimina todos os horários passados/lotados. Calendário não restringe dias sem oferta. Servidor já rejeita nova reserva inválida. Escolher se a UI deverá antecipar esses estados e consultar capacidade agregada sem expor terceiros. |
+| T04 | Histórico independente por aba | Navegação remove o percurso anterior ao trocar abas, por decisão da primeira versão. Implementar restauração por aba somente se escolhida para a experiência final; não é ausência da navegação básica. |
+| T05 | Agendamento iniciado por campanha/unidade | Botões de campanha/detalhe de unidade abrem a escolha geral, sem pré-selecionar a unidade de origem. Conexão conveniente a escolher, com passagem do ID e revalidação; não é defeito na consulta/filtro de campanhas já validada. |
+| T06 | Configuração e validação da autenticação | Conferir política de senha no servidor, entrega de e-mails/retornos e cenários de confirmação/renovação. Validação local não comprova configuração remota. Validar novos provedores e isolamento privado real pela API nos cenários que faltarem, sem repetir fixtures antigas automaticamente. |
+
+Também definir política de campanhas vencidas/futuras antes de acrescentar filtragem temporal: consulta atual respeita publicação manual e não filtra automaticamente pela data. Isso é decisão adicional de produto, não correção silenciosa da regra aprovada.
+
+## Ajustes finais já conhecidos — depois de escolher o escopo
+
+- A01: Perfil mostrar somente tipo salvo na leitura normal e abrir opções ao editar (pedido anterior da usuária; atualização do tipo já funciona).
+- A02: trocar Mostrar/Ocultar por ícone de olho se desejado. A funcionalidade de revelar senha já existe e a usuária aceitou texto na primeira versão.
+- A03: revisar textos, nomes/datas/estatísticas fixos, identificação dos dados sintéticos, versão exibida em Sobre e consistência entre telas. Parte dos dados fixos exige integração F01/F02/F11/F12, não só trocar um texto.
+- A04: decidir destino ou apresentação dos elementos secundários sem ação, como menu/sino da Home e “Saiba mais” da dica. Não presumir necessidade de nova central de avisos/menu completo sem escolha da usuária.
+- A05: revisão de acessibilidade, teclado/rolagem, tamanhos de tela e testes finais de regressão; avaliar os 31 avisos de Lint, mantendo a distinção entre avisos e erros.
+
+## Fechamento acadêmico e do banco — não confundir com acabamento visual
+
+- B01: conferir a massa global após o seed de estoque/histórico (33 previstos: 14 anteriores + 19 novos confirmados neste recorte) e ampliar para pelo menos 200 sintéticos coerentes/distribuídos. Se a previsão global for confirmada, faltarão 167. Fechar contagens/FKs/repetição; contas Auth são separadas, sem dados sem propósito só para atingir número.
+- B02: fechar ERD/cardinalidades, dicionário de dados, matriz de permissões e evidências de PK/FK/CHECK/UNIQUE/índices/RLS e consultas com JOIN/filtro/busca/ordenação. Os mínimos estruturais já foram atingidos; busca ainda aparece em F03.
+- B03: conciliar histórico de migrações aplicadas manualmente e documentar reprodução em ambiente autorizado. Atualizar requisitos/roadmap/README/roteiro com estados atuais, mantendo checkpoints históricos identificados. Não executar db reset/push ou reaplicar migrações neste desenvolvimento.
+- B04: preparar dados/horários válidos para a apresentação de 25/11/2026, preservando a reserva original 23; acesso do professor, APK demonstrável e requisitos de acesso ao GitHub a combinar. Campos de login sintéticos no seed não equivalem a contas aptas a autenticar.
+- B05: relatório e apresentação conforme enunciado/ABNT, roteiro demonstrando leitura/escrita persistidas, relações, permissões e limitações; validação final do percurso completo. Confirmar applicationId de entrega antes de configurar os retornos/provedores que dependam dele.
+
+## Evidências da varredura original (antes do recorte F01/F11/F12/F18)
+
+- UI: HomeScreens.kt, CenterScreens.kt, DonationScreens.kt, SchedulingScreens.kt, CampaignReadScreens.kt, ProfileScreens.kt, ProfileContent.kt e AuthScreens.kt.
+- Navegação: AppRoute.kt, AppNavHost.kt, MainNavGraph.kt, SchedulingNavGraph.kt e AuthNavGraph.kt; manifest sem intent-filter de links, somente abertura pelo launcher.
+- Contratos/dados: AuthRepository, AppointmentRepository, DonorProfileRepository, DonationCenterRepository, AppContainer e fontes Supabase/demo. HomeViewModel existe, mas não é consumido pelas rotas atuais da Home; um arquivo existir não prova integração.
+- Banco: dez migrações versionadas; sete tabelas atuais. Não há tabelas de estoque, histórico de coleta, rotina, notificações ou contato no esquema atual. O contrato de overview/modelo BloodNeed existe com fonte demo, sem integração persistida de estoque.
+- Documentos: AGENTS.md, docs/02–04, docs/09, docs/11–12, docs/23–25 e critérios acadêmicos já registrados. Parte do texto de Sprint 0 diz que tudo é visual; esse texto é histórico e não foi usado como diagnóstico atual.
+- Não foram inspecionadas configurações remotas dos provedores/Auth nesta varredura; estão como verificações, não como erro remoto confirmado.
+
+## Como escolher a sequência
+
+Na retomada, conferir histórico pela UI com A/C e estoque de A após a correção de datas; SQL deste recorte já concluído, sem reaplicar migração. Depois, F02/F03 aproveitam o repository de unidades existente e acrescentam busca útil à apresentação. F10/F07/F08 podem ser escolhidos conforme a prioridade de conta. F14 ainda exige decisão de modelo. A distribuição final B01 depende do conjunto de entidades/funcionalidades escolhido.
+
+Escolher um ID ou grupo pequeno (por exemplo, F02+F03); apresentar diagrama e retomar a tutoria. A delegação direta dos quatro itens foi específica; publicação, operação remota e próximos commits não são autorizados por esta lista.

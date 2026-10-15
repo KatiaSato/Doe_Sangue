@@ -1,23 +1,20 @@
 package br.edu.fatec.doesangue.ui.screens.donations
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.edu.fatec.doesangue.domain.model.AppointmentStatus
+import br.edu.fatec.doesangue.domain.model.DonationRecord
+import br.edu.fatec.doesangue.presentation.common.ReadUiState
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentsUiState
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
@@ -25,40 +22,45 @@ import br.edu.fatec.doesangue.ui.components.PrimaryButton
 import br.edu.fatec.doesangue.ui.components.SectionHeader
 import br.edu.fatec.doesangue.ui.navigation.AppRoute
 import br.edu.fatec.doesangue.ui.theme.BloodRed
-import br.edu.fatec.doesangue.ui.theme.BloodRedSoft
 import br.edu.fatec.doesangue.ui.theme.Ink
 import br.edu.fatec.doesangue.ui.theme.InkSecondary
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun DonationHistoryScreen(onBack: () -> Unit, onAppointments: () -> Unit, onNavigate: (AppRoute) -> Unit) {
+fun DonationHistoryScreen(
+    state: ReadUiState<List<DonationRecord>>, onRetry: () -> Unit,
+    onBack: () -> Unit, onAppointments: () -> Unit, onNavigate: (AppRoute) -> Unit,
+) {
     DsScreen(title = "Minhas doações", onBack = onBack, bottomRoute = AppRoute.DonationsHistory, onNavigate = onNavigate) {
         DonationTabs(history = true, onHistory = {}, onAppointments = onAppointments)
         Spacer(Modifier.height(18.dp))
-        listOf(
-            "20/06/2026" to "Hemocentro Campinas",
-            "15/03/2024" to "Hemocentro Paulínia",
-            "10/10/2023" to "Hemocentro Americana",
-            "12/06/2023" to "Hemocentro Campinas",
-        ).forEach { (date, center) ->
-            InfoCard {
-                Row(Modifier.fillMaxWidth()) {
-                    Text("♦", color = BloodRed)
-                    Spacer(Modifier.padding(4.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(date, style = MaterialTheme.typography.titleMedium, color = Ink)
-                        Text(center, style = MaterialTheme.typography.bodySmall, color = InkSecondary)
-                    }
-                    Text("Doação realizada", style = MaterialTheme.typography.bodySmall, color = BloodRed)
-                }
+        Text("Histórico de demonstração: registros fictícios publicados pela administração.")
+        Text("Agendamentos não são contabilizados como doações.", style = MaterialTheme.typography.bodySmall)
+        Spacer(Modifier.height(12.dp))
+        when (state) {
+            ReadUiState.Loading -> Text("Carregando histórico…")
+            is ReadUiState.Error -> {
+                Text(state.message, color = MaterialTheme.colorScheme.error)
+                PrimaryButton("Tentar novamente", onRetry)
             }
-            Spacer(Modifier.height(10.dp))
-        }
-        Card(colors = CardDefaults.cardColors(containerColor = BloodRedSoft), shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
-            Row(Modifier.fillMaxWidth().padding(18.dp)) {
-                Text("Total de doações", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                Text("04", style = MaterialTheme.typography.headlineMedium, color = BloodRed)
+            is ReadUiState.Loaded -> {
+                if (state.data.isEmpty()) Text("Nenhum registro de doação fictícia encontrado.")
+                state.data.forEach { record ->
+                    InfoCard {
+                        Text(record.occurredAt.atZone(ZoneId.of(record.timeZoneId))
+                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy • HH:mm")),
+                            style = MaterialTheme.typography.titleMedium)
+                        Text(record.centerName)
+                        Text("Doação fictícia • Registro ${record.id}", color = BloodRed)
+                        Text("Fonte: ${record.source}", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+                InfoCard {
+                    Text("Total de registros fictícios", style = MaterialTheme.typography.titleMedium)
+                    Text(state.data.size.toString(), style = MaterialTheme.typography.headlineMedium, color = BloodRed)
+                }
             }
         }
         Spacer(Modifier.height(12.dp))

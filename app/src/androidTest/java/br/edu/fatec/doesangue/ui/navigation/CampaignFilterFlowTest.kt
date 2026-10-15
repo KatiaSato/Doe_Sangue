@@ -33,6 +33,8 @@ class CampaignFilterFlowTest {
 
     private fun openCampaigns() {
         val container = AppContainer(
+            bloodStockRepositoryOverride = FakeBloodStockRepository(),
+            donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             authRepositoryOverride = FakeAuthRepository(),
             donorProfileRepositoryOverride = FakeDonorProfileRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),

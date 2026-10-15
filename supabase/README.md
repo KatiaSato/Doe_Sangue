@@ -1,5 +1,7 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+**Estado local mais recente:** estoque/histórico preparados e testados em PostgreSQL temporário; aplicação no Supabase pendente. A ordem manual e o runner local estão na seção “Estoque e histórico — arquivos locais de 15/10/2026” ao final deste arquivo. Ver também [docs/28](../docs/28-home-estoque-historico-privacidade.md). Não reaplicar migrações antigas.
+
 ## Tipo sanguíneo/cadastro/filtro — preparado localmente em 15/10/2026
 
 **Fechamento após Android:** captura de `tests/tipo_sanguineo_android_conferencia_final.sql` confirma oito registros: 2 unidades/3 horários/2 perfis/1 reserva, zero eventos/campanhas/vínculos. C=NAO_SEI/confirmado/dados=true e 23 agendada/dados=true. Cadastro/perfil automático e edição O+ com releitura/retorno a Não sei validados por relato/capturas/consulta, sem auditoria JWT/tráfego. Commit/push deste marco autorizados pela usuária em 15/10/2026; depois seed guiado para filtro real no app. Não incluir/aplicar automaticamente seed incompleto nem repetir migrações/fixtures. Registros abaixo são históricos anteriores ao novo perfil C.
@@ -106,3 +108,20 @@ A usuária já aplicou as três migrações e a versão anterior do seed de unid
 - Consulta no Android: Demo A exibida, conforme confirmação da usuária.
 
 O relato de privilégios das unidades não substitui testes de RLS dos horários. A tabela de horários e sua consulta pelo Android estão implementadas. O intervalo usa gte/lt agrupados em and para preservar os dois limites no Supabase Kotlin 3.6.0. Auth e tabelas de agendamentos continuam pendentes. Ver [banco](../docs/09-banco-de-dados.md), [integração](../docs/14-integracao-unidades.md), [disponibilidade](../docs/15-disponibilidade-agendamento.md) e [resultados dos testes](../docs/12-validacao.md).
+
+## Estoque e histórico — aplicação e validação em 15/10/2026
+
+F01/F11/F12/F18 foram delegados pela usuária. Publicação manual de dados fictícios aprovada; aplicativo somente consulta. **Migração e seed/repetição aplicados manualmente pela usuária. Não reaplicar a migração.** Capturas confirmam integridade/permissões/leitura isolada/configuração/RLS, 16 estoques e 3 históricos (A=2/C=1); 23 agendada/dados=true. Leitura real pública via SDK Android aprovada após correção do parser de datas. Usuária confirmou funcionamento após a correção; histórico A/C pela UI e estoque de A após correção ficam para a retomada. Detalhes em docs/12 e checkpoint de 15/10 de Home/estoque/histórico. Preservar perfis A/C e reserva 23.
+
+Ordem de referência para reprodução autorizada; itens 1–5 já concluídos neste desenvolvimento, não executar novamente a migração:
+
+1. Revisar e executar inteiro `migrations/20261015000300_estoque_historico_sinteticos.sql` uma vez (após as dez migrações existentes).
+2. Executar `tests/estoque_historico_integridade.sql` e `tests/estoque_historico_permissoes.sql`, ambos com ROLLBACK. Em erro, executar ROLLBACK antes de investigar.
+3. Executar `seed_estoque_historico.sql`: 16 níveis (8 por Demo A/B), 3 registros de histórico (A=2, C=1). Reexecutar para conferir ausência de duplicação; não sobrescreve publicação manual.
+4. Executar `tests/estoque_historico_leitura.sql`: estoque somente da unidade publicada; histórico próprio A/C; A continua vendo sua demonstração da unidade oculta; visitante/identidade ausente bloqueados.
+5. Executar `tests/estoque_historico_conferencia.sql`: esperados 16/3/2/1, 23 agendada/dados=true, RLS ativo, ambas STABLE/search_path vazio, estoque invoker e histórico definer.
+6. No app: conferir nome/reserva da Home como A; abrir Ver todos; histórico A=2, C=1 após logout/login, campanhas e privacidade. Agendar/cancelar não deve criar histórico nem mudar estoque.
+
+Nenhum script cria conta Auth, grava senha ou modifica a reserva 23. O seed exige os perfis sintéticos A/C existentes e unidades Demo A/B com configuração conhecida; falha sem substituir dados divergentes. Não usar reset/db push para conciliar histórico manual.
+
+Validação local reproduzível usa PostgreSQL em memória via [PGlite](https://pglite.dev/docs/), sem dependência no Android. Instalar a ferramenta em diretório temporário separado, com `pnpm add --dir <diretório> --ignore-scripts --save-exact @electric-sql/pglite@0.5.10`; executar `node supabase/tests/local/validar_estoque_historico.mjs <diretório>`. O script carrega migrações em banco descartável, cria interfaces mínimas de Auth e fixtures sintéticas, repete seed/testes e grava relatório em `app/build/reports/sql/estoque-historico.json`. Isso não valida login, JWT, HTTP, configuração ou estado do Supabase remoto. Nenhuma ferramenta ou pacote novo faz parte das dependências do aplicativo.
