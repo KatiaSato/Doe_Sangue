@@ -31,6 +31,12 @@ import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailViewModel
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
+import br.edu.fatec.doesangue.domain.repository.CampaignRepository
+import br.edu.fatec.doesangue.data.repository.SupabaseCampaignRepository
+import br.edu.fatec.doesangue.data.supabase.SupabaseCampaignDataSource
+import br.edu.fatec.doesangue.presentation.auth.RegistrationViewModel
+import br.edu.fatec.doesangue.presentation.campaigns.CampaignsViewModel
+import br.edu.fatec.doesangue.presentation.campaigns.CampaignDetailViewModel
 
 // Ele é responsável por criar os objetos e fornecer suas dependências
 class AppContainer(
@@ -39,7 +45,22 @@ class AppContainer(
     private val authRepositoryOverride: AuthRepository? = null,
     private val donorProfileRepositoryOverride: DonorProfileRepository? = null,
     private val appointmentRepositoryOverride: AppointmentRepository? = null,
+    private val campaignRepositoryOverride: CampaignRepository? = null,
 ) {
+    val campaignRepository: CampaignRepository by lazy {
+        campaignRepositoryOverride ?: SupabaseCampaignRepository(SupabaseCampaignDataSource(supabaseClient))
+    }
+
+    val registrationViewModelFactory = viewModelFactory {
+        initializer { RegistrationViewModel(authRepository) }
+    }
+    val campaignsViewModelFactory = viewModelFactory {
+        initializer { CampaignsViewModel(campaignRepository) }
+    }
+    fun campaignDetailViewModelFactory(id: String) = viewModelFactory {
+        initializer { CampaignDetailViewModel(campaignRepository, id) }
+    }
+
     // Cria o cliente com as configurações geradas pelo Gradle.
     private val supabaseClient by lazy {
         createDonationSupabaseClient(

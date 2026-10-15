@@ -1,16 +1,42 @@
 package br.edu.fatec.doesangue.data.supabase
 
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.BloodType
+import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 // Realiza a autenticação usando o cliente Supabase.
 class SupabaseAuthDataSource(
     private val client: SupabaseClient,
 ) {
+    suspend fun signUp(
+        displayName: String,
+        email: String,
+        password: String,
+        bloodType: BloodType,
+    ): RegistrationResult {
+        require(displayName.isNotBlank()) { "Informe seu nome." }
+        client.auth.awaitInitialization()
+        check(client.auth.currentUserOrNull() == null) { "Já existe uma sessão conectada." }
+        client.auth.signUpWith(Email) {
+            this.email = email.trim()
+            this.password = password
+            data = buildJsonObject {
+                put("nome_exibicao", displayName.trim())
+                put("tipo_sanguineo", bloodType.databaseValue)
+            }
+        }
+        return RegistrationResult(
+            authenticatedUser = client.auth.currentUserOrNull()?.let { AuthenticatedUser(it.id) },
+        )
+    }
+
     suspend fun signIn(
         email: String,
         password: String,

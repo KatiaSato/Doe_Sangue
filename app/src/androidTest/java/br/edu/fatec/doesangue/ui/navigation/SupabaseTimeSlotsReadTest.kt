@@ -38,7 +38,9 @@ class SupabaseTimeSlotsReadTest {
                 .getString("enableSupabaseReadTests") == "true",
         )
 
-        val container = AppContainer()
+        val container = AppContainer(
+            campaignRepositoryOverride = FakeCampaignRepository(),
+            )
         val center = runBlocking {
             container.donationCenterRepository.getCenters().getOrThrow()
                 .single { it.name == "Unidade Demo A" && it.city == "Cidade fictícia" }

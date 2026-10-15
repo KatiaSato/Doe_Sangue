@@ -1,5 +1,9 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import br.edu.fatec.doesangue.domain.model.RegistrationResult
+
+import br.edu.fatec.doesangue.domain.model.BloodType
+
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -39,6 +43,7 @@ class SessionRestoreFlowTest {
 
     private fun openApp() {
         val container = AppContainer(
+            campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             appointmentRepositoryOverride = FakeAppointmentRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
@@ -60,6 +65,9 @@ class SessionRestoreFlowTest {
                     appointmentDetailViewModelFactory = container::appointmentDetailViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = sessionFactory,
+                    registrationViewModelFactory = container.registrationViewModelFactory,
+                    campaignsViewModelFactory = container.campaignsViewModelFactory,
+                    campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
                 )
             }
         }
@@ -181,6 +189,9 @@ class SessionRestoreFlowTest {
     }
 
     private class ControlledAuthRepository : AuthRepository {
+        override suspend fun signUp(displayName: String, email: String, password: String, bloodType: BloodType): Result<RegistrationResult> =
+            Result.failure(UnsupportedOperationException("Cadastro não configurado neste roteiro."))
+
         var restoreCalls = 0
         var user: AuthenticatedUser? = null
         var answer: suspend () -> Result<AuthenticatedUser?> = { Result.success(null) }

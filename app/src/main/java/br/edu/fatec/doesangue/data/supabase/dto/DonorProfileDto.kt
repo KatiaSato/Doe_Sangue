@@ -15,4 +15,7 @@ data class DonorProfileDto (
 
     @SerialName("nome_exibicao")
     val displayName: String,
+
+    @SerialName("tipo_sanguineo")
+    val bloodType: String = "NAO_SEI",
 )

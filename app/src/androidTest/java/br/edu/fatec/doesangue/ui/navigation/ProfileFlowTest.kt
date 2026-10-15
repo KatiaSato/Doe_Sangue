@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import br.edu.fatec.doesangue.domain.model.BloodType
+
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.lifecycle.viewmodel.initializer
@@ -31,6 +33,7 @@ class ProfileFlowTest {
 
     private fun openProfile() {
         val container = AppContainer(
+            campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             appointmentRepositoryOverride = FakeAppointmentRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
@@ -52,6 +55,9 @@ class ProfileFlowTest {
                     appointmentDetailViewModelFactory = container::appointmentDetailViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = container.sessionViewModelFactory,
+                    registrationViewModelFactory = container.registrationViewModelFactory,
+                    campaignsViewModelFactory = container.campaignsViewModelFactory,
+                    campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
                 )
             }
         }
@@ -175,11 +181,61 @@ class ProfileFlowTest {
         compose.runOnIdle { assertEquals(2, repository.reads) }
     }
 
+    @Test fun bloodTypeUpdatePersistsOnReload() {
+        repository.storedProfile = DonorProfile("test-user-1", "Doador sintético")
+        openProfile()
+        compose.onNodeWithText("Tipo sanguíneo informado: Não sei").assertExists()
+        compose.onNodeWithText("Salvar tipo sanguíneo").assertIsNotEnabled()
+        compose.onNodeWithText("O+").performScrollTo().performClick()
+        compose.onNodeWithText("Salvar tipo sanguíneo").performScrollTo().performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("Tipo sanguíneo informado: O+").assertExists()
+        compose.runOnIdle { model.loadProfile() }
+        compose.waitForIdle()
+        compose.onNodeWithText("O+").assertIsSelected()
+        compose.runOnIdle { assertEquals(1, repository.updates) }
+    }
+
+    @Test fun pendingBloodTypeUpdateBlocksDuplicatesAndFailurePreservesSelectionForRetry() {
+        val response = CompletableDeferred<Result<DonorProfile>>()
+        repository.storedProfile = DonorProfile("test-user-1", "Doador sintético")
+        repository.updateAnswer = { response.await() }
+        openProfile()
+        compose.onNodeWithText("AB-").performScrollTo().performClick()
+        compose.onNodeWithText("Salvar tipo sanguíneo").performScrollTo().performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("Salvando tipo…").assertIsNotEnabled()
+        compose.onNodeWithText("A+").assertIsNotEnabled()
+        compose.runOnIdle {
+            model.saveBloodType(); model.loadProfile(); model.selectBloodType(BloodType.O_POSITIVE)
+            assertEquals(1, repository.updates); assertEquals(1, repository.reads)
+            response.complete(Result.failure(IllegalStateException("detalhe-interno")))
+        }
+        compose.waitForIdle()
+        compose.onNodeWithText("AB-").assertIsSelected()
+        compose.onNodeWithText("Tipo sanguíneo informado: Não sei").assertExists()
+        compose.onNodeWithText("Não foi possível atualizar o tipo sanguíneo. Tente novamente.").assertExists()
+        compose.runOnIdle { repository.updateAnswer = { type -> Result.success(repository.storedProfile!!.copy(bloodType = type)) } }
+        compose.onNodeWithText("Salvar tipo sanguíneo").performScrollTo().performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("Tipo sanguíneo informado: AB-").assertExists()
+        compose.runOnIdle { assertEquals(2, repository.updates) }
+    }
+
     private class ControlledProfileRepository : DonorProfileRepository {
+        var updates = 0
+        var updateAnswer: suspend (BloodType) -> Result<DonorProfile> = { type ->
+            Result.success(storedProfile!!.copy(bloodType = type))
+        }
+        override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> {
+            updates++
+            return updateAnswer(bloodType).onSuccess { storedProfile = it }
+        }
+
         var reads = 0
         var creations = 0
         var lastName: String? = null
-        private var storedProfile: DonorProfile? = null
+        var storedProfile: DonorProfile? = null
         var loadAnswer: suspend () -> Result<DonorProfile?> = { Result.success(storedProfile) }
         var createAnswer: suspend (String) -> Result<DonorProfile> = { name ->
             Result.success(DonorProfile("test-user-1", name))

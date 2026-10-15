@@ -21,6 +21,9 @@ fun AppNavHost(
     appointmentDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
     logoutViewModelFactory: ViewModelProvider.Factory,
     sessionViewModelFactory: ViewModelProvider.Factory,
+    registrationViewModelFactory: ViewModelProvider.Factory,
+    campaignsViewModelFactory: ViewModelProvider.Factory,
+    campaignDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
 ) {
     // Define como abrir destinos solicitados pelas telas
     // e pela barra inferior.
@@ -95,6 +98,7 @@ fun AppNavHost(
         authNavGraph(
             navController = navController,
             loginViewModelFactory = loginViewModelFactory,
+            registrationViewModelFactory = registrationViewModelFactory,
             onEnterMain = {
                 // Abre a área principal após o login bem-sucedido.
                 navController.navigate(AppGraph.Main) {
@@ -114,6 +118,8 @@ fun AppNavHost(
             appointmentsViewModelFactory = appointmentsViewModelFactory,
             appointmentDetailViewModelFactory = appointmentDetailViewModelFactory,
             logoutViewModelFactory = logoutViewModelFactory,
+            campaignsViewModelFactory = campaignsViewModelFactory,
+            campaignDetailViewModelFactory = campaignDetailViewModelFactory,
             onSignedOut = {
                 navController.navigate(AppGraph.Auth) {
                     // Remove as telas da conta que acabou de sair.

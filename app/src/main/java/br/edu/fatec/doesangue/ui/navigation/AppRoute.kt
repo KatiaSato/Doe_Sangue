@@ -95,6 +95,9 @@ sealed interface AppRoute {
     @Serializable
     data object CampaignDetail : AppRoute
 
+    @Serializable
+    data class CampaignDetailById(val campaignId: String) : AppRoute
+
     // Unidades
     @Serializable
     data object Centers : AppRoute

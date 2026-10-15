@@ -1,6 +1,8 @@
 package br.edu.fatec.doesangue.domain.repository
 
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.BloodType
+import br.edu.fatec.doesangue.domain.model.RegistrationResult
 
 // Define a operação de login sem depender do Supabase.
 /*
@@ -10,6 +12,13 @@ import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 - interface define a operação; a implementação na camada data fará a comunicação com o Supabase.
 */
 interface AuthRepository {
+
+    suspend fun signUp(
+        displayName: String,
+        email: String,
+        password: String,
+        bloodType: BloodType,
+    ): Result<RegistrationResult>
 
     suspend fun signIn(
         email: String,

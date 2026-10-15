@@ -1,6 +1,7 @@
 package br.edu.fatec.doesangue.presentation.profile
 
 import br.edu.fatec.doesangue.domain.model.DonorProfile
+import br.edu.fatec.doesangue.domain.model.BloodType
 
 // Representa cada situação da consulta ao perfil.
 //A sealed interface define um conjunto controlado de possibilidades. Aqui ela ajuda a evitar estados contraditórios,
@@ -10,6 +11,9 @@ sealed interface ProfileUiState {
 
     data class Loaded(                          //perfil encontrado, com dados para exibir
         val profile: DonorProfile,
+        val selectedBloodType: BloodType = profile.bloodType,
+        val isSavingBloodType: Boolean = false,
+        val bloodTypeError: String? = null,
     ) : ProfileUiState
 
     data class Missing(                         //consulta concluida, mas a conta ainda nao possui perfil

@@ -2,6 +2,8 @@ package br.edu.fatec.doesangue.data.repository
 
 import br.edu.fatec.doesangue.data.supabase.SupabaseAuthDataSource
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.BloodType
+import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
 
@@ -9,6 +11,19 @@ import kotlinx.coroutines.CancellationException
 class SupabaseAuthRepository(
     private val dataSource: SupabaseAuthDataSource,
 ) : AuthRepository {
+
+    override suspend fun signUp(
+        displayName: String,
+        email: String,
+        password: String,
+        bloodType: BloodType,
+    ): Result<RegistrationResult> = try {
+        Result.success(dataSource.signUp(displayName, email, password, bloodType))
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (exception: Exception) {
+        Result.failure(exception)
+    }
 
     override suspend fun signIn(
         email: String,

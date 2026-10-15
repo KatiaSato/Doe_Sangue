@@ -1,5 +1,9 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import br.edu.fatec.doesangue.domain.model.RegistrationResult
+
+import br.edu.fatec.doesangue.domain.model.BloodType
+
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.lifecycle.viewmodel.initializer
@@ -31,6 +35,7 @@ class LoginFlowTest {
 
     private fun openLogin() {
         val container = AppContainer(
+            campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             appointmentRepositoryOverride = FakeAppointmentRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
@@ -52,6 +57,9 @@ class LoginFlowTest {
                     appointmentDetailViewModelFactory = container::appointmentDetailViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = container.sessionViewModelFactory,
+                    registrationViewModelFactory = container.registrationViewModelFactory,
+                    campaignsViewModelFactory = container.campaignsViewModelFactory,
+                    campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
                 )
             }
         }
@@ -151,6 +159,9 @@ class LoginFlowTest {
     }
 
     private class ControlledAuthRepository : AuthRepository {
+        override suspend fun signUp(displayName: String, email: String, password: String, bloodType: BloodType): Result<RegistrationResult> =
+            Result.failure(UnsupportedOperationException("Cadastro não configurado neste roteiro."))
+
         var calls = 0
         var receivedExpectedCredentials = false
         var answer: suspend () -> Result<AuthenticatedUser> = {

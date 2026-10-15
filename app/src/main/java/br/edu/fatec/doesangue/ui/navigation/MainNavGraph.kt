@@ -21,7 +21,10 @@ import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionDetailScreen
 import br.edu.fatec.doesangue.ui.screens.home.HomeScheduledScreen
 import br.edu.fatec.doesangue.ui.screens.home.HomeScreen
 import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignDetailScreen
-import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignsScreen
+import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignsReadScreen
+import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignDetailReadScreen
+import br.edu.fatec.doesangue.presentation.campaigns.CampaignsViewModel
+import br.edu.fatec.doesangue.presentation.campaigns.CampaignDetailViewModel
 import br.edu.fatec.doesangue.ui.screens.centers.CenterDetailScreen
 import br.edu.fatec.doesangue.ui.screens.centers.CentersScreen
 import br.edu.fatec.doesangue.ui.screens.donations.AppointmentDetailByIdScreen
@@ -47,6 +50,8 @@ fun NavGraphBuilder.mainNavGraph(
     appointmentsViewModelFactory: ViewModelProvider.Factory,
     appointmentDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
     logoutViewModelFactory: ViewModelProvider.Factory,
+    campaignsViewModelFactory: ViewModelProvider.Factory,
+    campaignDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
     onSignedOut: () -> Unit,
     onNavigateMain: (AppRoute) -> Unit,
     onFinishScheduling: () -> Unit,
@@ -237,18 +242,23 @@ fun NavGraphBuilder.mainNavGraph(
 
         // Campanhas
         composable<AppRoute.Campaigns> {
-            CampaignsScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                onDetail = {
-                    navController.navigate(AppRoute.CampaignDetail)
-                },
-                onDonate = {
-                    onNavigateMain(AppRoute.ScheduleCenter)
-                },
+            val model: CampaignsViewModel = viewModel(factory = campaignsViewModelFactory)
+            val state by model.uiState.collectAsStateWithLifecycle()
+            CampaignsReadScreen(
+                state = state, onSelectBloodType = model::selectBloodType, onRetry = model::loadCampaigns,
+                onBack = { navController.navigateBackOrHome() },
+                onDetail = { id -> navController.navigate(AppRoute.CampaignDetailById(id)) },
                 onNavigate = onNavigateMain,
             )
+        }
+
+        composable<AppRoute.CampaignDetailById> { entry ->
+            val route = entry.toRoute<AppRoute.CampaignDetailById>()
+            val model: CampaignDetailViewModel = viewModel(factory = campaignDetailViewModelFactory(route.campaignId))
+            val state by model.uiState.collectAsStateWithLifecycle()
+            CampaignDetailReadScreen(state, model::loadCampaign,
+                onBack = { navController.navigateBackOrHome() },
+                onSchedule = { onNavigateMain(AppRoute.ScheduleCenter) }, onNavigate = onNavigateMain)
         }
 
         composable<AppRoute.CampaignDetail> {
@@ -300,6 +310,8 @@ fun NavGraphBuilder.mainNavGraph(
                 onRetry = profileViewModel::loadProfile,
                 onDisplayNameChange = profileViewModel::updateDisplayName,
                 onCreateProfile = profileViewModel::createProfile,
+                onBloodTypeChange = profileViewModel::selectBloodType,
+                onSaveBloodType = profileViewModel::saveBloodType,
                 onBack = {
                     navController.navigateBackOrHome()
                 },

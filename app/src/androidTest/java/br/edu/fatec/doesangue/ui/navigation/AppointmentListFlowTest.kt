@@ -1,5 +1,9 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import br.edu.fatec.doesangue.domain.model.RegistrationResult
+
+import br.edu.fatec.doesangue.domain.model.BloodType
+
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.lifecycle.viewmodel.initializer
@@ -40,6 +44,9 @@ class AppointmentListFlowTest {
 
     private fun openApp() {
         val profiles = object : DonorProfileRepository {
+        override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> =
+            Result.failure(UnsupportedOperationException("Edição do tipo não configurada neste roteiro."))
+
             override suspend fun getCurrentProfile(): Result<DonorProfile?> =
                 Result.success(auth.user?.let { DonorProfile(it.id, "Doador de teste") })
 
@@ -47,6 +54,7 @@ class AppointmentListFlowTest {
                 Result.failure(UnsupportedOperationException("Este teste não cria perfis."))
         }
         val container = AppContainer(
+            campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             authRepositoryOverride = auth,
@@ -68,6 +76,9 @@ class AppointmentListFlowTest {
                     appointmentDetailViewModelFactory = container::appointmentDetailViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = container.sessionViewModelFactory,
+                    registrationViewModelFactory = container.registrationViewModelFactory,
+                    campaignsViewModelFactory = container.campaignsViewModelFactory,
+                    campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
                 )
             }
         }
@@ -232,6 +243,9 @@ class AppointmentListFlowTest {
     }
 
     private class ControlledAuthRepository : AuthRepository {
+        override suspend fun signUp(displayName: String, email: String, password: String, bloodType: BloodType): Result<RegistrationResult> =
+            Result.failure(UnsupportedOperationException("Cadastro não configurado neste roteiro."))
+
         var user: AuthenticatedUser? = AuthenticatedUser("test-user-a")
 
         override suspend fun restoreSession(): Result<AuthenticatedUser?> = Result.success(user)

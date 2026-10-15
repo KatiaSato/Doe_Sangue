@@ -3,14 +3,30 @@ package br.edu.fatec.doesangue.data.supabase
 import br.edu.fatec.doesangue.data.supabase.dto.DonorProfileDto
 import br.edu.fatec.doesangue.data.supabase.mapper.toDomain
 import br.edu.fatec.doesangue.domain.model.DonorProfile
+import br.edu.fatec.doesangue.domain.model.BloodType
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 // Consulta o perfil da conta autenticada no Supabase
 class SupabaseDonorProfileDataSource(
     private val client: SupabaseClient,
 ) {
+    suspend fun updateCurrentBloodType(bloodType: BloodType): DonorProfile {
+        client.auth.awaitInitialization()
+        val user = checkNotNull(client.auth.currentUserOrNull()) {
+            "É necessário entrar para atualizar o perfil."
+        }
+        return client.from("perfil_doador").update(buildJsonObject {
+            put("tipo_sanguineo", bloodType.databaseValue)
+        }) {
+            filter { eq("id", user.id) }
+            select()
+        }.decodeSingle<DonorProfileDto>().toDomain()
+    }
+
     suspend fun getCurrentProfile(): DonorProfile? {
         client.auth.awaitInitialization()
 

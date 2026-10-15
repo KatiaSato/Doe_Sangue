@@ -2,6 +2,7 @@ package br.edu.fatec.doesangue.data.repository
 
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonorProfileDataSource
 import br.edu.fatec.doesangue.domain.model.DonorProfile
+import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
 import kotlinx.coroutines.CancellationException
 
@@ -15,6 +16,14 @@ import kotlinx.coroutines.CancellationException
 class SupabaseDonorProfileRepository(
     private val dataSource: SupabaseDonorProfileDataSource,
 ) : DonorProfileRepository {
+
+    override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> = try {
+        Result.success(dataSource.updateCurrentBloodType(bloodType))
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (exception: Exception) {
+        Result.failure(exception)
+    }
 
     override suspend fun getCurrentProfile(): Result<DonorProfile?> {
         return try {

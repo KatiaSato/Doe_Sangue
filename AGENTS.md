@@ -13,6 +13,19 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - Documentação, roteiros de teste, verificações e operações Git autorizadas podem ser executados pelo agente. Isso não autoriza avançar automaticamente a implementação do aplicativo.
 - Preservar arquivos gerados por outras conversas. Antes de apagar/reverter ou decidir que esses arquivos substituem as etapas de aprendizado, combinar a retomada com a usuária.
 
+## Mensagens de erro — regra da usuária em 15/10/2026
+
+- Nas validações locais e nas falhas de operações, apresentar mensagens específicas em português para erros conhecidos, com orientação sobre a próxima ação. Prioridade atual: cadastro/login. Não reduzir todos os erros esperados à mesma mensagem genérica; reservar fallback para falhas desconhecidas ou indisponibilidade sem causa identificada.
+- Exemplos aprovados para orientar implementação: e-mail inválido → informar que o endereço não é aceito e pedir outro válido; email_not_confirmed → orientar confirmar o e-mail antes de entrar; invalid_credentials → “E-mail ou senha incorretos.”; limite de tentativas/envios → orientar aguardar; falha de conexão identificada → orientar verificar a conexão e tentar novamente.
+- Classificar códigos/tipos estruturados do SDK/servidor, preservando a informação entre camadas. HTTP 400 sozinho não identifica a causa; não depender de comparação com mensagens em inglês. SDK fica em data, regras/contratos no domínio e estado/mensagem no ViewModel, sem acoplar apresentação ao Supabase.
+- Não exibir exceções brutas, SQL, tokens, senhas ou detalhes internos. Distinguir causas conhecidas sem inventar se um e-mail/conta existe quando o servidor não permite essa conclusão. Preservar CancellationException como cancelamento. Oferecer somente ações funcionais: reenvio de confirmação ainda não existe, portanto não prometer botão/ação implementada.
+- Estado: regra registrada, implementação pendente em tutoria; este pedido de anotação não autoriza editar produção automaticamente. Quando implementada, validar mensagens/ações distintas e fallback com testes relevantes.
+
+## Perfil — ajuste visual solicitado para depois, em 15/10/2026
+
+- Na tela Meu perfil, exibir somente o tipo sanguíneo selecionado/persistido; não manter a grade com todas as opções aberta na visualização normal. As opções devem aparecer apenas durante uma ação explícita de edição. Preservar a possibilidade de atualizar o próprio tipo e a opção Não sei; esta solicitação se refere ao Perfil, não remove a seleção do cadastro.
+- Regra registrada para implementação futura em tutoria. O mecanismo visual da edição será definido nessa etapa; não editar produção agora. Arquivo diretamente relacionado: ui/screens/profile/ProfileContent.kt e componente BloodTypePicker; testes de perfil precisarão acompanhar o novo percurso quando implementado.
+
 ## Stack e estrutura
 
 - Kotlin, Android nativo, Jetpack Compose.
@@ -196,6 +209,22 @@ Projeto acadêmico Android do aplicativo Doe Sangue. A base Compose e a navegaç
 - Retomada confirmou main limpa e sincronizada em `3b9846189c596515cf945fc78fb1c6bcddfdb31d` (cancelamento Android concluído, commit/push feitos). Não repetir fixtures de cancelamento; preservar 23.
 - A usuária aprovou campanhas sintéticas como próxima tabela, cada campanha ligada a exatamente uma unidade; unidade pode ter zero ou várias campanhas. Publicação manual no Supabase, consulta pelo app. Não cria reservas nem comprova coleta/estoque/aptidão. Recorrência continua pendente.
 - Visão inicial e diagrama proposto salvos em `docs/22-diagrama-sequencia-campanhas.md`, antes do código. Hoje há apenas tela/rotas de campanhas com dados fixos; tabela e camadas funcionais ainda não existem. Primeiro passo orientado: a usuária cria `20261015000100_criar_campanha.sql` com transação, PK e FK para unidade, sem executar o rascunho incompleto. Campos, período, fonte, publicação, RLS/grants e testes virão em pequenos passos. Nenhum SQL remoto ou teste de aplicação foi executado pelo agente nesta preparação documental. Ainda são cinco tabelas/cinco FKs do domínio aplicadas; com a nova tabela serão seis/seis, além de Auth, e seed de 200 registros continua pendente.
+
+## Seed mínimo de campanhas — etapa iniciada em 15/10/2026
+
+- Commit/push do recorte SQL concluídos em `13e0ead62a83fe112687d2bfc483c0b496f40a22`; main estava limpa na retomada. A usuária concordou com seed de três campanhas sintéticas: publicada/Demo A visível, rascunho/Demo A oculto e publicada/Demo B oculta. Sem alterar unidades/reserva 23.
+- Diagrama apresentado antes do código e salvo em `docs/23-diagrama-sequencia-seed-campanhas.md`. A usuária escreverá `supabase/seed_campanhas.sql` separado do seed de unidades; primeiro passo orientado: BEGIN, bloqueio SHARE ROW EXCLUSIVE da tabela e COMMIT, sem executar o rascunho. Pré-condições, dados, inserção de ausentes e conferências virão em pequenos passos. Nenhum seed criado/aplicado automaticamente; Android e massa de 200 registros continuam pendentes. Ver diagrama para propostas de período/fonte e repetição controlada.
+
+## Exceção autorizada — tipo sanguíneo e filtro — 15/10/2026
+
+- Usuária autorizou implementação direta somente de cadastro/tipo/filtro, incluindo Não sei. Recorte implementado/testado; **retomar tutoria em pequenos passos**. Regras futuras de mensagens e visual do Perfil estão nas seções próprias acima, sem implementação.
+- Usuária autorizou commit/push deste marco em 15/10; não pedir de novo. Preservar seed SQL incompleto/parcialmente staged fora do commit. Conferir Git ao retomar; base anterior 13e0ead.
+- Décima migração aplicada manualmente, catálogos/testes SQL conferidos; não reaplicar. Sete tabelas/sete FKs de domínio além da FK para Auth. Captura final confirma 2 unidades/3 horários/2 perfis/1 reserva, zero eventos/campanhas/vínculos, total oito; C=NAO_SEI/confirmado/dados=true e 23 agendada/dados=true.
+- Cadastro automático de C sem Criar perfil e edição O+ com releitura/retorno a Não sei validados por relato/capturas/consulta. C criado_em=2026-10-15 16:24:09.945178+00. Metadados do Auth são iniciais e não sincronizam com edição. Sem auditoria JWT/tráfego/falhas concorrentes.
+- Endereço de exemplo do primeiro teste foi recusado pelo Auth. Usuária autorizou seu e-mail de acesso ao Supabase somente no Auth, mantendo perfil fictício; não pedir novamente autorização, endereço ou senha nem registrar dados pessoais em código/docs/logs. Não desativar validação/confirmação por esse erro.
+- Validação local: nove testes locais e 68 instrumentados aprovados, zero falhas/erros, um remoto ignorado nos XML. APK/Lint finais aprovados (31 avisos/zero erros). Nenhuma produção alterada depois; não repetir testes sem mudança/falha que justifique.
+- Próximo passo após Git: retomar seed guiado de três campanhas, atualizar diagrama para os vínculos de tipos antes de código e conferir repetição/consulta real. Filtro no Android ainda depende desse seed; SQL e memória já exercitados. Preservar reserva 23 e não executar seed/migração remotos automaticamente.
+- Retomada detalhada em docs/checkpoints/2026-10-15-tipo-sanguineo.md; evidências/limites em docs/12 e diagrama/decisões em docs/24. Históricos detalhados ficam nesses documentos, sem repetir checkpoints intermediários aqui.
 
 ## Revisão editorial — 06/10/2026
 

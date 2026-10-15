@@ -1,5 +1,9 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import br.edu.fatec.doesangue.domain.model.RegistrationResult
+
+import br.edu.fatec.doesangue.domain.model.BloodType
+
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 
@@ -8,6 +12,9 @@ class FakeAuthRepository(
     private val result: Result<AuthenticatedUser> =
         Result.success(AuthenticatedUser(id = "test-user-1")),
 ) : AuthRepository {
+        override suspend fun signUp(displayName: String, email: String, password: String, bloodType: BloodType): Result<RegistrationResult> =
+            Result.success(RegistrationResult(null))
+
 
     override suspend fun signIn(
         email: String,

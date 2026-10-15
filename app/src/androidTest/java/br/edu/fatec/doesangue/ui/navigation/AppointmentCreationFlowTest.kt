@@ -38,6 +38,7 @@ class AppointmentCreationFlowTest {
 
     private fun openScheduling() {
         val container = AppContainer(
+            campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             appointmentRepositoryOverride = repository,
@@ -65,6 +66,9 @@ class AppointmentCreationFlowTest {
                     appointmentDetailViewModelFactory = container::appointmentDetailViewModelFactory,
                     logoutViewModelFactory = container.logoutViewModelFactory,
                     sessionViewModelFactory = container.sessionViewModelFactory,
+                    registrationViewModelFactory = container.registrationViewModelFactory,
+                    campaignsViewModelFactory = container.campaignsViewModelFactory,
+                    campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
                 )
             }
         }

@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.edu.fatec.doesangue.presentation.auth.LogoutUiState
 import br.edu.fatec.doesangue.presentation.profile.ProfileUiState
+import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
@@ -55,6 +56,8 @@ fun ProfileScreen(
     onNavigate: (AppRoute) -> Unit,
     onDisplayNameChange: (String) -> Unit,
     onCreateProfile: () -> Unit,
+    onBloodTypeChange: (BloodType) -> Unit,
+    onSaveBloodType: () -> Unit,
 ) {
     DsScreen(
         title = "Meu perfil",
@@ -67,6 +70,8 @@ fun ProfileScreen(
             onRetry = onRetry,
             onDisplayNameChange = onDisplayNameChange,
             onCreateProfile = onCreateProfile,
+            onBloodTypeChange = onBloodTypeChange,
+            onSaveBloodType = onSaveBloodType,
         )
 
         Spacer(Modifier.height(16.dp))
@@ -174,7 +179,8 @@ fun EditProfileScreen(onBack: () -> Unit) {
         Spacer(Modifier.height(12.dp))
         VisualField("Data de nascimento", "15/04/1996")
         Spacer(Modifier.height(12.dp))
-        VisualField("Tipo sanguíneo", "O+")
+        Text("Para atualizar seu tipo sanguíneo, use a tela Perfil.",
+            style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(60.dp))
         PrimaryButton("Salvar alterações", {})
     }

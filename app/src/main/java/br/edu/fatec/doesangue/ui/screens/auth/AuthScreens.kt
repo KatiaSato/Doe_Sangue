@@ -135,99 +135,10 @@ fun LoginScreen(
 }
 
 @Composable
-fun RegisterStep1Screen(onBack: () -> Unit, onContinue: () -> Unit, onLogin: () -> Unit) {
-    DsScreen(onBack = onBack) {
-        StepProgress(1)
-        Spacer(Modifier.height(34.dp))
-        ScreenHeading("Crie sua conta", "Vamos começar com algumas informações.")
-        Spacer(Modifier.height(34.dp))
-        VisualField("Nome completo", "Digite seu nome completo")
-        Spacer(Modifier.height(16.dp))
-        VisualField("E-mail", "seu@email.com")
-        Spacer(Modifier.height(16.dp))
-        VisualField("Data de nascimento", "dd/mm/aaaa")
-        Spacer(Modifier.height(38.dp))
-        PrimaryButton("Continuar", onContinue)
-        Text("●  ○  ○  ○", Modifier.fillMaxWidth().padding(18.dp), color = BloodRed, textAlign = TextAlign.Center)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            Text("Já tem uma conta?", style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
-            TextAction("Entrar", onLogin)
-        }
-    }
-}
-
-@Composable
-fun RegisterStep2Screen(onBack: () -> Unit, onContinue: () -> Unit) {
-    DsScreen(onBack = onBack) {
-        StepProgress(2)
-        Spacer(Modifier.height(34.dp))
-        ScreenHeading("Como podemos falar com você?")
-        Spacer(Modifier.height(34.dp))
-        VisualField("Telefone", "(19) 99999-9999")
-        Spacer(Modifier.height(18.dp))
-        VisualField("Cidade", "Americana")
-        Spacer(Modifier.height(18.dp))
-        VisualField("Estado", "São Paulo")
-        Spacer(Modifier.height(56.dp))
-        PrimaryButton("Continuar", onContinue)
-        Text("●  ●  ○  ○", Modifier.fillMaxWidth().padding(18.dp), color = BloodRed, textAlign = TextAlign.Center)
-    }
-}
-
-@Composable
-fun RegisterStep3Screen(onBack: () -> Unit, onContinue: () -> Unit) {
-    DsScreen(onBack = onBack) {
-        StepProgress(3)
-        Spacer(Modifier.height(26.dp))
-        ScreenHeading("Sobre sua doação")
-        Spacer(Modifier.height(22.dp))
-        Text("Tipo sanguíneo", style = MaterialTheme.typography.labelMedium)
-        Spacer(Modifier.height(8.dp))
-        val types = listOf("O+", "O−", "A+", "A−", "B+", "B−", "AB+", "AB−")
-        types.chunked(4).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { type ->
-                    SecondaryButton(type, {}, Modifier.weight(1f))
-                }
-            }
-            Spacer(Modifier.height(8.dp))
-        }
-        Spacer(Modifier.height(12.dp))
-        Text("Já doou sangue antes?", style = MaterialTheme.typography.labelMedium)
-        Row(Modifier.fillMaxWidth()) {
-            SecondaryButton("Sim", {}, Modifier.weight(1f))
-            Spacer(Modifier.width(12.dp))
-            SecondaryButton("Ainda não", {}, Modifier.weight(1f))
-        }
-        Spacer(Modifier.height(14.dp))
-        VisualField("Data da última doação", "20/06/2026")
-        Spacer(Modifier.height(28.dp))
-        PrimaryButton("Continuar", onContinue)
-    }
-}
-
-@Composable
-fun RegisterStep4Screen(onBack: () -> Unit, onCreate: () -> Unit) {
-    DsScreen(onBack = onBack) {
-        StepProgress(4)
-        Spacer(Modifier.height(42.dp))
-        ScreenHeading("Quase pronto!")
-        Spacer(Modifier.height(36.dp))
-        SelectionCard("Li e aceito os Termos de Uso", selected = true)
-        Spacer(Modifier.height(14.dp))
-        SelectionCard("Li e aceito a Política de Privacidade", selected = true)
-        Spacer(Modifier.height(28.dp))
-        SelectionCard("Importante", "O aplicativo não substitui a triagem realizada pelo hemocentro.", selected = false)
-        Spacer(Modifier.height(70.dp))
-        PrimaryButton("Criar minha conta", onCreate)
-    }
-}
-
-@Composable
 fun EmailVerificationScreen(onUnderstood: () -> Unit) {
     DsScreen {
         Spacer(Modifier.height(150.dp))
-        CenteredMessage("✉", "Verifique seu e-mail", "Enviamos um link de confirmação para o endereço informado.")
+        CenteredMessage("✉", "Verifique seu e-mail", "Confira sua caixa de entrada. Se houver confirmação pendente, use o link recebido e depois entre na sua conta.")
         Spacer(Modifier.height(100.dp))
         PrimaryButton("Entendi", onUnderstood)
     }

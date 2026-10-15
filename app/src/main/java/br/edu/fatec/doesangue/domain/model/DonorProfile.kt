@@ -4,4 +4,5 @@ package br.edu.fatec.doesangue.domain.model
 data class DonorProfile (
     val id: String,
     val displayName: String,        // nome que exibiremos na tela; corresponde a nome_exibicao
+    val bloodType: BloodType = BloodType.UNKNOWN,
 )

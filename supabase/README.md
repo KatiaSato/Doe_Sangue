@@ -1,5 +1,15 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Tipo sanguíneo/cadastro/filtro — preparado localmente em 15/10/2026
+
+**Fechamento após Android:** captura de `tests/tipo_sanguineo_android_conferencia_final.sql` confirma oito registros: 2 unidades/3 horários/2 perfis/1 reserva, zero eventos/campanhas/vínculos. C=NAO_SEI/confirmado/dados=true e 23 agendada/dados=true. Cadastro/perfil automático e edição O+ com releitura/retorno a Não sei validados por relato/capturas/consulta, sem auditoria JWT/tráfego. Commit/push deste marco autorizados pela usuária em 15/10/2026; depois seed guiado para filtro real no app. Não incluir/aplicar automaticamente seed incompleto nem repetir migrações/fixtures. Registros abaixo são históricos anteriores ao novo perfil C.
+
+**Recorte SQL concluído:** capturas confirmam filtro, isolamento do perfil e conferência final: total sete registros, A=NAO_SEI e 23 agendada/dados conhecidos=true; zero eventos/campanhas/vínculos, 3 horários/1 perfil/1 reserva. Linha de unidades cortada na captura; duas inferidas pelo total. Testes comportamentais em ROLLBACK/papéis simulados, sem JWT/API. Próximo passo: cadastro/trigger/API reais em tutoria. Ver [validação](../docs/12-validacao.md) e [checkpoint](../docs/checkpoints/2026-10-15-tipo-sanguineo.md). Não reaplicar migração nem repetir fixtures históricas.
+
+Décima migração: `migrations/20261015000200_tipo_sanguineo_cadastro_campanhas.sql`, **aplicada manualmente pela usuária**, com sucesso relatado e capturas de configuração. Não reaplicar. Cria enum/coluna com padrão NAO_SEI, trigger Auth→perfil, associação N:M campanha/tipo e RPC pública SECURITY INVOKER com RLS. Não executar seed incompleto nem migrações antigas/db push/reset.
+
+Catálogos conferidos por capturas (final de CASCADE parcialmente cortado). Roteiro de filtro verifica gerais/tipos exatos/múltiplos, ocultação, CHECK/PK/FK e escrita negada. Roteiro de perfil verifica edição própria/Não sei, A sem leitura/escrita de B, anon bloqueado, ID/NULL negados e B/23 preservados. Sequência de campanhas pode avançar com ROLLBACK; nenhum Auth foi criado pelos roteiros. Cadastro/trigger reais, confirmação de e-mail e filtro pela API pendentes. [Fluxo e roteiro](../docs/24-tipo-sanguineo-cadastro-filtro.md). Esquema remoto sete tabelas/sete FKs de domínio além da FK para Auth; massa atual conferida acima. Registros abaixo históricos.
+
 ## Campanhas — migração preparada em 15/10/2026
 
 **Recorte SQL concluído:** captura de `tests/campanha_conferencia_final.sql` confirma 2 unidades, 3 horários, 1 perfil, 1 agendamento, 0 eventos, 0 campanhas, 0 unidades temporárias e total de sete registros; reserva 23 agendada com dados conhecidos conferidos=true. Migração aplicada pela usuária, com catálogos e três testes comportamentais conferidos. Não reaplicar a migração nem repetir automaticamente os testes. Ainda sem seed persistente de campanhas e sem integração Android; 200 registros continuam pendentes. Ver [checkpoint](../docs/checkpoints/2026-10-15-campanhas-supabase.md). Os parágrafos abaixo conservam os estados anteriores da preparação e execução.

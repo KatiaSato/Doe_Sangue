@@ -40,7 +40,8 @@ class DonationRestrictionsTest {
         restoration.setContent {
             val appContainer = remember {
                 AppContainer(
-                    centerRepositoryOverride = FakeDonationCenterRepository(),
+            campaignRepositoryOverride = FakeCampaignRepository(),
+            centerRepositoryOverride = FakeDonationCenterRepository(),
                     appointmentRepositoryOverride = FakeAppointmentRepository(),
                     timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
                     authRepositoryOverride = FakeAuthRepository(),
@@ -70,6 +71,9 @@ class DonationRestrictionsTest {
                         appointmentDetailViewModelFactory = appContainer::appointmentDetailViewModelFactory,
                         logoutViewModelFactory = appContainer.logoutViewModelFactory,
                         sessionViewModelFactory = appContainer.sessionViewModelFactory,
+                        registrationViewModelFactory = appContainer.registrationViewModelFactory,
+                        campaignsViewModelFactory = appContainer.campaignsViewModelFactory,
+                        campaignDetailViewModelFactory = appContainer::campaignDetailViewModelFactory,
                     )
                 }
             }

@@ -1,5 +1,7 @@
 # Checkpoint — campanhas no Supabase — 15/10/2026
 
+**Retomada após o Git:** commit/push concluídos em `13e0ead62a83fe112687d2bfc483c0b496f40a22`; main estava limpa ao iniciar a próxima etapa. A usuária concordou em prosseguir com seed mínimo de três campanhas sintéticas. Diagrama e recorte em `docs/23-diagrama-sequencia-seed-campanhas.md`; futuro arquivo `supabase/seed_campanhas.sql`, escrito pela usuária em pequenos passos, ainda não criado/aplicado. Preservar 23, não reaplicar migrações nem repetir os roteiros históricos. Os registros de Git abaixo conservam o instante anterior ao commit.
+
 ## Retomada obrigatória
 
 Projeto: `C:\Users\katia\Documents\Apps\DoeSangue`. Ler AGENTS.md, este checkpoint e somente os arquivos do próximo passo. **A usuária escreve produção; o agente orienta e revisa um único passo curto por resposta.** “Feito”, “vamos” e checkpoints não autorizam implementação automática. Testes/documentação e Git autorizado podem ser executados pelo agente. Antes de uma nova etapa, apresentar e salvar o diagrama de sequência. Não criar chat novo automaticamente; a usuária preferiu continuar nesta conversa.

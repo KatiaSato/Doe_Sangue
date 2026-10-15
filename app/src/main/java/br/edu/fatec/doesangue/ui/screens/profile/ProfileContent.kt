@@ -7,6 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import br.edu.fatec.doesangue.presentation.profile.ProfileUiState
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
+import br.edu.fatec.doesangue.ui.components.BloodTypePicker
+import br.edu.fatec.doesangue.domain.model.BloodType
 
 // Exibe o resultado da consulta ao perfil.
 @Composable
@@ -15,6 +17,8 @@ fun ProfileContent(
     onRetry: () -> Unit,
     onDisplayNameChange: (String) -> Unit,
     onCreateProfile: () -> Unit,
+    onBloodTypeChange: (BloodType) -> Unit,
+    onSaveBloodType: () -> Unit,
 ) {
     Column {
         when (uiState) {
@@ -24,6 +28,17 @@ fun ProfileContent(
 
             is ProfileUiState.Loaded -> {
                 Text(uiState.profile.displayName)
+                Text("Tipo sanguíneo informado: ${uiState.profile.bloodType.label}")
+                BloodTypePicker(uiState.selectedBloodType, onBloodTypeChange,
+                    enabled = !uiState.isSavingBloodType)
+                Text("Informação autodeclarada; não determina aptidão.",
+                    style = MaterialTheme.typography.bodySmall)
+                uiState.bloodTypeError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                PrimaryButton(
+                    if (uiState.isSavingBloodType) "Salvando tipo…" else "Salvar tipo sanguíneo",
+                    onSaveBloodType,
+                    enabled = !uiState.isSavingBloodType && uiState.selectedBloodType != uiState.profile.bloodType,
+                )
             }
 
             is ProfileUiState.Missing -> {

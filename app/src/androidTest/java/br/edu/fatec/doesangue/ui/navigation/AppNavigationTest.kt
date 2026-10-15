@@ -49,7 +49,8 @@ class AppNavigationTest {
         restoration.setContent {
             val appContainer = remember {
                 AppContainer(
-                    centerRepositoryOverride = FakeDonationCenterRepository(),
+            campaignRepositoryOverride = FakeCampaignRepository(),
+            centerRepositoryOverride = FakeDonationCenterRepository(),
                     appointmentRepositoryOverride = FakeAppointmentRepository(),
                     timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
                     authRepositoryOverride = FakeAuthRepository(),
@@ -69,6 +70,9 @@ class AppNavigationTest {
                     appointmentDetailViewModelFactory = appContainer::appointmentDetailViewModelFactory,
                     logoutViewModelFactory = appContainer.logoutViewModelFactory,
                     sessionViewModelFactory = appContainer.sessionViewModelFactory,
+                    registrationViewModelFactory = appContainer.registrationViewModelFactory,
+                    campaignsViewModelFactory = appContainer.campaignsViewModelFactory,
+                    campaignDetailViewModelFactory = appContainer::campaignDetailViewModelFactory,
                 )
             } // Fecha DoeSangueTheme
         } // Fecha restoration.setContent — faltou esta chave
@@ -106,12 +110,19 @@ class AppNavigationTest {
     @Test
     fun registrationCompletionRemovesRegistrationSteps() {
         tap("Começar")
+        compose.onNodeWithText("Nome de exibição").performTextInput("Doador de teste")
+        compose.onNodeWithText("E-mail").performTextInput("cadastro@example.com")
         tap("Continuar")
         assertRoute<AppRoute.Register2>()
         tap("‹")
         assertRoute<AppRoute.Register1>()
-        repeat(3) { tap("Continuar") }
+        tap("Continuar")
+        tap("Não sei")
+        tap("Continuar")
+        tap("Continuar")
         assertRoute<AppRoute.Register4>()
+        compose.onNodeWithText("Senha").performTextInput("Sintetica123!")
+        compose.onNodeWithText("Confirmar senha").performTextInput("Sintetica123!")
         tap("Criar minha conta")
         assertRoute<AppRoute.EmailVerification>()
         tap("Entendi")

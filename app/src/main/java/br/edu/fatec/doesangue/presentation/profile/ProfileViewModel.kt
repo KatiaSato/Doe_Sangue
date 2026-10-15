@@ -3,7 +3,9 @@ package br.edu.fatec.doesangue.presentation.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
+import br.edu.fatec.doesangue.domain.model.BloodType
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,12 +22,40 @@ class ProfileViewModel(
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
+    private var bloodTypeJob: Job? = null
+
+    fun selectBloodType(value: BloodType) {
+        val current = _uiState.value as? ProfileUiState.Loaded ?: return
+        if (!current.isSavingBloodType) {
+            _uiState.value = current.copy(selectedBloodType = value, bloodTypeError = null)
+        }
+    }
+
+    fun saveBloodType() {
+        val current = _uiState.value as? ProfileUiState.Loaded ?: return
+        if (current.isSavingBloodType || bloodTypeJob?.isActive == true || loadJob?.isActive == true) return
+        if (current.selectedBloodType == current.profile.bloodType) return
+        _uiState.value = current.copy(isSavingBloodType = true, bloodTypeError = null)
+        bloodTypeJob = viewModelScope.launch {
+            val result = repository.updateCurrentBloodType(current.selectedBloodType)
+            ensureActive()
+            _uiState.value = result.fold(
+                onSuccess = { profile ->
+                    if (profile.id == current.profile.id && profile.bloodType == current.selectedBloodType) {
+                        ProfileUiState.Loaded(profile)
+                    } else current.copy(bloodTypeError = "Não foi possível atualizar o tipo sanguíneo.")
+                },
+                onFailure = { current.copy(bloodTypeError = "Não foi possível atualizar o tipo sanguíneo. Tente novamente.") },
+            )
+        }
+    }
 
     init {
         loadProfile()
     }
 
     fun loadProfile() {
+        if (bloodTypeJob?.isActive == true) return
         if ((_uiState.value as? ProfileUiState.Missing)?.isSaving == true) return
         // Evita consultas simultâneas.
         if (loadJob?.isActive == true) return

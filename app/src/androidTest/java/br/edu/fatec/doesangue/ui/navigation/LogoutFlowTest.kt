@@ -1,5 +1,9 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import br.edu.fatec.doesangue.domain.model.RegistrationResult
+
+import br.edu.fatec.doesangue.domain.model.BloodType
+
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.lifecycle.viewmodel.initializer
@@ -34,6 +38,9 @@ class LogoutFlowTest {
 
     private fun openSettings() {
         val profiles = object : DonorProfileRepository {
+        override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> =
+            Result.failure(UnsupportedOperationException("Edição do tipo não configurada neste roteiro."))
+
             override suspend fun getCurrentProfile(): Result<DonorProfile?> = Result.success(
                 if (auth.user?.id == "test-user-a") DonorProfile("test-user-a", "Doador Demo A") else null,
             )
@@ -42,6 +49,7 @@ class LogoutFlowTest {
                 Result.failure(UnsupportedOperationException("Este teste não cria perfis."))
         }
         val container = AppContainer(
+            campaignRepositoryOverride = FakeCampaignRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
             appointmentRepositoryOverride = FakeAppointmentRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
@@ -63,6 +71,9 @@ class LogoutFlowTest {
                     appointmentDetailViewModelFactory = container::appointmentDetailViewModelFactory,
                     logoutViewModelFactory = logoutFactory,
                     sessionViewModelFactory = container.sessionViewModelFactory,
+                    registrationViewModelFactory = container.registrationViewModelFactory,
+                    campaignsViewModelFactory = container.campaignsViewModelFactory,
+                    campaignDetailViewModelFactory = container::campaignDetailViewModelFactory,
                 )
             }
         }
@@ -186,6 +197,9 @@ class LogoutFlowTest {
     }
 
     private class ControlledAuthRepository : AuthRepository {
+        override suspend fun signUp(displayName: String, email: String, password: String, bloodType: BloodType): Result<RegistrationResult> =
+            Result.failure(UnsupportedOperationException("Cadastro não configurado neste roteiro."))
+
         var user: AuthenticatedUser? = null
         var signOutCalls = 0
         var signOutAnswer: suspend () -> Result<Unit> = { Result.success(Unit) }

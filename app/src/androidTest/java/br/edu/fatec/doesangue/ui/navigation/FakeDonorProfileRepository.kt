@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import br.edu.fatec.doesangue.domain.model.BloodType
+
 import br.edu.fatec.doesangue.domain.model.DonorProfile
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
 
@@ -12,6 +14,13 @@ class FakeDonorProfileRepository(
         ),
     ),
 ) : DonorProfileRepository {
+    override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> {
+        val profile = result.getOrNull() ?: return Result.failure(IllegalStateException("Perfil ausente."))
+        val updated = profile.copy(bloodType = bloodType)
+        result = Result.success(updated)
+        return Result.success(updated)
+    }
+
 
     override suspend fun getCurrentProfile(): Result<DonorProfile?> {
         return result
