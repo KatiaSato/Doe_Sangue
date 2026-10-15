@@ -1,5 +1,9 @@
 # Checkpoint — cancelamento no Supabase — 14/10/2026
 
+**Retomada seguinte:** recorte SQL de campanhas concluído em 15/10, com migração aplicada manualmente, catálogos e testes esperados por captura, seis tabelas/seis FKs do domínio e massa de sete registros preservada. Novo ponto de retomada: `docs/checkpoints/2026-10-15-campanhas-supabase.md`. Não reaplicar migrações nem repetir fixtures de cancelamento/campanhas. Seed de campanhas e integração Android ainda pendentes.
+
+**Retomada de 15/10:** commit/push do cancelamento Android concluídos em `3b9846189c596515cf945fc78fb1c6bcddfdb31d`; main estava limpa e sincronizada. A usuária aprovou a próxima etapa: campanhas sintéticas, cada campanha vinculada a uma única unidade, publicação manual no Supabase e leitura pelo aplicativo. Diagrama e distinção entre existente/proposto em `docs/22-diagrama-sequencia-campanhas.md`. Continuar em tutoria: próximo arquivo é o rascunho de `supabase/migrations/20261015000100_criar_campanha.sql`, escrito pela usuária, ainda sem aplicação. Preservar 23 e não repetir os testes/limpeza históricos de cancelamento. As pendências de commit abaixo são históricas e já foram resolvidas.
+
 ## Atualização final da integração Android
 
 A usuária concluiu contrato/RPC/repository, estado/ViewModel, confirmação e bloqueio de saída durante envio; lista recarrega ao retomar. Vinte testes focados aprovados no Pixel_5/Android 12 (14 detalhe/cancelamento e seis listagem), zero falhas/erros/ignorados, LintDebug com 31 avisos/zero erros. São testes com repositories fictícios; implementação de produção escrita pela usuária.

@@ -1,5 +1,19 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Campanhas — migração preparada em 15/10/2026
+
+**Recorte SQL concluído:** captura de `tests/campanha_conferencia_final.sql` confirma 2 unidades, 3 horários, 1 perfil, 1 agendamento, 0 eventos, 0 campanhas, 0 unidades temporárias e total de sete registros; reserva 23 agendada com dados conhecidos conferidos=true. Migração aplicada pela usuária, com catálogos e três testes comportamentais conferidos. Não reaplicar a migração nem repetir automaticamente os testes. Ainda sem seed persistente de campanhas e sem integração Android; 200 registros continuam pendentes. Ver [checkpoint](../docs/checkpoints/2026-10-15-campanhas-supabase.md). Os parágrafos abaixo conservam os estados anteriores da preparação e execução.
+
+**Testes comportamentais posteriores:** capturas confirmam os resultados de `tests/campanha_leitura_publicada.sql` (filtragem em SELECT direto/JOIN nos dois papéis), `campanha_integridade.sql` (defaults, CHECKs, nove NOT NULL, FK/RESTRICT, identidade/PK) e `campanha_escrita_bloqueada.sql` (escrita e SELECT/nextval da sequência negados aos clientes). Os três usam fixtures em ROLLBACK, preservando registros originais/23; são papéis simulados administrativamente, sem JWT/API. Conferência final preparada em `tests/campanha_conferencia_final.sql`, somente leitura, ainda sem execução relatada. Não reaplicar a migração nem executar seed automaticamente.
+
+**Conferências posteriores:** capturas confirmam RLS/grants, sequência negada aos clientes, PK/FK/quatro CHECKs e nove colunas NOT NULL com identidade/defaults esperados. Policy SELECT para anon/authenticated presente, qual parcialmente visível na captura. Primeiro teste comportamental preparado em `tests/campanha_leitura_publicada.sql`: executar inteiro como postgres; cria somente três campanhas sintéticas temporárias, compara SELECT direto/JOIN sob ambos os papéis e preserva campanhas existentes/reserva 23. Termina em ROLLBACK (sequência pode avançar); ainda sem execução relatada. Não reaplicar a migração.
+
+**Evolução posterior:** aplicação manual relatada pela usuária após orientação de execução integral como postgres. Ainda sem captura ou conferência de catálogo. Não reaplicar `20261015000100_criar_campanha.sql`; próximo passo é a consulta somente leitura `tests/campanha_tabela.sql`. Os itens abaixo conservam o estado anterior à aplicação relatada.
+
+- `migrations/20261015000100_criar_campanha.sql`: nona migração, escrita pela usuária em tutoria, revisada localmente e ainda não aplicada. Usa unidade obrigatória por FK, conteúdo/período/fonte/publicação, RLS e somente leitura de campanhas publicadas de unidades publicadas. Publicação é manual e sintética; a campanha não cria reservas, comprova coleta ou altera estoque.
+- Aplicação será manual como postgres no mesmo desenvolvimento acadêmico, usando o arquivo inteiro com BEGIN/COMMIT; não reaplicar as oito migrações anteriores, não usar db reset/push nem rodar seed automaticamente. Se houver erro, registrar a mensagem e executar ROLLBACK antes de qualquer nova tentativa.
+- Após sucesso relatado, conferir uma consulta de catálogo por etapa: `tests/campanha_tabela.sql`, `campanha_sequencia.sql`, `campanha_constraints.sql`, `campanha_policy.sql` e `campanha_colunas.sql`. Todas somente leitura, ainda sem execução. Testes comportamentais com fixtures em ROLLBACK virão depois; não há integração Android nem seed persistente de campanhas nesta preparação. Ver [diagrama](../docs/22-diagrama-sequencia-campanhas.md) e [validação](../docs/12-validacao.md).
+
 ## Cancelamento integrado ao Android — conclusão do roteiro de 14/10/2026
 
 - `tests/cancelar_agendamento_android_preparar.sql`: executado manualmente pela usuária, com COMMIT; criou oferta temporária 24/reserva 39 para A, sem alterar 23. Identidade administrativa simulada somente na preparação. Não repetir.
