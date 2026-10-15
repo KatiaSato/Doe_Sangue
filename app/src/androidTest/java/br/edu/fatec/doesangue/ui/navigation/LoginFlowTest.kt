@@ -14,6 +14,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.AuthError
+import br.edu.fatec.doesangue.domain.model.AuthFailure
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
 import br.edu.fatec.doesangue.ui.theme.DoeSangueTheme
@@ -91,7 +93,7 @@ class LoginFlowTest {
         fillCredentials()
         submit()
 
-        compose.onNodeWithText("Não foi possível entrar. Confira seus dados e tente novamente.")
+        compose.onNodeWithText("Não foi possível entrar. Tente novamente.")
             .assertExists()
         compose.onNodeWithText("detalhe-interno-sintetico").assertDoesNotExist()
         compose.onNodeWithText("Entrar").assertIsEnabled()
@@ -136,6 +138,55 @@ class LoginFlowTest {
             assertEquals("test-user-1", model.uiState.value.authenticatedUser?.id)
             model.signIn("outro@example.com", "outra-senha-ficticia")
             assertEquals(1, repository.calls)
+        }
+    }
+
+    @Test
+    fun invalidEmailFormatDoesNotCallRepository() {
+        openLogin()
+        compose.onNodeWithText("Senha").performTextInput("senha-ficticia")
+        for (email in listOf("sem-arroba", "doador@", "doador@unidade", "doador teste@example.com")) {
+            compose.onNodeWithText("E-mail").performTextReplacement(email)
+            submit()
+            compose.onNodeWithText("Informe um e-mail válido.").assertExists()
+            compose.runOnIdle {
+                assertEquals(0, repository.calls)
+                assertFalse(model.uiState.value.isLoading)
+                assertNull(model.uiState.value.authenticatedUser)
+            }
+        }
+    }
+
+    @Test
+    fun knownFailuresShowSpecificMessagesAndAllowSuccessfulRetry() {
+        openLogin()
+        fillCredentials()
+        val cases = listOf(
+            AuthError.INVALID_EMAIL to "Este e-mail não é aceito. Confira o endereço ou informe outro e-mail válido.",
+            AuthError.EMAIL_NOT_CONFIRMED to "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada e o spam.",
+            AuthError.INVALID_CREDENTIALS to "E-mail ou senha incorretos.",
+            AuthError.RATE_LIMITED to "Muitas tentativas. Aguarde um pouco e tente novamente.",
+            AuthError.NETWORK to "Não foi possível conectar ao serviço. Verifique sua conexão e tente novamente.",
+        )
+        cases.forEachIndexed { index, (reason, message) ->
+            compose.runOnIdle { repository.answer = { Result.failure(AuthFailure(reason)) } }
+            submit()
+            compose.onNodeWithText(message).assertExists()
+            compose.onNodeWithText("Entrar").assertIsEnabled()
+            compose.runOnIdle {
+                assertEquals(index + 1, repository.calls)
+                assertTrue(repository.receivedExpectedCredentials)
+                assertFalse(model.uiState.value.isLoading)
+                assertNull(model.uiState.value.authenticatedUser)
+                assertTrue(nav.currentDestination?.hasRoute<AppRoute.Login>() == true)
+            }
+        }
+        compose.runOnIdle { repository.answer = { Result.success(AuthenticatedUser("test-user-1")) } }
+        submit()
+        compose.runOnIdle {
+            assertEquals(cases.size + 1, repository.calls)
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.Home>() == true)
+            assertNull(model.uiState.value.errorMessage)
         }
     }
 

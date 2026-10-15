@@ -11,6 +11,8 @@ import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.AuthError
+import br.edu.fatec.doesangue.domain.model.AuthFailure
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
@@ -139,12 +141,46 @@ class RegistrationFlowTest {
         }
         compose.waitForIdle()
         compose.onNodeWithText("falha-interna-sintetica").assertDoesNotExist()
+        compose.onNodeWithText("Não foi possível concluir o cadastro. Tente novamente.").assertExists()
         compose.onNodeWithText("Criar minha conta").assertIsEnabled()
         compose.runOnIdle { auth.answer = { Result.success(RegistrationResult(null)) } }
         tap("Criar minha conta")
         compose.runOnIdle {
             assertEquals(2, auth.calls)
             assertEquals(BloodType.A_POSITIVE, auth.lastType)
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.EmailVerification>() == true)
+        }
+    }
+
+    @Test fun knownFailuresPreserveRegistrationAndAllowRetry() {
+        openApp(); passwordStep("Não sei"); passwords()
+        val cases = listOf(
+            AuthError.INVALID_EMAIL to "Este e-mail não é aceito. Confira o endereço ou informe outro e-mail válido.",
+            AuthError.ACCOUNT_ALREADY_EXISTS to "Já existe uma conta com este e-mail.",
+            AuthError.WEAK_PASSWORD to "Escolha uma senha mais forte e confira os requisitos.",
+            AuthError.RATE_LIMITED to "Muitas tentativas. Aguarde um pouco e tente novamente.",
+            AuthError.EMAIL_NOT_AUTHORIZED to "O envio de confirmação não está permitido para este endereço. Tente outro e-mail.",
+            AuthError.NETWORK to "Não foi possível conectar ao serviço. Verifique sua conexão e tente novamente.",
+        )
+        cases.forEachIndexed { index, (reason, message) ->
+            compose.runOnIdle { auth.answer = { Result.failure(AuthFailure(reason)) } }
+            tap("Criar minha conta")
+            compose.onNodeWithText(message).assertExists()
+            compose.onNodeWithText("Criar minha conta").assertIsEnabled()
+            compose.runOnIdle {
+                assertEquals(index + 1, auth.calls)
+                assertFalse(model.uiState.value.isLoading)
+                assertNull(model.uiState.value.result)
+                assertEquals("  Doador Sintético  ", model.uiState.value.displayName)
+                assertEquals("cadastro@example.com", model.uiState.value.email)
+                assertEquals(BloodType.UNKNOWN, model.uiState.value.bloodType)
+                assertTrue(nav.currentDestination?.hasRoute<AppRoute.Register4>() == true)
+            }
+        }
+        compose.runOnIdle { auth.answer = { Result.success(RegistrationResult(null)) } }
+        tap("Criar minha conta")
+        compose.runOnIdle {
+            assertEquals(cases.size + 1, auth.calls)
             assertTrue(nav.currentDestination?.hasRoute<AppRoute.EmailVerification>() == true)
         }
     }

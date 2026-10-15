@@ -1,6 +1,7 @@
 package br.edu.fatec.doesangue.data.repository
 
 import br.edu.fatec.doesangue.data.supabase.SupabaseAuthDataSource
+import br.edu.fatec.doesangue.data.supabase.mapper.toAuthFailure
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
@@ -22,7 +23,7 @@ class SupabaseAuthRepository(
     } catch (exception: CancellationException) {
         throw exception
     } catch (exception: Exception) {
-        Result.failure(exception)
+        Result.failure(exception.toAuthFailure())
     }
 
     override suspend fun signIn(
@@ -37,7 +38,7 @@ class SupabaseAuthRepository(
             throw exception
         } catch (exception: Exception) {
             // Devolve a falha para quem solicitou o login.
-            Result.failure(exception)
+            Result.failure(exception.toAuthFailure())
         }
     }
 

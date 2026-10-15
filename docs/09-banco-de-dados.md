@@ -1,5 +1,7 @@
 # Banco de dados
 
+**Fechamento do seed de campanhas — 15/10/2026:** conferência final por captura confirma 2 unidades, 3 horários, 2 perfis, 1 reserva, 0 eventos, 4 campanhas e 2 vínculos campanha/tipo: **14 registros do domínio**. Sete tabelas/sete FKs de domínio, além de perfil→Auth. Seed repetido sem duplicar, IDs 28/29/30/31 mantidos; filtros SQL simulados e lista/filtros/detalhe/retorno no app concluídos nesse recorte. C=NAO_SEI/confirmado/dados=true e 23 agendada/dados=true. Não reaplicar migrações nem apagar esses dados. Meta de 200 e documentação acadêmica final continuam pendentes; contagens anteriores abaixo são históricas.
+
 ## Estado atual
 
 **Fechamento após cadastro/edição no app — 15/10/2026:** captura final confirma 2 unidades, 3 horários, 2 perfis, 1 reserva, zero eventos/campanhas/vínculos: **oito registros do domínio**, separados de contas Auth. Esquema permanece sete tabelas/sete FKs de domínio, além da FK para Auth. C criado pelo fluxo do app, confirmado e restaurado a NAO_SEI após teste O+; dados de C/23 conferidos=true e 23 agendada. Cadastro/perfil automático e edição/releitura validados nesse cenário, sem auditoria JWT/tráfego/falhas. Próximo recorte funcional: completar seed guiado para testar campanhas/filtro real no app; massa de 200 e demais pendências acadêmicas continuam abertas. Não reaplicar migrações nem repetir fixtures. Registro anterior de sete registros é histórico, antes de C.

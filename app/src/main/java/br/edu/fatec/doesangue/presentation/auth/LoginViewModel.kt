@@ -34,6 +34,17 @@ class LoginViewModel(
             return
         }
 
+        val emailHasValidFormat =
+            Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
+                .matches(emailForLogin)
+
+        if (!emailHasValidFormat) {
+            _uiState.value = LoginUiState(
+                errorMessage = "Informe um e-mail válido.",
+            )
+            return
+        }
+
         _uiState.value = LoginUiState(isLoading = true)
 
         viewModelScope.launch {
@@ -44,9 +55,11 @@ class LoginViewModel(
                     onSuccess = { user ->
                         LoginUiState(authenticatedUser = user)
                     },
-                    onFailure = {
+                    onFailure = { failure ->
                         LoginUiState(
-                            errorMessage = "Não foi possível entrar. Confira seus dados e tente novamente.",
+                            errorMessage = failure.toAuthErrorMessage(
+                                fallback = "Não foi possível entrar. Tente novamente.",
+                            ),
                         )
                     },
                 )

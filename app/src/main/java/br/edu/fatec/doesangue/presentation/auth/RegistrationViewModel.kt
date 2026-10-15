@@ -65,8 +65,14 @@ class RegistrationViewModel(private val repository: AuthRepository) : ViewModel(
             ensureActive()
             _uiState.value = result.fold(
                 onSuccess = { current.copy(isLoading = false, errorMessage = null, result = it) },
-                onFailure = { current.copy(isLoading = false,
-                    errorMessage = "Não foi possível concluir o cadastro. Tente novamente ou entre na sua conta.") },
+                onFailure = { failure ->
+                    current.copy(
+                        isLoading = false,
+                        errorMessage = failure.toAuthErrorMessage(
+                            fallback = "Não foi possível concluir o cadastro. Tente novamente.",
+                        ),
+                    )
+                },
             )
         }
     }

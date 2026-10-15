@@ -1,0 +1,50 @@
+package br.edu.fatec.doesangue.data.supabase.mapper
+
+import br.edu.fatec.doesangue.domain.model.AuthError
+import br.edu.fatec.doesangue.domain.model.AuthFailure
+import io.github.jan.supabase.auth.exception.AuthErrorCode
+import io.github.jan.supabase.auth.exception.AuthRestException
+import io.github.jan.supabase.exceptions.HttpRequestException
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlin.coroutines.cancellation.CancellationException
+
+internal fun AuthRestException.toAuthError(): AuthError =
+    when (errorCode) {
+        AuthErrorCode.EmailAddressInvalid ->
+            AuthError.INVALID_EMAIL
+
+        AuthErrorCode.EmailNotConfirmed ->
+            AuthError.EMAIL_NOT_CONFIRMED
+
+        AuthErrorCode.InvalidCredentials ->
+            AuthError.INVALID_CREDENTIALS
+
+        AuthErrorCode.EmailExists,
+        AuthErrorCode.UserAlreadyExists ->
+            AuthError.ACCOUNT_ALREADY_EXISTS
+
+        AuthErrorCode.WeakPassword ->
+            AuthError.WEAK_PASSWORD
+
+        AuthErrorCode.OverRequestRateLimit,
+        AuthErrorCode.OverEmailSendRateLimit ->
+            AuthError.RATE_LIMITED
+
+        AuthErrorCode.EmailAddressNotAuthorized ->
+            AuthError.EMAIL_NOT_AUTHORIZED
+
+        else -> AuthError.UNKNOWN
+    }
+
+internal fun Throwable.toAuthFailure(): AuthFailure =
+    when (this) {
+        is CancellationException -> throw this
+        is AuthFailure -> this
+        is AuthRestException -> AuthFailure(toAuthError())
+
+        is HttpRequestException,
+        is HttpRequestTimeoutException ->
+            AuthFailure(AuthError.NETWORK)
+
+        else -> AuthFailure(AuthError.UNKNOWN)
+    }

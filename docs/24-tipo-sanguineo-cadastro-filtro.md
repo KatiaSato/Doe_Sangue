@@ -47,6 +47,8 @@ sequenceDiagram
 
 ## Regra adicional aprovada — mensagens de erro
 
+**Atualização posterior:** implementação guiada de login/cadastro concluída e validada em 15/10: classificação no domínio/dados, mensagens na apresentação e formato inválido no login. Doze testes locais/20 instrumentados aprovados; capturas manuais confirmam credenciais inválidas e formato inválido. Ver [etapa 25](25-diagrama-sequencia-erros-auth.md) e docs/12 para arquivos e limites. O registro inicial abaixo é histórico.
+
 Em 15/10/2026, a usuária pediu registrar que validações e tratamento de falhas devem distinguir erros conhecidos e orientar sua resolução. Prioridade: cadastro/login. **Requisito aprovado, implementação pendente.** O cadastro/login ainda usa fallback genérico para falhas do repository; não considerar esta regra atendida pelos testes anteriores.
 
 | Situação identificada | Mensagem proposta para a pessoa |

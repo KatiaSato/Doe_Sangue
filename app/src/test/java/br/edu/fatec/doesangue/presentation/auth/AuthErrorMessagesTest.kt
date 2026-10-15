@@ -1,0 +1,41 @@
+package br.edu.fatec.doesangue.presentation.auth
+
+import br.edu.fatec.doesangue.domain.model.AuthError
+import br.edu.fatec.doesangue.domain.model.AuthFailure
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class AuthErrorMessagesTest {
+    @Test fun invalidCredentialsDoNotDistinguishMissingUserFromWrongPassword() {
+        assertEquals("E-mail ou senha incorretos.",
+            AuthFailure(AuthError.INVALID_CREDENTIALS).toAuthErrorMessage("fallback"))
+    }
+
+    @Test fun confirmationIsDifferentFromInvalidEmailAndDoesNotPromiseResend() {
+        val confirmation = AuthFailure(AuthError.EMAIL_NOT_CONFIRMED).toAuthErrorMessage("fallback")
+        val invalidEmail = AuthFailure(AuthError.INVALID_EMAIL).toAuthErrorMessage("fallback")
+        assertNotEquals(invalidEmail, confirmation)
+        assertTrue(confirmation.contains("Confirme seu e-mail"))
+        assertFalse(confirmation.contains("reenviar", ignoreCase = true))
+    }
+
+    @Test fun knownCategoriesHaveDistinctSpecificMessages() {
+        val messages = AuthError.entries.filter { it != AuthError.UNKNOWN }.map {
+            AuthFailure(it).toAuthErrorMessage("fallback-sintetico")
+        }
+        assertEquals(messages.size, messages.toSet().size)
+        assertTrue(messages.all { it.isNotBlank() && it != "fallback-sintetico" })
+    }
+
+    @Test fun unknownAndUnclassifiedFailuresUseOperationFallbackWithoutRawDetails() {
+        val loginFallback = "Não foi possível entrar. Tente novamente."
+        val registrationFallback = "Não foi possível concluir o cadastro. Tente novamente."
+        val rawFailure = IllegalStateException("detalhe-interno-sintetico email_exists")
+        assertEquals(loginFallback, rawFailure.toAuthErrorMessage(loginFallback))
+        assertEquals(registrationFallback,
+            AuthFailure(AuthError.UNKNOWN).toAuthErrorMessage(registrationFallback))
+    }
+}
