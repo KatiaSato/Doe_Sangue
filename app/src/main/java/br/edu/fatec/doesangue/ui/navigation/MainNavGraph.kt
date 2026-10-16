@@ -29,6 +29,9 @@ import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignsReadScreen
 import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignDetailReadScreen
 import br.edu.fatec.doesangue.presentation.campaigns.CampaignsViewModel
 import br.edu.fatec.doesangue.presentation.campaigns.CampaignDetailViewModel
+import br.edu.fatec.doesangue.presentation.centers.CenterDetailViewModel
+import br.edu.fatec.doesangue.presentation.centers.CentersViewModel
+import br.edu.fatec.doesangue.ui.screens.centers.CenterDetailReadScreen
 import br.edu.fatec.doesangue.ui.screens.centers.CenterDetailScreen
 import br.edu.fatec.doesangue.ui.screens.centers.CentersScreen
 import br.edu.fatec.doesangue.ui.screens.donations.AppointmentDetailByIdScreen
@@ -59,6 +62,8 @@ fun NavGraphBuilder.mainNavGraph(
     homeViewModelFactory: ViewModelProvider.Factory,
     bloodStockViewModelFactory: ViewModelProvider.Factory,
     donationHistoryViewModelFactory: ViewModelProvider.Factory,
+    centersViewModelFactory: ViewModelProvider.Factory,
+    centerDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
     onSignedOut: () -> Unit,
     onNavigateMain: (AppRoute) -> Unit,
     onFinishScheduling: () -> Unit,
@@ -299,12 +304,40 @@ fun NavGraphBuilder.mainNavGraph(
 
         // Unidades
         composable<AppRoute.Centers> {
+            val model: CentersViewModel = viewModel(
+                factory = centersViewModelFactory,
+            )
+            val state by model.uiState.collectAsStateWithLifecycle()
             CentersScreen(
+                state = state,
+                onSearchQueryChange = model::updateSearchQuery,
+                onRetry = model::loadCenters,
                 onBack = {
                     navController.navigateBackOrHome()
                 },
-                onDetail = {
-                    navController.navigate(AppRoute.CenterDetail)
+                onDetail = { id ->
+                    navController.navigate(AppRoute.CenterDetailById(id))
+                },
+                onNavigate = onNavigateMain,
+            )
+        }
+
+        composable<AppRoute.CenterDetailById> { entry ->
+            val route = entry.toRoute<AppRoute.CenterDetailById>()
+
+            val model: CenterDetailViewModel = viewModel(
+                factory = centerDetailViewModelFactory(route.centerId),
+            )
+            val state by model.uiState.collectAsStateWithLifecycle()
+
+            CenterDetailReadScreen(
+                state = state,
+                onRetry = model::loadCenter,
+                onBack = {
+                    navController.navigateBackOrHome()
+                },
+                onSchedule = {
+                    onNavigateMain(AppRoute.ScheduleCenter)
                 },
                 onNavigate = onNavigateMain,
             )

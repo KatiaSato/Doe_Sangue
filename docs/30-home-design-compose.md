@@ -1,5 +1,7 @@
 # Home aprovada no Figma → Compose — 15/10/2026
 
+Atualização de 16/10: a usuária pediu estender o visual da barra às demais telas. A implementação agora é compartilhada em ui/components/DsBottomBar.kt; Home deixou de ter override próprio. Preservados os assets/dimensões e adaptação de fonte, com seleção dinâmica da aba. Validação e limites em docs/31-barra-inferior-compartilhada.md. O registro abaixo conserva o escopo inicial exclusivo da Home.
+
 A usuária aprovou a proposta e pediu implementação direta. Referência: [Home no Figma](https://www.figma.com/design/OyI66BkEa9qPpGZ1mNJIWj?node-id=33-56), contexto de desenho e screenshot obtidos antes da edição. Escopo: apresentação da Home e sua barra inferior; preservar fontes, dados, rotas, estados e regras existentes. Migração/seed estavam pendentes no momento do redesenho; aplicação e testes SQL foram concluídos depois pela usuária, conforme docs/28 e docs/12. O redesenho não fez escrita remota.
 
 ## Fluxo existente, preservado

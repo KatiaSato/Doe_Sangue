@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -287,47 +286,6 @@ fun SectionHeader(title: String, action: String? = null, onAction: () -> Unit = 
 @Composable
 fun FigmaImage(painter: Painter, description: String?, modifier: Modifier) {
     Image(painter = painter, contentDescription = description, modifier = modifier)
-}
-
-@Composable
-fun DsBottomBar(current: AppRoute, onNavigate: (AppRoute) -> Unit) {
-    val items = listOf(
-        Triple("⌂", "Início", AppRoute.Home),
-        Triple("▣", "Agendar", AppRoute.ScheduleCenter),
-        Triple("♡", "Doações", AppRoute.DonationsHistory),
-        Triple("⌖", "Unidades", AppRoute.Centers),
-        Triple("○", "Perfil", AppRoute.Profile),
-    )
-    Surface(color = Color.White, shadowElevation = 5.dp) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .height(78.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            items.forEach { (icon, label, route) ->
-                val selected =
-                    current == route || (route == AppRoute.DonationsHistory && current == AppRoute.DonationsAppointments)
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxSize()
-                        .clickable { onNavigate(route) },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Text(icon, fontSize = 20.sp, color = if (selected) BloodRed else InkSecondary)
-                    Text(
-                        label,
-                        fontSize = 10.sp,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (selected) BloodRed else InkSecondary
-                    )
-                }
-            }
-        }
-    }
 }
 
 @Composable

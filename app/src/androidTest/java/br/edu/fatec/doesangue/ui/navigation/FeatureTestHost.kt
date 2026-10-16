@@ -27,5 +27,7 @@ internal fun FeatureTestHost(
         homeViewModelFactory = homeFactory,
         bloodStockViewModelFactory = container.bloodStockViewModelFactory,
         donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
+        centersViewModelFactory = container.centersViewModelFactory,
+        centerDetailViewModelFactory = container::centerDetailViewModelFactory,
     )
 }

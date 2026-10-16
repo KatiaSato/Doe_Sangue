@@ -1,5 +1,11 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import android.graphics.Bitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.onRoot
+import androidx.test.platform.app.InstrumentationRegistry
+import java.io.File
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.StateRestorationTester
@@ -78,6 +84,8 @@ class AppNavigationTest {
                     homeViewModelFactory = isolatedHomeFactory(),
                     bloodStockViewModelFactory = appContainer.bloodStockViewModelFactory,
                     donationHistoryViewModelFactory = appContainer.donationHistoryViewModelFactory,
+                    centersViewModelFactory = appContainer.centersViewModelFactory,
+                    centerDetailViewModelFactory = appContainer::centerDetailViewModelFactory,
                 )
             } // Fecha DoeSangueTheme
         } // Fecha restoration.setContent — faltou esta chave
@@ -141,16 +149,23 @@ class AppNavigationTest {
     @Test
     fun rootArrowsReturnHomeWithoutAccumulatingTabs() {
         enterMain()
-        listOf("Unidades", "Perfil", "Doações", "Agendar").forEach { label ->
+        assertSelectedTab("Início")
+        screenshot("inicio")
+        listOf("Unidades", "Perfil", "Doações", "Agendar").forEachIndexed { index, label ->
             tapTab(label)
+            assertSelectedTab(label)
+            screenshot("aba_$index")
             assertNoPreviousScreen()
             tap("‹")
             assertRoute<AppRoute.Home>()
+            assertSelectedTab("Início")
             assertNoPreviousScreen()
         }
         tapTab("Doações")
         tap("Agendamentos")
         assertRoute<AppRoute.DonationsAppointments>()
+        assertSelectedTab("Doações")
+        screenshot("agendamentos")
         tap("‹")
         assertRoute<AppRoute.Home>()
         assertNoPreviousScreen()
@@ -304,6 +319,22 @@ class AppNavigationTest {
         // A barra inferior aparece depois do cabeçalho com o mesmo texto.
         compose.onAllNodesWithText(text).onLast().performClick()
         compose.waitForIdle()
+    }
+
+    private fun assertSelectedTab(selected: String) {
+        listOf("Início", "Agendar", "Doações", "Unidades", "Perfil").forEach { label ->
+            val tab = compose.onAllNodesWithText(label).onLast()
+            if (label == selected) tab.assertIsSelected() else tab.assertIsNotSelected()
+        }
+    }
+
+    private fun screenshot(name: String) {
+        compose.mainClock.advanceTimeBy(500)
+        compose.waitForIdle()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        File(context.getExternalFilesDir(null), "bottom_bar_$name.png").outputStream().use {
+            compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it)
+        }
     }
 
     private inline fun <reified T : Any> assertRoute() {

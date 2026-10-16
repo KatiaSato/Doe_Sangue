@@ -84,6 +84,8 @@ class AppointmentListFlowTest {
                     homeViewModelFactory = isolatedHomeFactory(),
                     bloodStockViewModelFactory = container.bloodStockViewModelFactory,
                     donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
+                    centersViewModelFactory = container.centersViewModelFactory,
+                    centerDetailViewModelFactory = container::centerDetailViewModelFactory,
                 )
             }
         }

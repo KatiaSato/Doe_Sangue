@@ -43,6 +43,8 @@ import br.edu.fatec.doesangue.data.repository.SupabaseBloodStockRepository
 import br.edu.fatec.doesangue.data.repository.SupabaseDonationHistoryRepository
 import br.edu.fatec.doesangue.data.supabase.SupabaseBloodStockDataSource
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonationHistoryDataSource
+import br.edu.fatec.doesangue.presentation.centers.CenterDetailViewModel
+import br.edu.fatec.doesangue.presentation.centers.CentersViewModel
 import br.edu.fatec.doesangue.presentation.home.HomeViewModel
 import br.edu.fatec.doesangue.presentation.stock.BloodStockViewModel
 import br.edu.fatec.doesangue.presentation.donations.DonationHistoryViewModel
@@ -245,4 +247,20 @@ class AppContainer(
             )
         }
     }
+
+    val centersViewModelFactory = viewModelFactory {
+        initializer {
+            CentersViewModel(donationCenterRepository)
+        }
+    }
+
+    fun centerDetailViewModelFactory(centerId: String) =
+        viewModelFactory {
+            initializer {
+                CenterDetailViewModel(
+                    repository = donationCenterRepository,
+                    centerId = centerId,
+                )
+            }
+        }
 }

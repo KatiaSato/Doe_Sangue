@@ -108,6 +108,11 @@ sealed interface AppRoute {
     @Serializable
     data object CenterDetail : AppRoute
 
+    @Serializable
+    data class CenterDetailById(
+        val centerId: String,
+    ) : AppRoute
+
     // Perfil e configurações
     @Serializable
     data object Profile : AppRoute

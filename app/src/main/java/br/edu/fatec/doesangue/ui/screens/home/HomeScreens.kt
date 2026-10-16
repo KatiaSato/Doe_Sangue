@@ -21,7 +21,6 @@ fun HomeScreen(state: HomeUiState, onRetry: () -> Unit, onNavigate: (AppRoute) -
     DsScreen(
         bottomRoute = AppRoute.Home,
         onNavigate = onNavigate,
-        bottomBarContent = { HomeBottomBar(onNavigate) },
     ) {
         Column(Modifier.padding(top = 12.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             val profile = state.profile

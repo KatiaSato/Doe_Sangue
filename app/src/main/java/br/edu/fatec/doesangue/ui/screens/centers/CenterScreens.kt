@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import br.edu.fatec.doesangue.presentation.centers.CenterDetailUiState
+import br.edu.fatec.doesangue.presentation.centers.CentersUiState
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
@@ -26,33 +29,74 @@ import br.edu.fatec.doesangue.ui.theme.Ink
 import br.edu.fatec.doesangue.ui.theme.InkSecondary
 
 @Composable
-fun CentersScreen(onBack: () -> Unit, onDetail: () -> Unit, onNavigate: (AppRoute) -> Unit) {
-    DsScreen(title = "Unidades", onBack = onBack, bottomRoute = AppRoute.Centers, onNavigate = onNavigate) {
-        VisualField("", "⌕  Buscar unidade")
+fun CentersScreen(
+    state: CentersUiState,
+    onSearchQueryChange: (String) -> Unit,
+    onRetry: () -> Unit,
+    onBack: () -> Unit,
+    onDetail: (String) -> Unit,
+    onNavigate: (AppRoute) -> Unit,
+) {    DsScreen(title = "Unidades", onBack = onBack, bottomRoute = AppRoute.Centers, onNavigate = onNavigate) {
+    OutlinedTextField(
+        value = state.searchQuery,
+        onValueChange = onSearchQueryChange,
+        label = { Text("Buscar por nome ou cidade") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+    )
+    Spacer(Modifier.height(16.dp))
+    if (state.isLoading) {
+        Text("Carregando unidades…")
+        return@DsScreen
+    }
+
+    val errorMessage = state.errorMessage
+    if (errorMessage != null) {
+        Text(errorMessage, color = MaterialTheme.colorScheme.error)
         Spacer(Modifier.height(12.dp))
-        SecondaryButton("Ver no mapa", {})
-        Spacer(Modifier.height(20.dp))
-        listOf(
-            listOf("Hemocentro Campinas", "Rua Carlos Chagas, 480", "(19) XXXX-XXXX", "4,8 km"),
-            listOf("Hemocentro Paulínia", "Av. José Paulino, 123", "(19) XXXX-XXXX", "12,3 km"),
-            listOf("Hemocentro Americana", "Rua Vital Brasil, 200", "(19) XXXX-XXXX", "15,7 km"),
-        ).forEach { center ->
-            InfoCard {
-                Row(Modifier.fillMaxWidth().clickable(onClick = onDetail), verticalAlignment = Alignment.CenterVertically) {
-                    Text("○", color = BloodRed, style = MaterialTheme.typography.headlineMedium)
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(center[0], style = MaterialTheme.typography.titleMedium, color = Ink)
-                        Text(center[1], style = MaterialTheme.typography.bodySmall, color = InkSecondary)
-                        Text(center[2], style = MaterialTheme.typography.bodySmall, color = InkSecondary)
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(center[3], style = MaterialTheme.typography.bodySmall, color = BloodRed)
-                        Text("›", style = MaterialTheme.typography.headlineMedium, color = BloodRed)
-                    }
+        PrimaryButton("Tentar novamente", onRetry)
+        return@DsScreen
+    }
+
+    if (state.centers.isEmpty()) {
+        Text(
+            if (state.searchQuery.isBlank()) {
+                "Nenhuma unidade disponível no momento."
+            } else {
+                "Nenhuma unidade encontrada para esta busca."
+            },
+        )
+        return@DsScreen
+    }
+    state.centers.forEach { center ->
+        InfoCard {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onDetail(center.id) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        center.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Ink,
+                    )
+                    Text(center.city, color = InkSecondary)
+                    Text(
+                        center.address,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = InkSecondary,
+                    )
                 }
+                Text(
+                    "›",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = BloodRed,
+                )
             }
-            Spacer(Modifier.height(12.dp))
+        }
+        Spacer(Modifier.height(12.dp))
         }
     }
 }
@@ -91,5 +135,71 @@ private fun ScheduleRow(label: String, value: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
         Text(value, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+@Composable
+fun CenterDetailReadScreen(
+    state: CenterDetailUiState,
+    onRetry: () -> Unit,
+    onBack: () -> Unit,
+    onSchedule: () -> Unit,
+    onNavigate: (AppRoute) -> Unit,
+) {
+    DsScreen(
+        title = "Detalhe da unidade",
+        onBack = onBack,
+        bottomRoute = AppRoute.Centers,
+        onNavigate = onNavigate,
+    ) {
+        when (state) {
+            CenterDetailUiState.Loading ->
+                Text("Carregando unidade…")
+
+            CenterDetailUiState.NotFound ->
+                Text("Unidade não encontrada ou indisponível.")
+
+            is CenterDetailUiState.Error -> {
+                Text(
+                    state.message,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(12.dp))
+                PrimaryButton("Tentar novamente", onRetry)
+            }
+
+            is CenterDetailUiState.Loaded -> {
+                val center = state.center
+
+                InfoCard {
+                    Text(
+                        center.name,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Text(center.city, color = InkSecondary)
+                    Text(center.address, color = InkSecondary)
+
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Telefone",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(center.phone.ifBlank { "Não informado." })
+                }
+
+                Spacer(Modifier.height(20.dp))
+                SectionHeader("Horários de atendimento")
+                InfoCard {
+                    Text(
+                        center.openingHours.ifBlank {
+                            "Horários não informados."
+                        },
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
+                PrimaryButton("Agendar doação", onSchedule)
+            }
+        }
     }
 }

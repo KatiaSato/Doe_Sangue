@@ -1,5 +1,59 @@
 # Validação
 
+## F03 — busca local de unidades — 16/10/2026
+
+Conferência manual concluída posteriormente: usuária confirmou como esperado o roteiro de buscar parte do nome/cidade, digitar termo sem resultado e limpar para recuperar a lista. Evidência por relato, sem novas capturas/inspeção HTTP/JWT. F02/F03 concluídos neste recorte; testes não repetidos por esta confirmação.
+
+Usuária implementou allCenters, normalização de texto com NFD/remoção de marcas/Locale.ROOT/trim, filtro por nome OU cidade, atualização do estado e callback/campo na tela. Campo permanece disponível antes dos estados de carregamento/erro/vazio. Consulta concluída aplica o texto atual; busca vazia recupera a lista original recebida. Mensagem de busca sem resultado difere de catálogo vazio.
+
+Agente alterou somente CentersReadFlowTest e documentação nesta validação. `assembleDebug assembleDebugAndroidTest --offline --console=plain`: aprovado em 8 s; `lintDebug --offline --console=plain`: aprovado em 32 s, XML com **zero erros/20 avisos**. Instrumentação direta no Moto g04/Android 14: **OK (13 tests)** em **62,253 s**, quatro casos novos de busca e nove existentes de lista/detalhe. Nova cobertura: nome/cidade, caixa/acentos/espaços externos, termo sem resultado/campo disponível/limpeza, nenhuma leitura adicional por digitação; filtro/texto preservados ao voltar do detalhe sem recarregar lista; texto digitado durante consulta pendente; erro/repetição com último texto e catálogo atualizado. Os dez testes de navegação aprovados no recorte anterior não foram repetidos, pois não houve nova alteração de rotas.
+
+Todas as fontes dos testes fictícias, sem rede, SQL ou alteração remota. APKs instalados com -r, preservando dados; tempo de tela temporário restaurado ao término. `git diff --check` sem erros. Conferência manual da busca no catálogo real confirmada posteriormente conforme relato acima. Não comprova pesquisa SQL, paginação, catálogo além do limite da API, restauração após morte do processo ou política diferente de troca de abas. Sem commit/push novo.
+
+## F02 — lista e detalhe integrados — 16/10/2026
+
+Conferência manual posterior: usuária respondeu feito ao roteiro de abrir Demo A, conferir detalhe e retornar à lista. Evidência por relato, sem nova captura ou inspeção HTTP/JWT. Não repetir testes/SQL por essa confirmação; F03 busca começa em tutoria.
+
+Usuária concluiu rota com ID, estado/ViewModel/factory/passagem pelos grafos, tela com quatro estados e clique do cartão. Detalhe consulta novamente o catálogo público pelo repository existente e localiza centerId; telefone/horários vazios têm indicação de ausência. Botão Agendar doação abre a escolha geral existente. Protótipo antigo preservado. Agente alterou somente testes/documentação nesta validação: dez chamadores de AppNavHost recebem centerDetailViewModelFactory e CentersReadFlowTest ganhou cinco cenários de detalhe.
+
+`assembleDebug assembleDebugAndroidTest --offline --console=plain`: aprovado em 13 s. `lintDebug --offline --console=plain`: aprovado em 33 s; XML com **zero erros/20 avisos**. Instrumentação direta no Moto g04/Android 14: **OK (19 tests)** em **93,537 s**, nove CentersReadFlowTest e dez AppNavigationTest. Os cinco novos cenários verificam seleção por ID com resposta atualizada/ordem alterada, retorno sem recarregar a lista, escolha de outro ID e agendamento geral; desaparecimento do ID e catálogo vazio; campos opcionais vazios sem distância/serviços do protótipo; erro/nova tentativa/carregamento/guarda contra consultas simultâneas; resposta tardia ignorada após remover o detalhe.
+
+Todos os repositories fictícios, sem rede, SQL ou escrita remota; testes não comprovam RLS real ou mudança de publicação no Supabase. APKs instalados com -r preservando dados, tela mantida ativa temporariamente e tempo anterior restaurado ao término. Conferência manual do detalhe real de Demo A e retorno ainda pendente. Sem commit/push novo e sem alterações de produção pelo agente. F03 (busca) permanece pendente.
+
+## F02 — estado e consulta do detalhe por ID — 16/10/2026
+
+CenterDetailById/CenterDetailUiState/CenterDetailViewModel escritos pela usuária e conferidos. ViewModel consulta o repository existente e procura centerId, com Loading/Loaded/NotFound/Error, guarda contra simultaneidade e ensureActive antes de publicar. `compileDebugKotlin --offline --console=plain` aprovado em 11 s. Sem execução de testes comportamentais ou consulta remota nesta verificação; factory, destino e clique do detalhe novo ainda não ligados. Compilação não comprova os cenários de seleção, ausência, falha ou cancelamento.
+
+## F02/F03 — integração da lista de unidades — 16/10/2026
+
+Conferência manual posterior: usuária confirmou a aba Unidades conforme roteiro, mostrando somente Unidade Demo A com cidade/endereço e ausência da Demo B. Confirmação por relato, sem nova captura ou inspeção HTTP/JWT; não constitui auditoria completa de RLS pela API. Sem repetição automática de SQL/testes a partir dessa confirmação. Detalhe por ID e busca seguem pendentes.
+
+Usuária ligou factory/estado à navegação e à CentersScreen. Lista usa nomes/cidades/endereços recebidos, com estados de carregamento, erro/nova tentativa e vazio. Detalhe por ID e busca continuam pendentes. Agente não editou produção nesta validação: acrescentou centersViewModelFactory nos dez chamadores de AppNavHost dos testes e criou CentersReadFlowTest.
+
+`assembleDebug assembleDebugAndroidTest --offline --console=plain` aprovado; `lintDebug --offline --console=plain` aprovado, XML com zero erros/20 avisos. Instrumentação direta no Moto g04/Android 14: `CentersReadFlowTest` (quatro) + `AppNavigationTest` (dez), **OK (14 tests)** em 72,97 s. Os quatro cenários novos cobrem lista retornada sem distâncias do protótipo, vazio, erro sem expor exceção/nova tentativa/carregamento/guarda contra consultas simultâneas, e resposta tardia ignorada após saída da raiz e limpeza do ViewModel. Todos os repositories são fictícios; sem rede, SQL ou gravação remota. Compilação de todos os testes não equivale à execução das demais suítes.
+
+Primeira tentativa encontrou ausência de hierarquia Compose com celular em Dozing/tela de bloqueio ativa; interrompida pelo agente. Repetição após acender e dispensar a tela de bloqueio passou; tempo de tela aumentado temporariamente durante os testes e restaurado ao final. APKs instalados com `-r`, preservando dados. Conferência manual da lista real (Demo A pública e Demo B oculta) ainda pendente; resultados com fakes não comprovam RLS pela API. Nenhuma nova migração/seed/commit/push.
+
+## F02/F03 — estado e carregamento inicial — 16/10/2026
+
+Usuária implementou CentersUiState/CentersViewModel conforme diagrama de docs/32. Código conferido: consulta no init, guarda contra simultaneidade, Result.fold e ensureActive antes de publicar. `compileDebugKotlin --offline --console=plain` aprovado. Nenhuma consulta remota ou teste comportamental executado nesta verificação; o ViewModel ainda não está ligado à aba. Próximo passo: factory no AppContainer; estados/fluxos serão validados na integração, sem confundir compilação com comprovação do comportamento.
+
+## Barra inferior compartilhada — 16/10/2026
+
+Usuária pediu aplicar diretamente a barra aprovada da Home a todas as telas que já têm navegação inferior. Causa: HomeBottomBar era override exclusivo da Home; as demais telas usavam DsBottomBar antigo. Implementação movida para ui/components/DsBottomBar.kt, mantendo a assinatura existente e callbacks/rotas, com cores/fundo/ícones conforme a aba atual. Home passa a usar o mesmo padrão; Doações também selecionada em Agendamentos. Diagrama, escopo e arquivos em docs/31-barra-inferior-compartilhada.md.
+
+Baseline no Moto g04/Android 14: dez testes de navegação aprovados. Após a mudança: APKs/compilação/Lint aprovados, XML com zero erros/20 avisos. Instrumentação direta: dez navegação, cinco logout e um percurso de Home (com fonte 1,5) aprovados, `OK (16 tests)` em 84,623 s. Dados/repositories fictícios, sem consultas/gravações remotas. Capturas das cinco abas/Agendamentos recuperadas, revisão visual sem sobreposição; rótulos e destaque corretos. Arquivos em captures/2026-10-16-barra-inferior (ignorados). APK instalado preservando dados. Nenhuma operação no banco ou nova regra de negócio; diff sem erro. Sem novo commit/push solicitado.
+
+## Fechamento manual de estoque e histórico — 16/10/2026
+
+Após confirmar os históricos C=1/A=2, a usuária confirmou como A os oito tipos sanguíneos somente da Unidade Demo A, com nível/fonte/atualização e ausência de Demo B no estoque. Percurso manual deste recorte concluído por relatos, sem novas capturas ou inspeção de HTTP/JWT; não é auditoria completa da API. Código/SQL não alterados e testes automatizados não repetidos por esta conferência. Somente documentação de evidências/pendências atualizada; nova etapa ainda à escolha da usuária.
+
+## Retomada e histórico real de C — 16/10/2026
+
+Na sequência, usuária confirmou o histórico como A: dois registros fictícios/total 2, incluindo o registro próprio da Unidade Demo B. Percurso de sessões reais C → A concluído neste recorte por relatos, sem novas capturas nem inspeção de tráfego/JWT; não é auditoria completa de acesso privado à API. Próximo passo: estoque de A após correção, esperado oito tipos somente de Demo A.
+
+Usuária confirmou o resultado orientado em Doações → Histórico com a conta C: um registro fictício, total 1 e ausência dos registros de A. Confirmação por relato, sem nova captura nem inspeção de tráfego/JWT. Commit anterior da etapa conferido em da0d577, working tree limpa na abertura e main um commit à frente de origin/main; nenhum push executado. Próximo passo: histórico como A (dois registros/total 2); estoque de A após correção também ainda pendente.
+
 ## Encerramento e commit do conjunto — 15/10/2026
 
 Após a versão corrigida ser instalada e aberta no emulador, a usuária respondeu “perfecto” à orientação de conferir Estoque/Ver todos como C e autorizou fazer o commit e encerrar. Funcionamento do estoque confirmado por relato; não houve nova captura nessa resposta. SQL deste recorte concluído, reserva 23 preservada. Histórico A/C pela UI e estoque de A após correção não foram conferidos manualmente no encerramento; ficam explicitamente para a retomada. Não exigir novo teste nem concluir esses percursos por inferência. Checkpoint em `docs/checkpoints/2026-10-15-home-estoque-historico.md`; sem novo push solicitado.

@@ -42,6 +42,8 @@ sequenceDiagram
 
 ## Estado e validação
 
+**Fechamento manual em 16/10:** usuária confirmou histórico C=1, depois A=2 (incluindo o próprio de Demo B), e estoque como A com oito tipos somente de Demo A e metadados. Relatos sem novas capturas/inspeção HTTP/JWT. Recorte manual concluído; pendências de conferência mencionadas nos registros de 15/10 abaixo foram resolvidas neste escopo. Somente documentação atualizada, sem repetir testes/SQL.
+
 Implementação concluída. Usuária aplicou manualmente a migração e o seed, repetido sem divergência; não reaplicar a migração. Capturas confirmam integridade, escrita/sequência bloqueadas, leitura administrativa isolada A=2/C=1, visitante/identidade ausente bloqueados, RLS nas duas tabelas e funções STABLE/search_path vazio (estoque invoker; histórico definer). Conferência independente: estoque=16, histórico=3, A=2, C=1, reserva 23 agendada/dados=true. SQL deste recorte concluído; meta acadêmica de 200 e contagem global atual continuam pendentes.
 
 Validação local anterior: 27 testes JVM e 32 instrumentados aprovados, SQL PostgreSQL/PGlite isolado aprovado. Redesenho posterior da Home aprovado no Figma, com 32 instrumentados e repetição dos 12 de Home aprovados; fontes e acessos revisados, detalhes em docs/30. APKs/Lint aprovados (zero erros/32 avisos).

@@ -27,7 +27,7 @@ Usuária delegou F01/F11/F12/F18 e FAQ, aprovou o redesenho da Home no Figma e c
 ## Retomada
 
 1. **Tutoria em pequenos passos**, sem implementar automaticamente o restante do backlog.
-2. Conferir visualmente o histórico com sessões reais C (1) e A (2), além do estoque de A após correção (oito tipos de Demo A). Esses percursos não foram concluídos manualmente no encerramento. SQL isolado e testes em memória não os substituem.
+2. Atualização de 16/10: usuária confirmou pelo aplicativo os históricos com sessões reais C (um registro/total 1, sem registros de A) e depois A (dois registros/total 2, incluindo o próprio da Demo B), além do estoque de A após correção (oito tipos somente de Demo A, com nível/fonte/atualização). Recorte manual concluído por relatos, sem novas capturas ou inspeção de tráfego/JWT; não é auditoria completa da API. Código/SQL não alterados por essas confirmações.
 3. Depois escolher a próxima funcionalidade em docs/26; F02/F03 (unidades/busca) aproveitam o repository existente. Mostrar diagrama antes de nova etapa.
 4. Manter pendentes massa de 200, DER/dicionário/matriz finais, conciliação de migrações, apresentação/conta do professor e demais IDs escolhidos. Não inserir dados sem propósito para atingir contagem.
 

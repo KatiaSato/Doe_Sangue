@@ -79,6 +79,8 @@ class DonationRestrictionsTest {
                     homeViewModelFactory = isolatedHomeFactory(),
                     bloodStockViewModelFactory = appContainer.bloodStockViewModelFactory,
                     donationHistoryViewModelFactory = appContainer.donationHistoryViewModelFactory,
+                    centersViewModelFactory = appContainer.centersViewModelFactory,
+                    centerDetailViewModelFactory = appContainer::centerDetailViewModelFactory,
                     )
                 }
             }

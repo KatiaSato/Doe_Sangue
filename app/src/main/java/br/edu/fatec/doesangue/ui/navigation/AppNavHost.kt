@@ -27,6 +27,8 @@ fun AppNavHost(
     homeViewModelFactory: ViewModelProvider.Factory,
     bloodStockViewModelFactory: ViewModelProvider.Factory,
     donationHistoryViewModelFactory: ViewModelProvider.Factory,
+    centersViewModelFactory: ViewModelProvider.Factory,
+    centerDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
 ) {
     // Define como abrir destinos solicitados pelas telas
     // e pela barra inferior.
@@ -126,6 +128,8 @@ fun AppNavHost(
             homeViewModelFactory = homeViewModelFactory,
             bloodStockViewModelFactory = bloodStockViewModelFactory,
             donationHistoryViewModelFactory = donationHistoryViewModelFactory,
+            centersViewModelFactory = centersViewModelFactory,
+            centerDetailViewModelFactory = centerDetailViewModelFactory,
             onSignedOut = {
                 navController.navigate(AppGraph.Auth) {
                     // Remove as telas da conta que acabou de sair.
