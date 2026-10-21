@@ -1,6 +1,8 @@
 package br.edu.fatec.doesangue.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -9,13 +11,24 @@ import br.edu.fatec.doesangue.ui.screens.onboarding.SplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkUiState
 import br.edu.fatec.doesangue.presentation.auth.SessionViewModel
+import br.edu.fatec.doesangue.presentation.auth.ResetPasswordViewModel
+import br.edu.fatec.doesangue.ui.screens.auth.ResetPasswordScreen
+import br.edu.fatec.doesangue.ui.screens.auth.RecoveryStatusScreen
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    recoveryLinkState: StateFlow<RecoveryLinkUiState>,
+    onRetryRecovery: () -> Unit = {},
+    onFinishRecovery: () -> Unit = {},
+    onRecoveryFinished: () -> Unit = {},
     schedulingViewModelFactory: ViewModelProvider.Factory,
     loginViewModelFactory: ViewModelProvider.Factory,
+    passwordRecoveryViewModelFactory: ViewModelProvider.Factory,
+    resetPasswordViewModelFactory: (Long) -> ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
     appointmentsViewModelFactory: ViewModelProvider.Factory,
     appointmentDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
@@ -30,6 +43,30 @@ fun AppNavHost(
     centersViewModelFactory: ViewModelProvider.Factory,
     centerDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
 ) {
+    val currentRecoveryLinkState by
+    recoveryLinkState.collectAsStateWithLifecycle()
+
+    // Cada transição remove as telas e ViewModels da conta/tentativa anterior.
+    LaunchedEffect(currentRecoveryLinkState) {
+        when (currentRecoveryLinkState) {
+            RecoveryLinkUiState.Idle -> Unit
+            RecoveryLinkUiState.Finished -> {
+                navController.navigate(AppRoute.Login) {
+                    popUpTo(navController.graph.id) { inclusive = false }
+                    launchSingleTop = true
+                }
+                onRecoveryFinished()
+            }
+            else -> navController.navigate(AppRoute.ResetPassword) {
+                popUpTo(navController.graph.id) { inclusive = false }
+                launchSingleTop = true
+            }
+        }
+    }
+    BackHandler(enabled = currentRecoveryLinkState != RecoveryLinkUiState.Idle) {
+        onFinishRecovery()
+    }
+
     // Define como abrir destinos solicitados pelas telas
     // e pela barra inferior.
     fun navigateMain(route: AppRoute) {
@@ -71,6 +108,47 @@ fun AppNavHost(
         navController = navController,
         startDestination = AppRoute.Splash,
     ) {
+        composable<AppRoute.ResetPassword> {
+            when (val recovery = currentRecoveryLinkState) {
+                is RecoveryLinkUiState.Validated -> {
+                    val model: ResetPasswordViewModel = viewModel(
+                        key = "reset-${recovery.validationId}",
+                        factory = resetPasswordViewModelFactory(recovery.validationId),
+                    )
+                    val state by model.uiState.collectAsStateWithLifecycle()
+                    ResetPasswordScreen(
+                        state = state,
+                        onSave = { password, confirmation ->
+                            if (recoveryLinkState.value == recovery) {
+                                model.savePassword(password, confirmation)
+                            }
+                        },
+                        onFinish = onFinishRecovery,
+                    )
+                }
+                is RecoveryLinkUiState.Error -> RecoveryStatusScreen(
+                    message = recovery.message,
+                    onRetry = if (recovery.canRetry) onRetryRecovery else null,
+                    onExit = onFinishRecovery,
+                )
+                is RecoveryLinkUiState.Leaving -> RecoveryStatusScreen(
+                    message = recovery.errorMessage ?: "Encerrando a sessão…",
+                    onRetry = if (recovery.errorMessage != null) onFinishRecovery else null,
+                )
+                RecoveryLinkUiState.Processing -> RecoveryStatusScreen(
+                    message = "Validando seu link…",
+                    onExit = onFinishRecovery,
+                )
+                RecoveryLinkUiState.Finished -> RecoveryStatusScreen("Concluindo…")
+                RecoveryLinkUiState.Idle -> {
+                    LaunchedEffect(Unit) {
+                        navController.navigate(AppRoute.Login) {
+                            popUpTo(navController.graph.id) { inclusive = false }
+                        }
+                    }
+                }
+            }
+        }
         composable<AppRoute.Splash> {
 
             val sessionViewModel: SessionViewModel = viewModel(
@@ -83,6 +161,9 @@ fun AppNavHost(
                 uiState = sessionUiState,
                 onRetry = sessionViewModel::restoreSession,
                 onFinished = { authenticated ->
+                    if (recoveryLinkState.value != RecoveryLinkUiState.Idle) {
+                        return@SplashScreen
+                    }
                     val destination = if (authenticated) {
                         AppGraph.Main
                     } else {
@@ -103,8 +184,12 @@ fun AppNavHost(
         authNavGraph(
             navController = navController,
             loginViewModelFactory = loginViewModelFactory,
+            passwordRecoveryViewModelFactory = passwordRecoveryViewModelFactory,
             registrationViewModelFactory = registrationViewModelFactory,
             onEnterMain = {
+                if (recoveryLinkState.value != RecoveryLinkUiState.Idle) {
+                    return@authNavGraph
+                }
                 // Abre a área principal após o login bem-sucedido.
                 navController.navigate(AppGraph.Main) {
                     // Ao entrar, remove todo o fluxo de autenticação.

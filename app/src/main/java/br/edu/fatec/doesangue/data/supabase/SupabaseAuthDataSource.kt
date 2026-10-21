@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.data.supabase
 
+import br.edu.fatec.doesangue.domain.model.AuthError
+import br.edu.fatec.doesangue.domain.model.AuthFailure
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
@@ -53,6 +55,44 @@ class SupabaseAuthDataSource(
         }
 
         return AuthenticatedUser(id = user.id)
+    }
+
+    /*
+    Essa função faz o pedido pelo SDK.
+    O trim() remove espaços nas extremidades do endereço antes do envio.
+    redirectUrl é o endereço de retorno ao aplicativo após abrir o link recebido.
+     */
+    suspend fun requestPasswordReset(email: String) {
+        client.auth.awaitInitialization()
+
+        client.auth.resetPasswordForEmail(
+            email = email.trim(),
+            redirectUrl = "br.edu.fatec.doesangue://auth/recovery",
+        )
+    }
+
+    suspend fun exchangeRecoveryCode(code: String): AuthenticatedUser {
+        client.auth.awaitInitialization()
+
+        if (code.isBlank() ||
+            client.auth.codeVerifierCache.loadCodeVerifier().isNullOrBlank()
+        ) {
+            throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
+        }
+
+        val session = client.auth.exchangeCodeForSession(code)
+        val user = session.user
+            ?: throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
+
+        return AuthenticatedUser(id = user.id)
+    }
+
+    suspend fun updatePassword(password: String) {
+        client.auth.awaitInitialization()
+
+        client.auth.updateUser {
+            this.password = password
+        }
     }
 
     // Encerra somente a sessão atual.

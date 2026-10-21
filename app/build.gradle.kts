@@ -28,7 +28,7 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "br.edu.fatec.doesangue.RecoveryTestRunner"
 
         // Disponibiliza a URL do Supabase ao código do aplicativo.
         buildConfigField(

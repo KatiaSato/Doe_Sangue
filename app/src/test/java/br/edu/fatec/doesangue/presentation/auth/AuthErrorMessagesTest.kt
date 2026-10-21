@@ -9,6 +9,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AuthErrorMessagesTest {
+    @Test fun passwordReuseAndUnavailableSessionHaveActionableMessages() {
+        assertEquals("Escolha uma senha diferente da atual.",
+            AuthFailure(AuthError.SAME_PASSWORD).toAuthErrorMessage("fallback"))
+        assertEquals("Sua sessão não está disponível. Entre novamente para continuar.",
+            AuthFailure(AuthError.SESSION_UNAVAILABLE).toAuthErrorMessage("fallback"))
+    }
+
     @Test fun invalidCredentialsDoNotDistinguishMissingUserFromWrongPassword() {
         assertEquals("E-mail ou senha incorretos.",
             AuthFailure(AuthError.INVALID_CREDENTIALS).toAuthErrorMessage("fallback"))

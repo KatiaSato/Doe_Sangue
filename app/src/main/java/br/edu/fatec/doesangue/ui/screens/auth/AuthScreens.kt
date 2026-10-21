@@ -1,5 +1,6 @@
 package br.edu.fatec.doesangue.ui.screens.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,15 +23,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import br.edu.fatec.doesangue.presentation.auth.LoginUiState
 import br.edu.fatec.doesangue.R
+import br.edu.fatec.doesangue.presentation.auth.PasswordRecoveryUiState
+import br.edu.fatec.doesangue.presentation.auth.ResetPasswordUiState
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
@@ -145,14 +151,161 @@ fun EmailVerificationScreen(onUnderstood: () -> Unit) {
 }
 
 @Composable
-fun ForgotPasswordScreen(onBack: () -> Unit) {
+fun ForgotPasswordScreen(
+    state: PasswordRecoveryUiState,
+    onEmailChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onBack: () -> Unit,
+) {
     DsScreen(title = "Recuperar senha", onBack = onBack) {
         Spacer(Modifier.height(42.dp))
         CenteredMessage("✉", "Recuperar senha", "Informe seu e-mail para receber o link de recuperação.")
         Spacer(Modifier.height(36.dp))
-        VisualField("E-mail", "seu@email.com")
+        OutlinedTextField(
+            value = state.email,
+            onValueChange = onEmailChange,
+            label = { Text("E-mail") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            enabled = !state.isSending,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+            ),
+        )
+        val errorMessage = state.errorMessage
+        if (errorMessage != null) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                errorMessage,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        if (state.requestAccepted) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Solicitação recebida. Se este e-mail estiver cadastrado, " +
+                        "confira sua caixa de entrada e o spam para as instruções.",
+            )
+        }
         Spacer(Modifier.height(28.dp))
-        PrimaryButton("Enviar link", {})
+        PrimaryButton(
+            text = if (state.isSending) "Enviando…" else "Enviar link",
+            onClick = onSend,
+            enabled = !state.isSending && !state.requestAccepted,
+        )
         TextAction("Voltar para o login", onBack, Modifier.align(Alignment.CenterHorizontally))
+    }
+}
+
+@Composable
+fun ResetPasswordScreen(
+    state: ResetPasswordUiState,
+    onSave: (String, String) -> Unit,
+    onFinish: () -> Unit,
+) {
+    var password by remember { mutableStateOf("") }
+    var confirmation by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmationVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val finish by rememberUpdatedState(onFinish)
+    val fieldsEnabled = !state.isSaving && !state.passwordChanged
+    LaunchedEffect(state.passwordChanged) {
+        if (state.passwordChanged) {
+            password = ""
+            confirmation = ""
+            passwordVisible = false
+            confirmationVisible = false
+            Toast.makeText(context, "Senha salva com sucesso.", Toast.LENGTH_SHORT).show()
+            finish()
+        }
+    }
+
+    DsScreen(title = "Criar nova senha") {
+        Text("Digite sua nova senha e confirme abaixo.")
+        Spacer(Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Nova senha") },
+            singleLine = true,
+            enabled = fieldsEnabled,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                TextButton(onClick = { passwordVisible = !passwordVisible }, enabled = fieldsEnabled) {
+                    Text(if (passwordVisible) "Ocultar" else "Mostrar")
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = confirmation,
+            onValueChange = { confirmation = it },
+            label = { Text("Confirmar nova senha") },
+            singleLine = true,
+            enabled = fieldsEnabled,
+            visualTransformation = if (confirmationVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                TextButton(onClick = { confirmationVisible = !confirmationVisible }, enabled = fieldsEnabled) {
+                    Text(if (confirmationVisible) "Ocultar" else "Mostrar")
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            "Use ao menos 8 caracteres com maiúscula, minúscula, número e símbolo.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+
+        state.errorMessage?.let { message ->
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        if (state.passwordChanged) {
+            Text("Voltando para o login…")
+        } else {
+            PrimaryButton(
+                text = if (state.isSaving) "Salvando…" else "Salvar nova senha",
+                onClick = { onSave(password, confirmation) },
+                enabled = fieldsEnabled,
+            )
+            TextButton(onClick = onFinish, enabled = !state.isSaving) {
+                Text("Cancelar recuperação")
+            }
+        }
+    }
+}
+
+@Composable
+fun RecoveryStatusScreen(
+    message: String,
+    onRetry: (() -> Unit)? = null,
+    onExit: (() -> Unit)? = null,
+) {
+    DsScreen(title = "Recuperar senha") {
+        Text(message)
+        Spacer(Modifier.height(24.dp))
+        onRetry?.let { PrimaryButton("Tentar novamente", it) }
+        onExit?.let { TextButton(onClick = it) { Text("Voltar para o login") } }
     }
 }

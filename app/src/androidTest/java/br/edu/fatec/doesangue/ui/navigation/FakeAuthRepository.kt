@@ -27,6 +27,16 @@ class FakeAuthRepository(
         return Result.success(Unit)
     }
 
+    // Recuperação exige resposta explícita nos testes desse fluxo.
+    override suspend fun exchangeRecoveryCode(code: String): Result<AuthenticatedUser> =
+        Result.failure(UnsupportedOperationException("Retorno de recuperação não configurado neste teste."))
+
+    override suspend fun updatePassword(password: String): Result<Unit> =
+        Result.failure(UnsupportedOperationException("Atualização de senha não configurada neste teste."))
+
+    override suspend fun requestPasswordReset(email: String): Result<Unit> =
+        Result.failure(UnsupportedOperationException("Recuperação não configurada neste teste."))
+
     override suspend fun restoreSession(): Result<AuthenticatedUser?> {
         return Result.success(null)
     }

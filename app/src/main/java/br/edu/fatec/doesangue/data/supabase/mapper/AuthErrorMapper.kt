@@ -33,6 +33,17 @@ internal fun AuthRestException.toAuthError(): AuthError =
         AuthErrorCode.EmailAddressNotAuthorized ->
             AuthError.EMAIL_NOT_AUTHORIZED
 
+        AuthErrorCode.SamePassword ->
+            AuthError.SAME_PASSWORD
+
+        AuthErrorCode.SessionNotFound,
+        AuthErrorCode.SessionExpired,
+        AuthErrorCode.BadJwt,
+        AuthErrorCode.FlowStateNotFound,
+        AuthErrorCode.FlowStateExpired,
+        AuthErrorCode.BadCodeVerifier ->
+            AuthError.SESSION_UNAVAILABLE
+
         else -> AuthError.UNKNOWN
     }
 

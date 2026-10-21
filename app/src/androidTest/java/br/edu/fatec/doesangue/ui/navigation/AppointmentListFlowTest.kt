@@ -70,6 +70,7 @@ class AppointmentListFlowTest {
             nav = rememberNavController()
             DoeSangueTheme {
                 AppNavHost(
+                    recoveryLinkState = idleRecoveryLinkState,
                     navController = nav,
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
                     loginViewModelFactory = container.loginViewModelFactory,
@@ -86,6 +87,8 @@ class AppointmentListFlowTest {
                     donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
                     centersViewModelFactory = container.centersViewModelFactory,
                     centerDetailViewModelFactory = container::centerDetailViewModelFactory,
+                    passwordRecoveryViewModelFactory = container.passwordRecoveryViewModelFactory,
+                    resetPasswordViewModelFactory = { container.resetPasswordViewModelFactory },
                 )
             }
         }
@@ -254,6 +257,16 @@ class AppointmentListFlowTest {
             Result.failure(UnsupportedOperationException("Cadastro não configurado neste roteiro."))
 
         var user: AuthenticatedUser? = AuthenticatedUser("test-user-a")
+
+        // Recuperação exige resposta explícita nos testes desse fluxo.
+        override suspend fun exchangeRecoveryCode(code: String): Result<AuthenticatedUser> =
+            Result.failure(UnsupportedOperationException("Retorno de recuperação não configurado neste teste."))
+
+        override suspend fun updatePassword(password: String): Result<Unit> =
+            Result.failure(UnsupportedOperationException("Atualização de senha não configurada neste teste."))
+
+        override suspend fun requestPasswordReset(email: String): Result<Unit> =
+            Result.failure(UnsupportedOperationException("Recuperação não configurada neste teste."))
 
         override suspend fun restoreSession(): Result<AuthenticatedUser?> = Result.success(user)
 

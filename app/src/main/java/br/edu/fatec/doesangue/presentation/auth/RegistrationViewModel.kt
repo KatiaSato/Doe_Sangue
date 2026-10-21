@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
+import br.edu.fatec.doesangue.domain.validation.PasswordValidator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,8 +81,7 @@ class RegistrationViewModel(private val repository: AuthRepository) : ViewModel(
     companion object {
         const val PASSWORD_RULE = "Use ao menos 8 caracteres com maiúscula, minúscula, número e símbolo."
         private val EMAIL = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
-        fun isValidPassword(value: String): Boolean = value.length >= 8 &&
-            value.any { it in 'A'..'Z' } && value.any { it in 'a'..'z' } &&
-            value.any { it in '0'..'9' } && value.any { !it.isLetterOrDigit() && !it.isWhitespace() }
+        fun isValidPassword(value: String): Boolean =
+            PasswordValidator.isValid(value)
     }
 }

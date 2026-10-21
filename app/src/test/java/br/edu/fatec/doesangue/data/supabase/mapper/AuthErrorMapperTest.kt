@@ -3,6 +3,7 @@ package br.edu.fatec.doesangue.data.supabase.mapper
 import br.edu.fatec.doesangue.domain.model.AuthError
 import br.edu.fatec.doesangue.domain.model.AuthFailure
 import io.github.jan.supabase.auth.exception.AuthRestException
+import io.github.jan.supabase.auth.exception.AuthSessionMissingException
 import io.github.jan.supabase.exceptions.HttpRequestException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.HttpClientCall
@@ -11,6 +12,7 @@ import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpResponseData
 import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.Headers
 import io.ktor.http.HttpProtocolVersion
 import io.ktor.http.HttpStatusCode
@@ -36,7 +38,7 @@ class AuthErrorMapperTest {
     @After fun closeClient() { client.close() }
 
     @OptIn(InternalAPI::class)
-    private fun restError(code: String, description: String = "Synthetic failure"): AuthRestException {
+    private fun response(): HttpResponse {
         val response = HttpClientCall(
             client,
             request().build(),
@@ -49,8 +51,11 @@ class AuthErrorMapperTest {
                 callContext = EmptyCoroutineContext,
             ),
         ).response
-        return AuthRestException(code, description, response)
+        return response
     }
+
+    private fun restError(code: String, description: String = "Synthetic failure") =
+        AuthRestException(code, description, response())
 
     @Test fun structuredCodesDistinguishFailuresSharingHttp400() {
         val cases = mapOf(
@@ -63,6 +68,13 @@ class AuthErrorMapperTest {
             "over_request_rate_limit" to AuthError.RATE_LIMITED,
             "over_email_send_rate_limit" to AuthError.RATE_LIMITED,
             "email_address_not_authorized" to AuthError.EMAIL_NOT_AUTHORIZED,
+            "same_password" to AuthError.SAME_PASSWORD,
+            "session_not_found" to AuthError.SESSION_UNAVAILABLE,
+            "session_expired" to AuthError.SESSION_UNAVAILABLE,
+            "bad_jwt" to AuthError.SESSION_UNAVAILABLE,
+            "flow_state_not_found" to AuthError.SESSION_UNAVAILABLE,
+            "flow_state_expired" to AuthError.SESSION_UNAVAILABLE,
+            "bad_code_verifier" to AuthError.SESSION_UNAVAILABLE,
         )
         cases.forEach { (code, expected) ->
             val failure = restError(code).toAuthFailure()
@@ -74,6 +86,12 @@ class AuthErrorMapperTest {
     @Test fun classificationUsesCodeInsteadOfEnglishDescription() {
         val failure = restError("invalid_credentials", "Email not confirmed").toAuthFailure()
         assertEquals(AuthError.INVALID_CREDENTIALS, failure.reason)
+    }
+
+    @Test fun sdkMissingSessionExceptionUsesStructuredSessionCategory() {
+        val failure = AuthSessionMissingException(response()).toAuthFailure()
+        assertEquals(AuthError.SESSION_UNAVAILABLE, failure.reason)
+        assertNull(failure.message)
     }
 
     @Test fun unknownCodeDoesNotInferInvalidEmailFromDescriptionOrStatus() {

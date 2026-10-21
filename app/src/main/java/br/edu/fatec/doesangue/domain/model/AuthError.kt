@@ -9,5 +9,7 @@ enum class AuthError {
     RATE_LIMITED,
     EMAIL_NOT_AUTHORIZED,
     NETWORK,
+    SAME_PASSWORD,
+    SESSION_UNAVAILABLE,
     UNKNOWN,
 }

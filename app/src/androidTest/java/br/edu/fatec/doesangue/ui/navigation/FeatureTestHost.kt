@@ -4,6 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import br.edu.fatec.doesangue.di.AppContainer
+import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkUiState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+// Estado somente leitura para testes de percursos sem retorno de recuperação.
+internal val idleRecoveryLinkState: StateFlow<RecoveryLinkUiState> =
+    MutableStateFlow<RecoveryLinkUiState>(RecoveryLinkUiState.Idle).asStateFlow()
 
 @Composable
 internal fun FeatureTestHost(
@@ -11,8 +19,10 @@ internal fun FeatureTestHost(
     registrationFactory: ViewModelProvider.Factory = container.registrationViewModelFactory,
     campaignsFactory: ViewModelProvider.Factory = container.campaignsViewModelFactory,
     homeFactory: ViewModelProvider.Factory = isolatedHomeFactory(),
+    recoveryLinkState: StateFlow<RecoveryLinkUiState> = idleRecoveryLinkState,
 ) {
     AppNavHost(
+        recoveryLinkState = recoveryLinkState,
         navController = nav,
         schedulingViewModelFactory = container.schedulingViewModelFactory,
         loginViewModelFactory = container.loginViewModelFactory,
@@ -29,5 +39,7 @@ internal fun FeatureTestHost(
         donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
         centersViewModelFactory = container.centersViewModelFactory,
         centerDetailViewModelFactory = container::centerDetailViewModelFactory,
+        passwordRecoveryViewModelFactory = container.passwordRecoveryViewModelFactory,
+        resetPasswordViewModelFactory = { container.resetPasswordViewModelFactory },
     )
 }

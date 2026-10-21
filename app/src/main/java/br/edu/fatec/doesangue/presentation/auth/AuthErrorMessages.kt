@@ -29,5 +29,11 @@ internal fun Throwable.toAuthErrorMessage(fallback: String): String =
         AuthError.NETWORK ->
             "Não foi possível conectar ao serviço. Verifique sua conexão e tente novamente."
 
+        AuthError.SAME_PASSWORD ->
+            "Escolha uma senha diferente da atual."
+
+        AuthError.SESSION_UNAVAILABLE ->
+            "Sua sessão não está disponível. Entre novamente para continuar."
+
         AuthError.UNKNOWN, null -> fallback
     }

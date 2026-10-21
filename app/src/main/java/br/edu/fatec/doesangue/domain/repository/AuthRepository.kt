@@ -25,6 +25,20 @@ interface AuthRepository {
         password: String,
     ): Result<AuthenticatedUser>
 
+    suspend fun requestPasswordReset(
+        email: String,
+    ): Result<Unit>
+
+    // Esse contrato permitirá trocar o código recebido pelo link por uma sessão validada pelo SDK
+    suspend fun exchangeRecoveryCode(
+        code: String,
+    ): Result<AuthenticatedUser>
+
+    // Esse contrato permite solicitar a alteração sem expor o Supabase ao ViewModel.
+    suspend fun updatePassword(
+        password: String,
+    ): Result<Unit>
+
     // Encerra a sessão da conta no aplicativo.
     suspend fun signOut(): Result<Unit>
 

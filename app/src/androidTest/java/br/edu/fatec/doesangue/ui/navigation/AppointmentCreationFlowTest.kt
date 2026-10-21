@@ -60,6 +60,7 @@ class AppointmentCreationFlowTest {
             nav = rememberNavController()
             DoeSangueTheme {
                 AppNavHost(
+                    recoveryLinkState = idleRecoveryLinkState,
                     navController = nav,
                     schedulingViewModelFactory = factory,
                     loginViewModelFactory = container.loginViewModelFactory,
@@ -76,6 +77,8 @@ class AppointmentCreationFlowTest {
                     donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
                     centersViewModelFactory = container.centersViewModelFactory,
                     centerDetailViewModelFactory = container::centerDetailViewModelFactory,
+                    passwordRecoveryViewModelFactory = container.passwordRecoveryViewModelFactory,
+                    resetPasswordViewModelFactory = { container.resetPasswordViewModelFactory },
                 )
             }
         }

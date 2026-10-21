@@ -2,19 +2,36 @@ package br.edu.fatec.doesangue.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.runtime.remember
 import br.edu.fatec.doesangue.di.AppContainer
+import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkUiState
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun DoeSangueApp() {
+fun DoeSangueApp(
+    appContainer: AppContainer,
+    recoveryLinkState: StateFlow<RecoveryLinkUiState>,
+    onUpdateRecoveryPassword: suspend (Long, String) -> Result<Unit>,
+    onRetryRecovery: () -> Unit,
+    onFinishRecovery: () -> Unit,
+    onRecoveryFinished: () -> Unit,
+) {
     val navController = rememberNavController()
-    // Cria o container e mantém a mesma instância nas recomposições.
-    val appContainer = remember { AppContainer() }
 
     AppNavHost(
         navController = navController,
+        recoveryLinkState = recoveryLinkState,
+        onRetryRecovery = onRetryRecovery,
+        onFinishRecovery = onFinishRecovery,
+        onRecoveryFinished = onRecoveryFinished,
         schedulingViewModelFactory = appContainer.schedulingViewModelFactory,
         loginViewModelFactory = appContainer.loginViewModelFactory,
+        passwordRecoveryViewModelFactory =
+            appContainer.passwordRecoveryViewModelFactory,
+        resetPasswordViewModelFactory = { validationId ->
+            appContainer.resetPasswordViewModelFactory { password ->
+                onUpdateRecoveryPassword(validationId, password)
+            }
+        },
         profileViewModelFactory = appContainer.profileViewModelFactory,
         appointmentsViewModelFactory = appContainer.appointmentsViewModelFactory,
         appointmentDetailViewModelFactory =

@@ -49,6 +49,7 @@ class ProfileFlowTest {
             nav = rememberNavController()
             DoeSangueTheme {
                 AppNavHost(
+                    recoveryLinkState = idleRecoveryLinkState,
                     navController = nav,
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
                     loginViewModelFactory = container.loginViewModelFactory,
@@ -65,6 +66,8 @@ class ProfileFlowTest {
                     donationHistoryViewModelFactory = container.donationHistoryViewModelFactory,
                     centersViewModelFactory = container.centersViewModelFactory,
                     centerDetailViewModelFactory = container::centerDetailViewModelFactory,
+                    passwordRecoveryViewModelFactory = container.passwordRecoveryViewModelFactory,
+                    resetPasswordViewModelFactory = { container.resetPasswordViewModelFactory },
                 )
             }
         }

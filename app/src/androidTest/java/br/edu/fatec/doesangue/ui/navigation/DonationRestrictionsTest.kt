@@ -64,6 +64,7 @@ class DonationRestrictionsTest {
             ) {
                 DoeSangueTheme {
                     AppNavHost(
+                        recoveryLinkState = idleRecoveryLinkState,
                         navController = nav,
                         schedulingViewModelFactory =
                             appContainer.schedulingViewModelFactory,
@@ -81,6 +82,8 @@ class DonationRestrictionsTest {
                     donationHistoryViewModelFactory = appContainer.donationHistoryViewModelFactory,
                     centersViewModelFactory = appContainer.centersViewModelFactory,
                     centerDetailViewModelFactory = appContainer::centerDetailViewModelFactory,
+                    passwordRecoveryViewModelFactory = appContainer.passwordRecoveryViewModelFactory,
+                    resetPasswordViewModelFactory = { appContainer.resetPasswordViewModelFactory },
                     )
                 }
             }

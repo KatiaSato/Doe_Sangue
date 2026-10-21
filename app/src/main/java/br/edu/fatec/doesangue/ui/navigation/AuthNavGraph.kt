@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
+import br.edu.fatec.doesangue.presentation.auth.PasswordRecoveryViewModel
 import br.edu.fatec.doesangue.presentation.auth.RegistrationViewModel
 import br.edu.fatec.doesangue.ui.screens.auth.EmailVerificationScreen
 import br.edu.fatec.doesangue.ui.screens.auth.ForgotPasswordScreen
@@ -26,6 +27,7 @@ import br.edu.fatec.doesangue.ui.screens.onboarding.WelcomeScreen
 fun NavGraphBuilder.authNavGraph(
     navController: NavHostController,
     loginViewModelFactory: ViewModelProvider.Factory,
+    passwordRecoveryViewModelFactory: ViewModelProvider.Factory,
     registrationViewModelFactory: ViewModelProvider.Factory,
     onEnterMain: () -> Unit,
 ) {
@@ -100,7 +102,16 @@ fun NavGraphBuilder.authNavGraph(
             })
         }
         composable<AppRoute.ForgotPassword> {
-            ForgotPasswordScreen(onBack = { navController.popBackStack() })
+            val model: PasswordRecoveryViewModel = viewModel(
+                factory = passwordRecoveryViewModelFactory,
+            )
+            val state by model.uiState.collectAsStateWithLifecycle()
+            ForgotPasswordScreen(
+                state = state,
+                onEmailChange = model::updateEmail,
+                onSend = model::requestPasswordReset,
+                onBack = { navController.popBackStack() },
+            )
         }
     }
 }

@@ -43,6 +43,9 @@ import br.edu.fatec.doesangue.data.repository.SupabaseBloodStockRepository
 import br.edu.fatec.doesangue.data.repository.SupabaseDonationHistoryRepository
 import br.edu.fatec.doesangue.data.supabase.SupabaseBloodStockDataSource
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonationHistoryDataSource
+import br.edu.fatec.doesangue.presentation.auth.PasswordRecoveryViewModel
+import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkViewModel
+import br.edu.fatec.doesangue.presentation.auth.ResetPasswordViewModel
 import br.edu.fatec.doesangue.presentation.centers.CenterDetailViewModel
 import br.edu.fatec.doesangue.presentation.centers.CentersViewModel
 import br.edu.fatec.doesangue.presentation.home.HomeViewModel
@@ -222,6 +225,36 @@ class AppContainer(
             )
         }
     }
+
+    // Essa factory cria o ViewModel usando o repository de autenticação existente.
+    val passwordRecoveryViewModelFactory = viewModelFactory {
+        initializer {
+            PasswordRecoveryViewModel(
+                authRepository = authRepository,
+            )
+        }
+    }
+
+    val resetPasswordViewModelFactory = viewModelFactory {
+        initializer {
+            ResetPasswordViewModel(
+                authRepository = authRepository,
+            )
+        }
+    }
+
+    val recoveryLinkViewModelFactory = viewModelFactory {
+        initializer {
+            RecoveryLinkViewModel(
+                authRepository = authRepository,
+            )
+        }
+    }
+
+    fun resetPasswordViewModelFactory(updatePassword: suspend (String) -> Result<Unit>) =
+        viewModelFactory {
+            initializer { ResetPasswordViewModel(updatePassword = updatePassword) }
+        }
 
     // Cria o ViewModel de saída com o repository de autenticação.
     val logoutViewModelFactory = viewModelFactory {

@@ -42,6 +42,45 @@ class SupabaseAuthRepository(
         }
     }
 
+    override suspend fun requestPasswordReset(
+        email: String,
+    ): Result<Unit> {
+        return try {
+            dataSource.requestPasswordReset(email)
+            Result.success(Unit)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Result.failure(exception.toAuthFailure())
+        }
+    }
+
+    override suspend fun exchangeRecoveryCode(
+        code: String,
+    ): Result<AuthenticatedUser> {
+        return try {
+            val user = dataSource.exchangeRecoveryCode(code)
+            Result.success(user)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Result.failure(exception.toAuthFailure())
+        }
+    }
+
+    override suspend fun updatePassword(
+        password: String,
+    ): Result<Unit> {
+        return try {
+            dataSource.updatePassword(password)
+            Result.success(Unit)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Result.failure(exception.toAuthFailure())
+        }
+    }
+
     override suspend fun signOut(): Result<Unit> {
         return try {
             dataSource.signOut()

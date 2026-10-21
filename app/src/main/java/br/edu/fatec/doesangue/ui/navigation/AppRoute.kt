@@ -35,6 +35,9 @@ sealed interface AppRoute {
     @Serializable
     data object ForgotPassword : AppRoute
 
+    @Serializable
+    data object ResetPassword : AppRoute
+
     // Início
     @Serializable
     data object Home : AppRoute

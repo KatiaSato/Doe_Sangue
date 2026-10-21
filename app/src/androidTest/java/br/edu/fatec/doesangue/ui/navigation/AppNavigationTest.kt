@@ -69,6 +69,7 @@ class AppNavigationTest {
 
             DoeSangueTheme {
                 AppNavHost(
+                    recoveryLinkState = idleRecoveryLinkState,
                     navController = navController,
                     schedulingViewModelFactory =
                         appContainer.schedulingViewModelFactory,
@@ -86,6 +87,8 @@ class AppNavigationTest {
                     donationHistoryViewModelFactory = appContainer.donationHistoryViewModelFactory,
                     centersViewModelFactory = appContainer.centersViewModelFactory,
                     centerDetailViewModelFactory = appContainer::centerDetailViewModelFactory,
+                    passwordRecoveryViewModelFactory = appContainer.passwordRecoveryViewModelFactory,
+                    resetPasswordViewModelFactory = { appContainer.resetPasswordViewModelFactory },
                 )
             } // Fecha DoeSangueTheme
         } // Fecha restoration.setContent — faltou esta chave
