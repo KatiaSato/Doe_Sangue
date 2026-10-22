@@ -21,6 +21,7 @@ import br.edu.fatec.doesangue.data.supabase.SupabaseDonationCenterDataSource
 import br.edu.fatec.doesangue.data.supabase.createDonationSupabaseClient
 import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
+import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationViewModel
 import br.edu.fatec.doesangue.data.repository.SupabaseDonorProfileRepository
 import br.edu.fatec.doesangue.data.supabase.SupabaseAppointmentDataSource
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonorProfileDataSource
@@ -86,6 +87,9 @@ class AppContainer(
 
     val registrationViewModelFactory = viewModelFactory {
         initializer { RegistrationViewModel(authRepository) }
+    }
+    val emailConfirmationViewModelFactory = viewModelFactory {
+        initializer { EmailConfirmationViewModel(authRepository) }
     }
     val campaignsViewModelFactory = viewModelFactory {
         initializer { CampaignsViewModel(campaignRepository) }

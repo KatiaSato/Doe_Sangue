@@ -5,6 +5,8 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.FlowType
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.auth.MemorySessionManager
+import io.github.jan.supabase.auth.MemoryCodeVerifierCache
 
 // Cria o cliente usado para acessar a API do Supabase.
 fun createDonationSupabaseClient(
@@ -29,3 +31,17 @@ fun createDonationSupabaseClient(
         install(Postgrest)
     }
 }
+
+// O retorno de confirmação não deve autenticar nem substituir a conta do app.
+internal fun createConfirmationSupabaseClient(url: String, key: String): SupabaseClient =
+    createSupabaseClient(url, key) {
+        install(Auth) {
+            flowType = FlowType.PKCE
+            sessionManager = MemorySessionManager()
+            codeVerifierCache = MemoryCodeVerifierCache()
+            autoLoadFromStorage = false
+            autoSaveToStorage = false
+            alwaysAutoRefresh = false
+            enableLifecycleCallbacks = false
+        }
+    }

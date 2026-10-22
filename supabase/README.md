@@ -1,5 +1,9 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Confirmação de e-mail — F09, 22/10/2026
+
+Retorno br.edu.fatec.doesangue://auth/confirmation adicionado ao allowlist de fbrycvxelubxxafjstbo após autorização específica. Lista conferida com recovery e confirmation; Site URL/demais configurações preservados. Sem e-mail real, template, credencial ou SQL. Cadastro/reenvio usam redirect próprio; validação do retorno não importa sessão no cliente principal. Implementação/testes concluídos, aceite de entrega/abertura/login ainda pela usuária. [Diagrama, arquivos, testes e roteiro](../docs/36-confirmacao-email.md). Não alterar contas confirmadas ou reaplicar migração para testar.
+
 ## Edição de perfil — preparação local em 22/10/2026
 
 - `migrations/20261022000100_edicao_perfil_contato_nascimento.sql`: acrescenta telefone e data de nascimento opcionais, CHECKs e UPDATE somente dessas colunas para authenticated. Preserva policies existentes e dados dos perfis; ID/criação continuam protegidos, Auth preservado e sem dados inferidos.

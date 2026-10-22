@@ -3,6 +3,8 @@ package br.edu.fatec.doesangue.presentation.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
+import br.edu.fatec.doesangue.domain.model.AuthError
+import br.edu.fatec.doesangue.domain.model.AuthFailure
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,6 +59,7 @@ class LoginViewModel(
                     },
                     onFailure = { failure ->
                         LoginUiState(
+                            needsEmailConfirmation = (failure as? AuthFailure)?.reason == AuthError.EMAIL_NOT_CONFIRMED,
                             errorMessage = failure.toAuthErrorMessage(
                                 fallback = "Não foi possível entrar. Tente novamente.",
                             ),

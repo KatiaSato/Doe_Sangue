@@ -15,6 +15,8 @@ import androidx.navigation.navigation
 import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
 import br.edu.fatec.doesangue.presentation.auth.PasswordRecoveryViewModel
 import br.edu.fatec.doesangue.presentation.auth.RegistrationViewModel
+import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationUiState
+import kotlinx.coroutines.flow.StateFlow
 import br.edu.fatec.doesangue.ui.screens.auth.EmailVerificationScreen
 import br.edu.fatec.doesangue.ui.screens.auth.ForgotPasswordScreen
 import br.edu.fatec.doesangue.ui.screens.auth.LoginScreen
@@ -29,6 +31,9 @@ fun NavGraphBuilder.authNavGraph(
     loginViewModelFactory: ViewModelProvider.Factory,
     passwordRecoveryViewModelFactory: ViewModelProvider.Factory,
     registrationViewModelFactory: ViewModelProvider.Factory,
+    confirmationState: StateFlow<EmailConfirmationUiState>,
+    onConfirmationEmailChange: (String) -> Unit,
+    onResendConfirmation: () -> Unit,
     onEnterMain: () -> Unit,
 ) {
     navigation<AppGraph.Auth>(startDestination = AppRoute.Welcome) {
@@ -49,6 +54,10 @@ fun NavGraphBuilder.authNavGraph(
             LoginScreen(state, login::signIn,
                 onForgot = { navController.navigate(AppRoute.ForgotPassword) },
                 onRegister = { registration.reset(); navController.navigate(AppRoute.Register1) },
+                onVerifyEmail = { email ->
+                    onConfirmationEmailChange(email)
+                    navController.navigate(AppRoute.EmailVerification) { launchSingleTop = true }
+                },
             )
         }
         composable<AppRoute.Register1> { entry ->
@@ -90,11 +99,17 @@ fun NavGraphBuilder.authNavGraph(
                     }
                 }
             }
-            RegisterStep4Screen(state, onBack = { navController.popBackStack() }, onCreate = model::register)
+            RegisterStep4Screen(state, onBack = { navController.popBackStack() },
+                onCreate = model::register, onEmailChange = model::updateEmail)
         }
         composable<AppRoute.EmailVerification> { entry ->
             val model = registrationModel(navController, registrationViewModelFactory, entry)
-            EmailVerificationScreen(onUnderstood = {
+            // A rota acompanha o fluxo; o builder do grafo não deve congelar uma cópia do estado.
+            val confirmation by confirmationState.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) {
+                if (model.uiState.value.result != null) onConfirmationEmailChange(model.uiState.value.email)
+            }
+            EmailVerificationScreen(confirmation, onConfirmationEmailChange, onResendConfirmation, onUnderstood = {
                 model.reset()
                 navController.navigate(AppRoute.Login) {
                     popUpTo<AppRoute.Welcome> { inclusive = false }; launchSingleTop = true

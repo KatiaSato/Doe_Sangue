@@ -23,6 +23,13 @@
                 <data android:scheme="br.edu.fatec.doesangue"
                     android:host="auth" android:pathPrefix="/recovery" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="br.edu.fatec.doesangue"
+                    android:host="auth" android:path="/confirmation" />
+            </intent-filter>
         </activity>
     </application>
 </manifest>

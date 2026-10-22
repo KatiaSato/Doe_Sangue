@@ -201,6 +201,11 @@ class SessionRestoreFlowTest {
     }
 
     private class ControlledAuthRepository : AuthRepository {
+    override suspend fun resendEmailConfirmation(email: String): Result<Unit> =
+        Result.failure(UnsupportedOperationException("Confirmação não configurada neste teste."))
+    override suspend fun verifyEmailConfirmation(credential: br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential): Result<Unit> =
+        Result.failure(UnsupportedOperationException("Confirmação não configurada neste teste."))
+
         override suspend fun signUp(displayName: String, email: String, password: String, bloodType: BloodType): Result<RegistrationResult> =
             Result.failure(UnsupportedOperationException("Cadastro não configurado neste roteiro."))
 

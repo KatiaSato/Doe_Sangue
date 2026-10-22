@@ -17,6 +17,14 @@ import br.edu.fatec.doesangue.presentation.auth.ResetPasswordViewModel
 import br.edu.fatec.doesangue.ui.screens.auth.ResetPasswordScreen
 import br.edu.fatec.doesangue.ui.screens.auth.RecoveryStatusScreen
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationUiState
+import br.edu.fatec.doesangue.presentation.auth.ConfirmationLinkState
+import br.edu.fatec.doesangue.ui.screens.auth.EmailConfirmationDialog
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavDestination.Companion.hasRoute
+
+private val idleConfirmationState: StateFlow<EmailConfirmationUiState> = MutableStateFlow(EmailConfirmationUiState())
 
 @Composable
 fun AppNavHost(
@@ -25,6 +33,11 @@ fun AppNavHost(
     onRetryRecovery: () -> Unit = {},
     onFinishRecovery: () -> Unit = {},
     onRecoveryFinished: () -> Unit = {},
+    emailConfirmationState: StateFlow<EmailConfirmationUiState> = idleConfirmationState,
+    onConfirmationEmailChange: (String) -> Unit = {},
+    onResendConfirmation: () -> Unit = {},
+    onRetryConfirmation: () -> Unit = {},
+    onDismissConfirmation: () -> Unit = {},
     schedulingViewModelFactory: ViewModelProvider.Factory,
     loginViewModelFactory: ViewModelProvider.Factory,
     passwordRecoveryViewModelFactory: ViewModelProvider.Factory,
@@ -47,6 +60,7 @@ fun AppNavHost(
 ) {
     val currentRecoveryLinkState by
     recoveryLinkState.collectAsStateWithLifecycle()
+    val confirmation by emailConfirmationState.collectAsStateWithLifecycle()
 
     // Cada transição remove as telas e ViewModels da conta/tentativa anterior.
     LaunchedEffect(currentRecoveryLinkState) {
@@ -188,6 +202,9 @@ fun AppNavHost(
             loginViewModelFactory = loginViewModelFactory,
             passwordRecoveryViewModelFactory = passwordRecoveryViewModelFactory,
             registrationViewModelFactory = registrationViewModelFactory,
+            confirmationState = emailConfirmationState,
+            onConfirmationEmailChange = onConfirmationEmailChange,
+            onResendConfirmation = onResendConfirmation,
             onEnterMain = {
                 if (recoveryLinkState.value != RecoveryLinkUiState.Idle) {
                     return@authNavGraph
@@ -240,5 +257,20 @@ fun AppNavHost(
                 }
             },
         )
+    }
+    if (confirmation.link != ConfirmationLinkState.Idle && currentRecoveryLinkState == RecoveryLinkUiState.Idle) {
+        EmailConfirmationDialog(confirmation.link, onRetryConfirmation, onClose = {
+            if (recoveryLinkState.value == RecoveryLinkUiState.Idle) {
+                // Preserva uma conta já conectada; confirmação nunca troca a sessão do app.
+                val privateArea = navController.currentDestination?.hierarchy?.any {
+                    it.hasRoute<AppGraph.Main>() || it.hasRoute<AppGraph.Scheduling>()
+                } == true
+                if (!privateArea) navController.navigate(AppRoute.Login) {
+                    popUpTo(navController.graph.id) { inclusive = false }
+                    launchSingleTop = true
+                }
+                onDismissConfirmation()
+            }
+        })
     }
 }

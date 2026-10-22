@@ -199,6 +199,7 @@ class SupabaseAuthPkceTest {
     @Test fun registrationKeepsMetadataAndPendingConfirmationWhileUsingPkce() = runBlocking {
         val type = BloodType.entries.first()
         val result = source.signUp(" Doador Sintético ", " cadastro@example.com ", "Sintetica123!", type)
+        assertEquals(SupabaseAuthDataSource.CONFIRMATION_REDIRECT, captured.single().redirect)
         assertEquals(1, captured.size)
         val request = captured.single()
         assertEquals("/auth/v1/signup", request.path)

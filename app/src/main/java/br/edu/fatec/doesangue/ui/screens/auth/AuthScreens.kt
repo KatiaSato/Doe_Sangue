@@ -16,6 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalAutofillManager
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -56,6 +60,7 @@ fun LoginScreen(
     onSignIn: (String, String) -> Unit,
     onForgot: () -> Unit,
     onRegister: () -> Unit,
+    onVerifyEmail: (String) -> Unit = {},
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -82,7 +87,9 @@ fun LoginScreen(
                 autoCorrectEnabled = false,
                 keyboardType = KeyboardType.Email,
             ),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().semantics {
+                contentType = ContentType.Username + ContentType.EmailAddress
+            },
         )
 
         Spacer(Modifier.height(12.dp))
@@ -110,7 +117,7 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
             ),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.Password },
         )
         TextAction("Esqueci minha senha", onForgot, Modifier.align(Alignment.End))
         uiState.errorMessage?.let { message ->
@@ -119,6 +126,9 @@ fun LoginScreen(
                 color = MaterialTheme.colorScheme.error,
             )
             Spacer(Modifier.height(8.dp))
+        }
+        if (uiState.needsEmailConfirmation) {
+            TextAction("Reenviar confirmação", { onVerifyEmail(email.trim()) })
         }
 
         PrimaryButton(
@@ -144,16 +154,6 @@ fun LoginScreen(
 }
 
 @Composable
-fun EmailVerificationScreen(onUnderstood: () -> Unit) {
-    DsScreen {
-        Spacer(Modifier.height(150.dp))
-        CenteredMessage("✉", "Verifique seu e-mail", "Confira sua caixa de entrada. Se houver confirmação pendente, use o link recebido e depois entre na sua conta.")
-        Spacer(Modifier.height(100.dp))
-        PrimaryButton("Entendi", onUnderstood)
-    }
-}
-
-@Composable
 fun ForgotPasswordScreen(
     state: PasswordRecoveryUiState,
     onEmailChange: (String) -> Unit,
@@ -168,7 +168,9 @@ fun ForgotPasswordScreen(
             value = state.email,
             onValueChange = onEmailChange,
             label = { Text("E-mail") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().semantics {
+                contentType = ContentType.Username + ContentType.EmailAddress
+            },
             singleLine = true,
             enabled = !state.isSending,
             keyboardOptions = KeyboardOptions(
@@ -214,10 +216,13 @@ fun ResetPasswordScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmationVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val autofill = LocalAutofillManager.current
     val finish by rememberUpdatedState(onFinish)
     val fieldsEnabled = !state.isSaving && !state.passwordChanged
     LaunchedEffect(state.passwordChanged) {
         if (state.passwordChanged) {
+            // Entrega a nova senha ao serviço antes de limpar os campos e sair.
+            autofill?.commit()
             password = ""
             confirmation = ""
             passwordVisible = false
@@ -246,7 +251,7 @@ fun ResetPasswordScreen(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
             ),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.NewPassword },
         )
 
         Spacer(Modifier.height(16.dp))
@@ -266,7 +271,7 @@ fun ResetPasswordScreen(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
             ),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.NewPassword },
         )
 
         Spacer(Modifier.height(12.dp))

@@ -15,6 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -48,7 +51,7 @@ fun RegisterStep1Screen(
                 autoCorrectEnabled = false,
                 keyboardType = KeyboardType.Email,
             ),
-            modifier = Modifier.fillMaxWidth())
+            modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.EmailAddress })
         RegistrationError(state.errorMessage)
         Spacer(Modifier.height(24.dp))
         PrimaryButton("Continuar", onContinue)
@@ -89,6 +92,7 @@ fun RegisterStep3Screen(state: RegistrationUiState, onBack: () -> Unit, onContin
 @Composable
 fun RegisterStep4Screen(
     state: RegistrationUiState, onBack: () -> Unit, onCreate: (String, String) -> Unit,
+    onEmailChange: (String) -> Unit,
 ) {
     // Credenciais apenas na memória local da tela; não salvar/restaurar em disco.
     var password by remember { mutableStateOf("") }
@@ -98,6 +102,15 @@ fun RegisterStep4Screen(
         StepProgress(4)
         Spacer(Modifier.height(24.dp))
         ScreenHeading("Proteja sua conta")
+        // Cadastro em etapas: mantém a identificação da conta junto da nova senha.
+        OutlinedTextField(state.email, onEmailChange, label = { Text("E-mail da conta") },
+            enabled = !state.isLoading, singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false, keyboardType = KeyboardType.Email),
+            modifier = Modifier.fillMaxWidth().semantics {
+                contentType = ContentType.NewUsername + ContentType.EmailAddress
+            })
+        Spacer(Modifier.height(12.dp))
         RegistrationPassword("Senha", password, { password = it }, !state.isLoading)
         Spacer(Modifier.height(12.dp))
         RegistrationPassword("Confirmar senha", confirmation, { confirmation = it }, !state.isLoading)
@@ -118,7 +131,9 @@ fun RegisterStep4Screen(
 private fun RegistrationPassword(label: String, value: String, onChange: (String) -> Unit, enabled: Boolean) {
     var visible by remember { mutableStateOf(false) }
     OutlinedTextField(value, onChange, label = { Text(label) }, singleLine = true,
-        enabled = enabled, modifier = Modifier.fillMaxWidth(),
+        enabled = enabled, modifier = Modifier.fillMaxWidth().semantics {
+            contentType = ContentType.NewPassword
+        },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = { TextButton(onClick = { visible = !visible }, enabled = enabled) {

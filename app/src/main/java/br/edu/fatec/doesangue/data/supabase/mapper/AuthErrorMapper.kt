@@ -45,6 +45,8 @@ internal fun AuthRestException.toAuthError(): AuthError =
         AuthErrorCode.BadCodeVerifier ->
             AuthError.SESSION_UNAVAILABLE
 
+        AuthErrorCode.OtpExpired -> AuthError.SESSION_UNAVAILABLE
+
         else -> when (error) {
             "current_password_mismatch",
             "current_password_invalid" ->

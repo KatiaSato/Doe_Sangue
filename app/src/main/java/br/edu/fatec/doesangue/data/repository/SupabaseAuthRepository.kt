@@ -7,11 +7,30 @@ import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
+import br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential
 
 // Implementa o contrato de autenticação usando a fonte Supabase.
 class SupabaseAuthRepository(
     private val dataSource: SupabaseAuthDataSource,
 ) : AuthRepository {
+
+    override suspend fun resendEmailConfirmation(email: String): Result<Unit> = try {
+        dataSource.resendEmailConfirmation(email)
+        Result.success(Unit)
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (exception: Exception) {
+        Result.failure(exception.toAuthFailure())
+    }
+
+    override suspend fun verifyEmailConfirmation(credential: EmailConfirmationCredential): Result<Unit> = try {
+        dataSource.verifyEmailConfirmation(credential)
+        Result.success(Unit)
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (exception: Exception) {
+        Result.failure(exception.toAuthFailure())
+    }
 
     override suspend fun signUp(
         displayName: String,

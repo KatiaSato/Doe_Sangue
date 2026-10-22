@@ -92,6 +92,22 @@ class RegistrationFlowTest {
         compose.runOnIdle { assertEquals(0, auth.calls) }
     }
 
+    @Test fun lastStepEmailRemainsValidatedAndIsUsedForTheNewAccount() {
+        openApp(); passwordStep("Não sei")
+        compose.onNodeWithText("E-mail da conta").assertTextContains("cadastro@example.com")
+            .performTextReplacement("invalido")
+        passwords(); tap("Criar minha conta")
+        compose.onNodeWithText("Informe um e-mail válido.").assertExists()
+        compose.runOnIdle { assertEquals(0, auth.calls) }
+        compose.onNodeWithText("E-mail da conta").performTextReplacement("nova-conta@example.com")
+        tap("Criar minha conta")
+        compose.runOnIdle {
+            assertEquals(1, auth.calls)
+            assertEquals("nova-conta@example.com", auth.lastEmail)
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.EmailVerification>() == true)
+        }
+    }
+
     @Test fun unknownTypeIsSentAndPendingConfirmationDoesNotEnterMain() {
         openApp(); passwordStep("Não sei")
         passwords("fraca", "fraca"); tap("Criar minha conta")
@@ -188,6 +204,11 @@ class RegistrationFlowTest {
     }
 
     private class RegistrationAuth : AuthRepository {
+    override suspend fun resendEmailConfirmation(email: String): Result<Unit> =
+        Result.failure(UnsupportedOperationException("Confirmação não configurada neste teste."))
+    override suspend fun verifyEmailConfirmation(credential: br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential): Result<Unit> =
+        Result.failure(UnsupportedOperationException("Confirmação não configurada neste teste."))
+
         var user: AuthenticatedUser? = null
         var calls = 0
         var lastType: BloodType? = null

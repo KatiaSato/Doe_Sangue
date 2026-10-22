@@ -34,8 +34,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalAutofillManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -205,9 +209,11 @@ fun SecurityScreen(
 
     val context = LocalContext.current
     val finish by rememberUpdatedState(onBack)
+    val autofill = LocalAutofillManager.current
 
     LaunchedEffect(state.passwordChanged) {
         if (state.passwordChanged) {
+            autofill?.commit()
             currentPassword = ""
             newPassword = ""
             confirmation = ""
@@ -238,6 +244,7 @@ fun SecurityScreen(
         Spacer(Modifier.height(14.dp))
         SecurityPasswordField(
             label = "Senha atual",
+            autofillType = ContentType.Password,
             value = currentPassword,
             onValueChange = { currentPassword = it },
             visible = currentPasswordVisible,
@@ -251,6 +258,7 @@ fun SecurityScreen(
 
         SecurityPasswordField(
             label = "Nova senha",
+            autofillType = ContentType.NewPassword,
             value = newPassword,
             onValueChange = { newPassword = it },
             visible = newPasswordVisible,
@@ -264,6 +272,7 @@ fun SecurityScreen(
 
         SecurityPasswordField(
             label = "Confirmar nova senha",
+            autofillType = ContentType.NewPassword,
             value = confirmation,
             onValueChange = { confirmation = it },
             visible = confirmationVisible,
@@ -311,6 +320,7 @@ fun SecurityScreen(
 @Composable
 private fun SecurityPasswordField(
     label: String,
+    autofillType: ContentType,
     value: String,
     onValueChange: (String) -> Unit,
     visible: Boolean,
@@ -339,7 +349,7 @@ private fun SecurityPasswordField(
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password,
         ),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().semantics { contentType = autofillType },
     )
 }
 

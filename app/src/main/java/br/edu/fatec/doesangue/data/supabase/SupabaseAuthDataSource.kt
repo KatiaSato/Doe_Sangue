@@ -12,13 +12,52 @@ import io.github.jan.supabase.auth.api.authenticatedSupabaseApi
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.auth.OtpType
+import br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 // Realiza a autenticação usando o cliente Supabase.
 class SupabaseAuthDataSource(
     private val client: SupabaseClient,
+    private val confirmationClientFactory: () -> SupabaseClient = {
+        createConfirmationSupabaseClient(client.supabaseHttpUrl, client.supabaseKey)
+    },
 ) {
+    suspend fun resendEmailConfirmation(email: String) {
+        client.auth.awaitInitialization()
+        client.auth.resendEmail(OtpType.Email.SIGNUP, email.trim(), redirectUrl = CONFIRMATION_REDIRECT)
+    }
+
+    suspend fun verifyEmailConfirmation(credential: EmailConfirmationCredential) {
+        client.auth.awaitInitialization()
+        val verifier = if (credential is EmailConfirmationCredential.Code) {
+            client.auth.codeVerifierCache.loadCodeVerifier()
+                ?.takeIf { it.isNotBlank() } ?: throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
+        } else null
+        val isolated = confirmationClientFactory()
+        try {
+            isolated.auth.awaitInitialization()
+            val user = when (credential) {
+                is EmailConfirmationCredential.Code -> {
+                    if (credential.value.isBlank()) throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
+                    isolated.auth.codeVerifierCache.saveCodeVerifier(checkNotNull(verifier))
+                    val session = isolated.auth.exchangeCodeForSession(credential.value, saveSession = false)
+                    isolated.auth.retrieveUser(session.accessToken)
+                }
+                is EmailConfirmationCredential.AccessToken -> {
+                    if (credential.value.isBlank()) throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
+                    isolated.auth.retrieveUser(credential.value)
+                }
+            }
+            if (user.id.isBlank() || user.emailConfirmedAt == null) {
+                throw AuthFailure(AuthError.EMAIL_NOT_CONFIRMED)
+            }
+        } finally {
+            isolated.close()
+        }
+    }
+
     suspend fun signUp(
         displayName: String,
         email: String,
@@ -28,7 +67,7 @@ class SupabaseAuthDataSource(
         require(displayName.isNotBlank()) { "Informe seu nome." }
         client.auth.awaitInitialization()
         check(client.auth.currentUserOrNull() == null) { "Já existe uma sessão conectada." }
-        client.auth.signUpWith(Email) {
+        client.auth.signUpWith(Email, redirectUrl = CONFIRMATION_REDIRECT) {
             this.email = email.trim()
             this.password = password
             data = buildJsonObject {
@@ -139,6 +178,10 @@ class SupabaseAuthDataSource(
 
             else -> error("Não foi possível restaurar a sessão.")
         }
+    }
+
+    companion object {
+        const val CONFIRMATION_REDIRECT = "br.edu.fatec.doesangue://auth/confirmation"
     }
 
 }

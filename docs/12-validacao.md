@@ -1,5 +1,21 @@
 # Validação
 
+## Preenchimento automático — 22/10/2026
+
+Fechamento posterior: usuária confirmou o teste do ajuste e autorizou commit e push do conjunto F09/Autofill. Aceite por relato no recorte, sem atribuir cenários adicionais ou inspeção de credenciais/tráfego. Não repetir testes ou operações remotas por essa confirmação; anotações anteriores de aceite/Git pendentes são históricas.
+
+Usuária autorizou diretamente identificar campos de e-mail/senha para Autofill. ContentType distingue e-mail/identificador, senha existente e nova; última etapa do cadastro inclui e-mail preenchido/editável ligado ao updateEmail e validação existentes. Em redefinição/Segurança, commit após sucesso antes de limpar senhas/sair. Sem mudança de domínio, regra de senha, SQL ou configuração remota. Fluxo/arquivos em docs/37.
+
+**44 Android distintos aprovados**, fictícios/sem rede/e-mail no Moto g04/Android14: seis novos AuthAutofillTest em16,291s, mais38 regressão (cinco login/seis cadastro/cinco recuperação/seis Segurança/dez Activity recuperação/seis Activity confirmação). Rodada de38 em178,228s aprovou37; último perdeu foco ao fechar teclado. Repetição20,006s também interrompida, com Configurações em primeiro plano observada. Após usuária disponibilizar aparelho, esse único caso passou em10,562s, sem nova produção. Comparação inicial de ContentType composto por identidade corrigida somente no teste; rodada inicial reprovada não é aprovação. APKs/Lint finais25s, Lint posterior8s, zero erros/14 avisos. Instalação -r preservou dados; serviço Google habilitado conferido pelo nome da configuração, sem acessar contas/senhas. Testes exercitam OnAutofillText/callback/envio explícito/limpeza/validações e regressões; não provam oferta visual real do Google, ainda para aceite manual. Sem novo Git solicitado.
+
+## F09 — implementada/configurada; aceite por relato — 22/10/2026
+
+Delegação direta somente de F09 para encerrar o dia; próximos conceitos voltam à tutoria. Reenvio explícito no cadastro/login não confirmado, teclado E-mail/validação/mensagens/espera local60s. Retorno Android aberto/fechado, parser PKCE/fragmento SIGNUP e cliente Auth efêmero que consulta confirmação sem importar sessão, apagar verificador ou trocar conta no principal. F07 mantém prioridade. Corrigido estado congelado no builder coletando StateFlow dentro da rota. Arquivos/diagrama/roteiro em docs/36.
+
+**17 JVM aprovados** (11 mapper/seis mensagens); **61 Android aprovados**, fictícios/sem rede/e-mail no Moto g04/Android14: 11 novos SDK/VM/parser em2,363s; seis Activity em28,876s;44 regressão em149,549s (13 SDKPKCE/dez Activity recuperação/cinco cadastro/cinco login/11 navegação). Tentativas iniciais falharam por espera/rolagem do executor e revelaram depois estado congelado, corrigidos antes da rodada aprovada. APKs/Lint zero erros/14 avisos, instalação -r preservou dados; captura sintética de reenvio revisada.
+
+Autorização específica para somente adicionar br.edu.fatec.doesangue://auth/confirmation ao projeto acadêmico fbrycvxelubxxafjstbo (main Production). Adicionado e lista recovery+confirmation conferida; nenhum e-mail/SQL/template/credencial alterado. Evidência ignorada em captures/2026-10-22-confirmacao-email/supabase-retorno.png. Após explicação do reenvio, usuária informou funcionamento correto: aceite manual neste recorte por relato, sem nova captura/inspeção HTTP ou atribuir cenários adicionais. Git novo não solicitado. Configurar allowlist/testes interceptados, por si só, não prova entrega real de e-mail.
+
 ## A01/F10 — aceite manual e fechamento — 22/10/2026
 
 Usuária confirmou: “meu teste visual confirma as implementações sem erros”, após a correção do Voltar do Android. Aceite por relato do conjunto de perfil/edição, novo visual e máscara, sem nova captura ou inspeção de HTTP/JWT e sem atribuir cenários adicionais não descritos. Recorte concluído. Ajustes finos ficam para depois, ainda a especificar. Autorizados documentação, commit e push do conjunto completo, incluindo produção, testes, migração e roteiro SQL; não incluir dados locais ignorados. Não repetir SQL ou suítes já aprovadas por esta confirmação documental; resultados e limites permanecem registrados abaixo. Anotações anteriores de aceite/Git pendentes são históricas.
