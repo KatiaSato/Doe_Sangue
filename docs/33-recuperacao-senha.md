@@ -53,6 +53,29 @@ sequenceDiagram
 
 Aceitação do pedido não comprova existência da conta ou entrega. HTTP 400 sozinho não identifica a causa. Interface usa categorias estruturadas, orientações em português e fallback sem detalhes internos.
 
+## Onde ficou a maior parte do trabalho?
+
+1. **Voltar do e-mail para o lugar certo.**
+   Configuramos o endereço de retorno no Supabase e no Android. O aplicativo precisa receber o link tanto ao iniciar quanto quando já está aberto.
+2. **Comprovar que o retorno é válido.**
+   Receber um link não libera automaticamente a troca de senha. O SDK combina o código recebido com um verificador guardado na instalação que iniciou o pedido. Esse mecanismo é o **PKCE**. Só depois da validação liberamos o formulário.
+3. **Evitar operações fora de ordem.**
+   Imagine abrir um segundo link enquanto a primeira senha está sendo salva. Precisamos impedir que uma tela antiga altere a senha usando a sessão do novo link. O coordenador confere a identidade e usa uma trava, chamada `Mutex`, para organizar essas operações.
+4. **Tratar interrupções e falhas.**
+   Rede indisponível, link inválido, resposta atrasada, aplicativo recriado ou falha no logout exigem comportamentos diferentes. Por exemplo: se a senha foi salva e o logout falhou, tentar novamente deve repetir **somente o logout**.
+5. **Testar essas combinações.**
+   O percurso normal é apenas uma parte. Também verificamos bloqueios, respostas atrasadas, troca de links, navegação e limpeza dos campos.
+
+Os três ViewModels dividem as responsabilidades:
+
+| Arquivo | Responsabilidade |
+| --- | --- |
+| `PasswordRecoveryViewModel` | Solicitar o link e apresentar o resultado |
+| `RecoveryLinkViewModel` | Coordenar validação, identidade, gravação e saída |
+| `ResetPasswordViewModel` | Validar os campos e acompanhar o salvamento |
+
+O **`RecoveryLinkViewModel` foi a peça central da complexidade**: ele garante que as várias partes conversem na ordem correta, inclusive quando algo interrompe o caminho.
+
 ## Arquivos e responsabilidades
 
 | Camada | Arquivos | Responsabilidade |

@@ -62,6 +62,8 @@ class AuthErrorMapperTest {
             "email_address_invalid" to AuthError.INVALID_EMAIL,
             "email_not_confirmed" to AuthError.EMAIL_NOT_CONFIRMED,
             "invalid_credentials" to AuthError.INVALID_CREDENTIALS,
+            "current_password_mismatch" to AuthError.CURRENT_PASSWORD_INCORRECT,
+            "current_password_invalid" to AuthError.CURRENT_PASSWORD_INCORRECT,
             "email_exists" to AuthError.ACCOUNT_ALREADY_EXISTS,
             "user_already_exists" to AuthError.ACCOUNT_ALREADY_EXISTS,
             "weak_password" to AuthError.WEAK_PASSWORD,
@@ -88,8 +90,28 @@ class AuthErrorMapperTest {
         assertEquals(AuthError.INVALID_CREDENTIALS, failure.reason)
     }
 
+    @Test fun currentPasswordClassificationUsesRawCodeAndDoesNotGuessOtherCauses() {
+        assertEquals(AuthError.CURRENT_PASSWORD_INCORRECT,
+            restError("current_password_mismatch", "Synthetic unrelated description").toAuthFailure().reason)
+        assertEquals(AuthError.CURRENT_PASSWORD_INCORRECT,
+            restError("current_password_invalid", "Synthetic unrelated description").toAuthFailure().reason)
+        assertEquals(AuthError.UNKNOWN,
+            restError("current_password_required", "current_password_mismatch").toAuthFailure().reason)
+        assertEquals(AuthError.UNKNOWN,
+            restError("future_code", "current_password_mismatch").toAuthFailure().reason)
+    }
+
     @Test fun sdkMissingSessionExceptionUsesStructuredSessionCategory() {
         val failure = AuthSessionMissingException(response()).toAuthFailure()
+        assertEquals(AuthError.SESSION_UNAVAILABLE, failure.reason)
+        assertNull(failure.message)
+    }
+
+    @Test fun sdkRequiredSessionExceptionUsesSessionCategoryWithoutExposingItsUrl() {
+        val exception = io.github.jan.supabase.auth.exception.SessionRequiredException(
+            "https://auth.example.test/auth/v1/user",
+        )
+        val failure = exception.toAuthFailure()
         assertEquals(AuthError.SESSION_UNAVAILABLE, failure.reason)
         assertNull(failure.message)
     }

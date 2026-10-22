@@ -1,5 +1,63 @@
 # Validação
 
+## F08 — aceite final e sprint concluída — 22/10/2026
+
+Após o roteiro de sair da conta, tentar a senha anterior e depois a nova, usuária confirmou “resultado saiu com esperado”: senha anterior recusada e nova aceita. Confirmação por relato, sem captura nova, inspeção HTTP/JWT ou credenciais. Soma-se aos aceites anteriores de senha atual incorreta com mensagem específica, gravação correta com Toast/retorno às Configurações mantendo sessão e teclado de e-mail na recuperação. Sprint F08 concluída neste recorte; registros anteriores abaixo descrevem etapas históricas.
+
+Somente documentação atualizada neste fechamento (AGENTS.md, docs/34, docs/26 e este documento), sem repetir suítes por relato manual. Testes e builds aprovados abaixo preservados como evidências separadas. Sem SQL, alteração remota, envio de e-mail ou Git novo. Próxima funcionalidade depende de escolha da usuária e permanece em tutoria com diagrama.
+
+## Ajuste solicitado de teclado de e-mail e confirmação positiva F08 — 22/10/2026
+
+Usuária confirmou o teste positivo F08 do roteiro anterior (senha atual correta, Toast e retorno às Configurações mantendo sessão), por relato. Antes de fechar a sprint pediu teclado de e-mail com @ nos formulários e identificou recuperação como tela percebida. Conferência de código: login/cadastro/recuperação já usam KeyboardType.Email; inspeção nativa pontual exibiu tipo de e-mail 0x8021 no editor, sem coletar conteúdo digitado nem comprovar teclas visíveis. Padronizados somente AuthScreens.kt/RegistrationScreens.kt com capitalization=None/autoCorrectEnabled=false, mantendo Email. Campo visual de Editar perfil não é editável e não foi convertido em nova funcionalidade.
+
+assembleDebug/lintDebug offline aprovados em 1m1s, zero erros/14 avisos. APK instalado no Moto g04 com -r, dados preservados. Sem nova suíte comportamental para este ajuste de opções de teclado; casos anteriores permanecem evidências separadas. Usuária confirmou “esta correto” após conferir o teclado na recuperação: aceite visual por relato, sem captura nova/inspeção do agente, sem estender conferência manual às outras telas. Não repetir testes por esse aceite. Login com nova senha/rejeição da antiga F08 ainda não confirmado. Sprint aberta, sem Git ou operação remota.
+
+## F08 — variante real do erro corrigida — 22/10/2026
+
+Usuária autorizou consulta ao Supabase para diagnosticar a mensagem genérica. No painel conectado, Logs → filtro Auth → tentativa PUT /user de 22/10 às 15:24:00 (America/Sao_Paulo): HTTP 400 e error_code current_password_invalid. Mapper reconhecia somente current_password_mismatch, causando fallback. Correção direta dentro do pedido: reconhecer ambos como CURRENT_PASSWORD_INCORRECT e reutilizar “Senha atual incorreta.”, sem classificar causas desconhecidas como senha errada. Sem comparação de descrição textual, sem mudança remota e sem credenciais/logs integrais versionados.
+
+Regressão ampliada em AuthErrorMapperTest e SupabaseAuthPkceTest. Antes da correção, dois casos JVM falharam reproduzindo a causa; depois 17 JVM aprovados, APKs/Lint aprovados (build 1m1s). Moto g04/Android 14: OK (13 tests) em 3,052s, SDK com respostas interceptadas/storage em memória, sem rede. Instalação com -r preservando dados. Depois da atualização, usuária confirmou “agora deu certo” no cenário de senha atual incorreta: mensagem específica aceita por relato, sem nova inspeção remota. Não repetir testes automatizados por essa confirmação. Pendente teste positivo com Toast/retorno mantendo sessão e posterior login com nova senha/rejeição da antiga; sem alteração real de senha, e-mail, SQL ou Git pelo agente.
+
+## F08 — nova tentativa com mensagem genérica — 22/10/2026
+
+Usuária relatou nova tentativa exibindo impossibilidade de alteração e pediu “Senha atual incorreta.”. Mapper/apresentação já contemplam current_password_mismatch; falta código estruturado da resposta real para identificar por que ocorreu fallback, sem assumir causa pela tentativa ou pelo HTTP. Solicitado somente código do registro de Auth, sem dados pessoais/credenciais. Reexecutados os testes pertinentes: 17 JVM aprovados, testDebugUnitTest com AuthErrorMapperTest/AuthErrorMessagesTest, build em 8s, sem rede. Primeira execução impedida por acesso ao cache do Gradle; execução autorizada com acesso ao cache concluída. Sem mudança de produção, operação remota ou Git; aceite pendente. Ver docs/34.
+
+## F08 — teste real não aprovado e configuração desativada — 22/10/2026
+
+Usuária relatou alteração bem-sucedida mesmo fornecendo senha atual incorreta, usando sessão já aberta. Depois confirmou que, ao reabrir as configurações de Email, Require current password when updating está desativada. Relatos sem inspeção independente do painel, tráfego ou origem da sessão. O resultado não atende ao aceite de F08; os testes locais abaixo continuam aprovados, mas simulam respostas e não comprovam a política remota. Próximo passo: usuária ativar, salvar e reabrir a opção para confirmar persistência; depois autenticar normalmente e repetir o cenário negativo. Considerar a nova senha escolhida no teste para o próximo acesso; nenhuma credencial registrada. Sem mudança de produção, novos testes locais, SQL, operação remota pelo agente ou Git. Detalhes em docs/34.
+
+## F08 — interface e navegação aprovadas — 22/10/2026
+
+Botão ligado pela usuária, conferido. Agente criou somente ChangePasswordFlowTest e documentação. assembleDebug/assembleDebugAndroidTest/lintDebug offline: **BUILD SUCCESSFUL em 25s**, zero erros/14 avisos. Moto g04/Android 14: **OK (16 tests) em 90,32s**, seis de F08 e dez AppNavigationTest, sem falhas. Saída ignorada em captures/2026-10-22-f08-ui/ui-and-navigation.txt.
+
+Cobertura: validação sem envio, três visibilidades independentes conferidas pelo texto desenhado, falha preservando valores, bloqueio de campos/botão/Voltar/seta durante envio, senha atual incorreta seguida de nova tentativa, Toast real observado por evento Android, sucesso voltando às Configurações com sessão mantida e zero logout, falhas sem falso sucesso, saída/reabertura limpa e restauração Compose sem senhas. Esta última usa StateRestorationTester e não simula morte real do processo. Todo o grafo usa fakes, sem rede ou credenciais reais; APKs atualizados com -r, dados preservados. Sem testes reais de senha, e-mail, SQL, remoto ou Git. Testes de dados/ViewModel anteriores permanecem como evidências separadas, não repetidos nesta rodada de UI.
+
+Próximo passo guiado em docs/34: usuária conferir a opção Require current password when changing password no provedor Email do projeto Supabase. Nenhum estado remoto foi observado/alterado nesta etapa; envio correto de current_password nos testes locais não comprova sua exigência no servidor. F08 local concluída, aceite remoto pendente.
+
+## F08 — passagem da factory e compilação dos chamadores — 22/10/2026
+
+Usuária repassou changePasswordViewModelFactory de AppContainer por DoeSangueApp/AppNavHost até MainNavGraph; conferido. Agente acrescentou somente o argumento correspondente em dez chamadores de AppNavHost nos testes, com os containers fictícios existentes. assembleDebug e assembleDebugAndroidTest offline: **BUILD SUCCESSFUL em 14s**. Sem repetir testes comportamentais/Lint por passagem de parâmetro, sem instalação ou rede. Última evidência comportamental segue abaixo. Destino Security ainda não instancia o novo ViewModel e tela ainda visual; próximo passo em docs/34. Nenhuma produção alterada pelo agente, remoto/SQL/Git.
+
+## F08 — dados/ViewModel aprovados após correção de sessão — 22/10/2026
+
+Usuária acrescentou SessionRequiredException ao mapper, com classificação SESSION_UNAVAILABLE. Correção conferida; agente não editou produção. Repetição direcionada: **17 testes JVM aprovados** (11 AuthErrorMapperTest/seis AuthErrorMessagesTest), zero falhas/erros. APKs/Lint: **BUILD SUCCESSFUL em 22s**, zero erros/14 avisos. Moto g04/Android 14: **OK (19 tests) em 3,361s**, seis ChangePasswordViewModelTest e 13 SupabaseAuthPkceTest. Falhas iniciais da seção seguinte resolvidas; sem necessidade de ampliar testes de UI nesta etapa sem alteração de tela.
+
+Pedido HTTP sintético comprova método/URL, autenticação, nomes exatos e valores das duas senhas sem trim; ausência de sessão não envia pedido e agora produz orientação correta. ViewModel cobre validação, guarda, falhas/repetição e cancelamento. Runner usa contexto fictício, SDK responde via interceptor antes da rede, storage em memória. Instalações com -r preservaram dados; agente não iniciou fluxo real, e-mail, SQL, Git ou mudança remota. Não comprova configuração da exigência de senha atual no Supabase. Próximo passo em tutoria: factory do ChangePasswordViewModel no AppContainer; UI e aceite remoto continuam pendentes em docs/34.
+
+## F08 — testes iniciais e ajuste de sessão pendente — 22/10/2026
+
+Repository changePassword escrito pela usuária e conferido. Agente adaptou sete fakes, criou ChangePasswordViewModelTest e ampliou SupabaseAuthPkceTest, AuthErrorMapperTest e AuthErrorMessagesTest; nenhuma produção alterada pelo agente.
+
+- APKs e Lint: BUILD SUCCESSFUL em 1m48s, zero erros/14 avisos. Primeira seleção JVM de classificação/mensagens: 16 aprovados. Depois de acrescentar teste que reproduz a ausência de sessão local: 17 executados, 16 aprovados e um reprovado. Falha: SessionRequiredException é classificada como UNKNOWN em vez de SESSION_UNAVAILABLE. Compilação de produção e testes permanece aprovada; suíte comportamental ainda não está toda aprovada.
+- Moto g04/Android 14 por ADB sem fio: seis testes ChangePasswordViewModelTest aprovados; SupabaseAuthPkceTest com 13 casos, última rodada com 12 aprovados e um reprovado. Total atual: 18/19, falha restante de ausência de sessão pela mesma causa do teste JVM. Primeira rodada tinha duas falhas; a de senha fraca vinha da ordem dos cenários fictícios: resposta session_not_found limpa a sessão no SDK antes do próximo caso. Movido esse cenário para o fim; confirmação na segunda execução.
+- Pedido HTTP de F08 aprovado: PUT /auth/v1/user com sessão sintética, corpo apenas password/current_password e valores sem trim. Identidade e verificador PKCE pendente preservados. Erros estruturados de senha atual, força/reuso, limite e sessão exercitados via interceptor antes da rede. ViewModel cobre validações, ausência de política de força para senha antiga, bloqueio de pedidos pendentes/após sucesso, erro/nova tentativa, mensagens e resultados tardios após cancelamento.
+- Fonte local do SDK confirma que requireSession=true lança SessionRequiredException antes da chamada quando não encontra token. Próximo passo em tutoria: classificar esse tipo em Throwable.toAuthFailure como SESSION_UNAVAILABLE; código de produção ainda não corrigido pelo agente. Testes preservados para verificar a correção.
+- APKs instalados com -r, dados preservados; runner/contexto fictícios, SDK com interceptor e storage em memória. Sem rede/e-mail/alteração real de senha/SQL/configuração remota/Git. F08 ainda sem factory/UI ligada ou aceite remoto. Esses testes não comprovam que o projeto Supabase exige a senha atual.
+
+## F08 — diagnóstico de serialização do SDK — 22/10/2026
+
+Investigação antes da implementação da operação de dados: fonte local 3.6.0 aponta currentPassword sem SerialName e supabaseJson sem namingStrategy. Diagnóstico isolado executado sobre classes.jar reais dos AARs Auth/Core, com Kotlin/Serialization do cache e valores sintéticos, confirmou que UserUpdateBuilder gera currentPassword e não current_password. Asserções aprovadas, saída somente com nomes dos campos; sem rede, credenciais reais ou mudança remota. Helper ignorado em captures/2026-10-22-f08-investigation/CheckCurrentPassword.java. Não é teste HTTP nem build do app. Proposta localizada e próximos testes em docs/34; changePassword ainda sem implementação completa de dados/repository/fakes.
+
 ## F07 — aceite real e confirmação/visibilidade da senha — 21/10/2026
 
 Confirmação posterior: usuária respondeu ‘Confirmo resultado’ à atualização com Toast de sucesso, retorno automático ao login e Mostrar/Ocultar nos dois campos. Ajustes aceitos por relato; F07 concluída neste recorte. Somente documentação atualizada nesta confirmação, sem repetir testes, enviar e-mail, alterar produção/SQL ou executar commit/push.

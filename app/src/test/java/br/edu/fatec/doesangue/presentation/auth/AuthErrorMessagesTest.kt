@@ -21,6 +21,13 @@ class AuthErrorMessagesTest {
             AuthFailure(AuthError.INVALID_CREDENTIALS).toAuthErrorMessage("fallback"))
     }
 
+    @Test fun changingPasswordDistinguishesIncorrectCurrentPasswordFromUnavailableSession() {
+        assertEquals("Senha atual incorreta.",
+            AuthFailure(AuthError.CURRENT_PASSWORD_INCORRECT).toAuthErrorMessage("fallback"))
+        assertEquals("Sua sessão não está disponível. Entre novamente para continuar.",
+            AuthFailure(AuthError.SESSION_UNAVAILABLE).toAuthErrorMessage("fallback"))
+    }
+
     @Test fun confirmationIsDifferentFromInvalidEmailAndDoesNotPromiseResend() {
         val confirmation = AuthFailure(AuthError.EMAIL_NOT_CONFIRMED).toAuthErrorMessage("fallback")
         val invalidEmail = AuthFailure(AuthError.INVALID_EMAIL).toAuthErrorMessage("fallback")

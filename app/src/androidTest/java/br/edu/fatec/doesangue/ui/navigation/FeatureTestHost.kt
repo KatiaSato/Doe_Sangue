@@ -41,5 +41,6 @@ internal fun FeatureTestHost(
         centerDetailViewModelFactory = container::centerDetailViewModelFactory,
         passwordRecoveryViewModelFactory = container.passwordRecoveryViewModelFactory,
         resetPasswordViewModelFactory = { container.resetPasswordViewModelFactory },
+        changePasswordViewModelFactory = container.changePasswordViewModelFactory,
     )
 }

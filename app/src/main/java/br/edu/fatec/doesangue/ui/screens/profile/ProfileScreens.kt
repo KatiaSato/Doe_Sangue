@@ -1,5 +1,6 @@
 package br.edu.fatec.doesangue.ui.screens.profile
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,21 +16,35 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.edu.fatec.doesangue.presentation.auth.LogoutUiState
 import br.edu.fatec.doesangue.presentation.profile.ProfileUiState
 import br.edu.fatec.doesangue.domain.model.BloodType
+import br.edu.fatec.doesangue.presentation.auth.ChangePasswordUiState
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
@@ -187,18 +202,116 @@ fun EditProfileScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun SecurityScreen(onBack: () -> Unit) {
-    DsScreen(title = "Segurança", onBack = onBack) {
+fun SecurityScreen(
+    state: ChangePasswordUiState,
+    onSave: (String, String, String) -> Unit,
+    onBack: () -> Unit,
+) {
+    var currentPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmation by remember { mutableStateOf("") }
+
+    var currentPasswordVisible by remember { mutableStateOf(false) }
+    var newPasswordVisible by remember { mutableStateOf(false) }
+    var confirmationVisible by remember { mutableStateOf(false) }
+
+    val fieldsEnabled = !state.isSaving && !state.passwordChanged
+
+    val context = LocalContext.current
+    val finish by rememberUpdatedState(onBack)
+
+    LaunchedEffect(state.passwordChanged) {
+        if (state.passwordChanged) {
+            currentPassword = ""
+            newPassword = ""
+            confirmation = ""
+
+            currentPasswordVisible = false
+            newPasswordVisible = false
+            confirmationVisible = false
+
+            Toast.makeText(
+                context,
+                "Senha salva com sucesso.",
+                Toast.LENGTH_SHORT,
+            ).show()
+
+            finish()
+        }
+    }
+    BackHandler(enabled = !fieldsEnabled) {
+        // Aguarda a conclusão antes de permitir voltar.
+    }
+
+    DsScreen(
+        title = "Segurança",
+        onBack = if (fieldsEnabled) onBack else null,
+    ) {
         Spacer(Modifier.height(12.dp))
         SectionHeader("Senha")
         Spacer(Modifier.height(14.dp))
-        VisualField("Senha atual", "••••••••")
+        SecurityPasswordField(
+            label = "Senha atual",
+            value = currentPassword,
+            onValueChange = { currentPassword = it },
+            visible = currentPasswordVisible,
+            onToggleVisibility = {
+                currentPasswordVisible = !currentPasswordVisible
+            },
+            enabled = fieldsEnabled,
+        )
+
         Spacer(Modifier.height(16.dp))
-        VisualField("Nova senha", "••••••••")
+
+        SecurityPasswordField(
+            label = "Nova senha",
+            value = newPassword,
+            onValueChange = { newPassword = it },
+            visible = newPasswordVisible,
+            onToggleVisibility = {
+                newPasswordVisible = !newPasswordVisible
+            },
+            enabled = fieldsEnabled,
+        )
+
         Spacer(Modifier.height(16.dp))
-        VisualField("Confirmar nova senha", "••••••••")
+
+        SecurityPasswordField(
+            label = "Confirmar nova senha",
+            value = confirmation,
+            onValueChange = { confirmation = it },
+            visible = confirmationVisible,
+            onToggleVisibility = {
+                confirmationVisible = !confirmationVisible
+            },
+            enabled = fieldsEnabled,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            "Use ao menos 8 caracteres com maiúscula, minúscula, número e símbolo.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+
+        state.errorMessage?.let { message ->
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
         Spacer(Modifier.height(38.dp))
-        PrimaryButton("Alterar senha", {})
+        PrimaryButton(
+            text = if (state.isSaving) "Salvando…" else "Alterar senha",
+            onClick = {
+                onSave(
+                    currentPassword,
+                    newPassword,
+                    confirmation,
+                )
+            },
+            enabled = fieldsEnabled,
+        )
         Spacer(Modifier.height(32.dp))
         Card(colors = CardDefaults.cardColors(containerColor = BloodRedSoft), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
@@ -207,6 +320,41 @@ fun SecurityScreen(onBack: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun SecurityPasswordField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    visible: Boolean,
+    onToggleVisibility: () -> Unit,
+    enabled: Boolean,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        singleLine = true,
+        enabled = enabled,
+        visualTransformation = if (visible) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
+        trailingIcon = {
+            TextButton(
+                onClick = onToggleVisibility,
+                enabled = enabled,
+            ) {
+                Text(if (visible) "Ocultar" else "Mostrar")
+            }
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable

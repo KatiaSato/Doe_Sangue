@@ -81,6 +81,20 @@ class SupabaseAuthRepository(
         }
     }
 
+    override suspend fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+    ): Result<Unit> {
+        return try {
+            dataSource.changePassword(currentPassword, newPassword)
+            Result.success(Unit)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Result.failure(exception.toAuthFailure())
+        }
+    }
+
     override suspend fun signOut(): Result<Unit> {
         return try {
             dataSource.signOut()

@@ -14,6 +14,9 @@ internal fun Throwable.toAuthErrorMessage(fallback: String): String =
         AuthError.INVALID_CREDENTIALS ->
             "E-mail ou senha incorretos."
 
+        AuthError.CURRENT_PASSWORD_INCORRECT ->
+            "Senha atual incorreta."
+
         AuthError.ACCOUNT_ALREADY_EXISTS ->
             "Já existe uma conta com este e-mail."
 

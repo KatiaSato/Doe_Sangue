@@ -4,6 +4,7 @@ import br.edu.fatec.doesangue.domain.model.AuthError
 import br.edu.fatec.doesangue.domain.model.AuthFailure
 import io.github.jan.supabase.auth.exception.AuthErrorCode
 import io.github.jan.supabase.auth.exception.AuthRestException
+import io.github.jan.supabase.auth.exception.SessionRequiredException
 import io.github.jan.supabase.exceptions.HttpRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import kotlin.coroutines.cancellation.CancellationException
@@ -44,13 +45,21 @@ internal fun AuthRestException.toAuthError(): AuthError =
         AuthErrorCode.BadCodeVerifier ->
             AuthError.SESSION_UNAVAILABLE
 
-        else -> AuthError.UNKNOWN
+        else -> when (error) {
+            "current_password_mismatch",
+            "current_password_invalid" ->
+                AuthError.CURRENT_PASSWORD_INCORRECT
+
+            else -> AuthError.UNKNOWN
+        }
     }
 
 internal fun Throwable.toAuthFailure(): AuthFailure =
     when (this) {
         is CancellationException -> throw this
         is AuthFailure -> this
+        is SessionRequiredException ->
+            AuthFailure(AuthError.SESSION_UNAVAILABLE)
         is AuthRestException -> AuthFailure(toAuthError())
 
         is HttpRequestException,

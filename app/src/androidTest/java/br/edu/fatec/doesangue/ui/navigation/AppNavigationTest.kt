@@ -89,6 +89,7 @@ class AppNavigationTest {
                     centerDetailViewModelFactory = appContainer::centerDetailViewModelFactory,
                     passwordRecoveryViewModelFactory = appContainer.passwordRecoveryViewModelFactory,
                     resetPasswordViewModelFactory = { appContainer.resetPasswordViewModelFactory },
+                    changePasswordViewModelFactory = appContainer.changePasswordViewModelFactory,
                 )
             } // Fecha DoeSangueTheme
         } // Fecha restoration.setContent — faltou esta chave

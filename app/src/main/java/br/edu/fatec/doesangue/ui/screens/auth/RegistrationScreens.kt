@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -42,7 +43,11 @@ fun RegisterStep1Screen(
             singleLine = true, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(state.email, onEmailChange, label = { Text("E-mail") },
-            singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            singleLine = true, keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Email,
+            ),
             modifier = Modifier.fillMaxWidth())
         RegistrationError(state.errorMessage)
         Spacer(Modifier.height(24.dp))

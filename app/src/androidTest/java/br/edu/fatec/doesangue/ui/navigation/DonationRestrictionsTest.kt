@@ -84,6 +84,7 @@ class DonationRestrictionsTest {
                     centerDetailViewModelFactory = appContainer::centerDetailViewModelFactory,
                     passwordRecoveryViewModelFactory = appContainer.passwordRecoveryViewModelFactory,
                     resetPasswordViewModelFactory = { appContainer.resetPasswordViewModelFactory },
+                    changePasswordViewModelFactory = appContainer.changePasswordViewModelFactory,
                     )
                 }
             }

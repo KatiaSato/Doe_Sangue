@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -77,6 +78,8 @@ fun LoginScreen(
             singleLine = true,
             enabled = !uiState.isLoading,
             keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
                 keyboardType = KeyboardType.Email,
             ),
             modifier = Modifier.fillMaxWidth(),
@@ -169,6 +172,8 @@ fun ForgotPasswordScreen(
             singleLine = true,
             enabled = !state.isSending,
             keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
                 keyboardType = KeyboardType.Email,
             ),
         )

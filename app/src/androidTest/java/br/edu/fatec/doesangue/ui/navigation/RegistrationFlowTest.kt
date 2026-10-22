@@ -202,6 +202,9 @@ class RegistrationFlowTest {
         override suspend fun exchangeRecoveryCode(code: String): Result<AuthenticatedUser> =
             Result.failure(UnsupportedOperationException("Retorno de recuperação não configurado neste teste."))
 
+        override suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> =
+            Result.failure(UnsupportedOperationException("Alteração de senha não configurada neste teste."))
+
         override suspend fun updatePassword(password: String): Result<Unit> =
             Result.failure(UnsupportedOperationException("Atualização de senha não configurada neste teste."))
 

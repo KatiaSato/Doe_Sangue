@@ -6,7 +6,9 @@ import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.auth.SignOutScope
+import io.github.jan.supabase.auth.api.authenticatedSupabaseApi
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -93,6 +95,26 @@ class SupabaseAuthDataSource(
         client.auth.updateUser {
             this.password = password
         }
+    }
+
+    @OptIn(SupabaseInternal::class)
+    suspend fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+    ) {
+        client.auth.awaitInitialization()
+
+        val body = buildJsonObject {
+            put("password", newPassword)
+            put("current_password", currentPassword)
+        }.toString()
+
+        val api = client.authenticatedSupabaseApi(
+            client.auth,
+            requireSession = true,
+        )
+
+        api.putJson("user", body)
     }
 
     // Encerra somente a sessão atual.

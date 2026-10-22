@@ -32,6 +32,8 @@ fun DoeSangueApp(
                 onUpdateRecoveryPassword(validationId, password)
             }
         },
+        changePasswordViewModelFactory =
+            appContainer.changePasswordViewModelFactory,
         profileViewModelFactory = appContainer.profileViewModelFactory,
         appointmentsViewModelFactory = appContainer.appointmentsViewModelFactory,
         appointmentDetailViewModelFactory =

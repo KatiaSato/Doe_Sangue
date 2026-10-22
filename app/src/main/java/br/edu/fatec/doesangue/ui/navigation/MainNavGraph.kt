@@ -14,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailViewModel
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
+import br.edu.fatec.doesangue.presentation.auth.ChangePasswordViewModel
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
@@ -54,6 +55,7 @@ fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
     schedulingViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
+    changePasswordViewModelFactory: ViewModelProvider.Factory,
     appointmentsViewModelFactory: ViewModelProvider.Factory,
     appointmentDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
     logoutViewModelFactory: ViewModelProvider.Factory,
@@ -432,7 +434,14 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable<AppRoute.Security> {
+            val model: ChangePasswordViewModel = viewModel(
+                factory = changePasswordViewModelFactory,
+            )
+            val state by model.uiState.collectAsStateWithLifecycle()
+
             SecurityScreen(
+                state = state,
+                onSave = model::savePassword,
                 onBack = { navController.popBackStack() },
             )
         }

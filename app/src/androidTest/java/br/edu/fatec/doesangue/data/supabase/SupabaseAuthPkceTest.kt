@@ -35,7 +35,14 @@ import org.junit.runner.RunWith
 /** SDK e DataSource reais; interceptor responde antes da rede e storage só em memória. */
 @RunWith(AndroidJUnit4::class)
 class SupabaseAuthPkceTest {
-    private data class Captured(val path: String, val redirect: String?, val grant: String?, val body: JsonObject)
+    private data class Captured(
+        val path: String,
+        val redirect: String?,
+        val grant: String?,
+        val body: JsonObject,
+        val method: String,
+        val usesSyntheticSession: Boolean,
+    )
     private val captured = CopyOnWriteArrayList<Captured>()
     private val verifierCache = MemoryCodeVerifierCache()
     private lateinit var client: SupabaseClient
@@ -60,6 +67,8 @@ class SupabaseAuthPkceTest {
                             request.url.queryParameter("redirect_to"),
                             request.url.queryParameter("grant_type"),
                             Json.parseToJsonElement(buffer.readUtf8().ifBlank { "{}" }).jsonObject,
+                            request.method,
+                            request.header("Authorization") == "Bearer synthetic-access",
                         )
                         val json = when (request.url.encodedPath) {
                             "/auth/v1/recover" -> "{}"
@@ -94,6 +103,57 @@ class SupabaseAuthPkceTest {
     }
 
     @After fun closeClient() = runBlocking { client.close() }
+
+    @Test fun settingsPasswordChangeUsesAuthenticatedPutAndExactFieldsWithoutTrimming() = runBlocking {
+        source.signIn("cadastro@example.com", "SyntheticOld1!")
+        captured.clear()
+        verifierCache.saveCodeVerifier("synthetic-pending-verifier")
+        val currentPassword = " old "
+        val newPassword = " NewSynthetic1! "
+
+        source.changePassword(currentPassword, newPassword)
+
+        val request = captured.single()
+        assertEquals("/auth/v1/user", request.path)
+        assertEquals("PUT", request.method)
+        assertTrue(request.usesSyntheticSession)
+        assertEquals(setOf("password", "current_password"), request.body.keys)
+        assertEquals(currentPassword, request.body["current_password"]?.jsonPrimitive?.content)
+        assertEquals(newPassword, request.body["password"]?.jsonPrimitive?.content)
+        assertEquals(syntheticId, client.auth.currentUserOrNull()?.id)
+        assertTrue(verifierCache.loadCodeVerifier() == "synthetic-pending-verifier")
+    }
+
+    @Test fun settingsPasswordChangeMapsAuthErrorsAndDoesNotMistakeMissingProtectionForWrongPassword() = runBlocking {
+        source.signIn("cadastro@example.com", "SyntheticOld1!")
+        val repository = SupabaseAuthRepository(source)
+        for ((code, expected) in listOf(
+            "current_password_mismatch" to AuthError.CURRENT_PASSWORD_INCORRECT,
+            "current_password_invalid" to AuthError.CURRENT_PASSWORD_INCORRECT,
+            "current_password_required" to AuthError.UNKNOWN,
+            "weak_password" to AuthError.WEAK_PASSWORD,
+            "same_password" to AuthError.SAME_PASSWORD,
+            "over_request_rate_limit" to AuthError.RATE_LIMITED,
+            "future_code" to AuthError.UNKNOWN,
+            // O SDK limpa a sessão após essa resposta; deve ser o último caso.
+            "session_not_found" to AuthError.SESSION_UNAVAILABLE,
+        )) {
+            userStatus = 400
+            userResponse = """{"error_code":"$code","msg":"Synthetic internal detail"}"""
+            val result = repository.changePassword("SyntheticOld1!", "SyntheticNew1!")
+            assertTrue(result.isFailure)
+            assertEquals(code, expected, (result.exceptionOrNull() as? AuthFailure)?.reason)
+            assertNull(result.exceptionOrNull()?.message)
+        }
+    }
+
+    @Test fun settingsPasswordChangeWithoutSessionDoesNotSendARequest() = runBlocking {
+        val result = SupabaseAuthRepository(source)
+            .changePassword("SyntheticOld1!", "SyntheticNew1!")
+        assertTrue(result.isFailure)
+        assertEquals(AuthError.SESSION_UNAVAILABLE, (result.exceptionOrNull() as? AuthFailure)?.reason)
+        assertTrue(captured.isEmpty())
+    }
 
     @Test fun passwordUpdatePreservesValueAndLocalSignOutClearsRecoveredSession() = runBlocking {
         source.requestPasswordReset("cadastro@example.com")

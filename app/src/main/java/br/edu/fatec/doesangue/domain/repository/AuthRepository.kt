@@ -39,6 +39,12 @@ interface AuthRepository {
         password: String,
     ): Result<Unit>
 
+    // Esse contrato representa a alteração em Configurações: recebe a senha atual e a nova, devolvendo sucesso ou falha
+    suspend fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+    ): Result<Unit>
+
     // Encerra a sessão da conta no aplicativo.
     suspend fun signOut(): Result<Unit>
 

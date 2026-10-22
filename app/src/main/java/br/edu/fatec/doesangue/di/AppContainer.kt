@@ -43,6 +43,7 @@ import br.edu.fatec.doesangue.data.repository.SupabaseBloodStockRepository
 import br.edu.fatec.doesangue.data.repository.SupabaseDonationHistoryRepository
 import br.edu.fatec.doesangue.data.supabase.SupabaseBloodStockDataSource
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonationHistoryDataSource
+import br.edu.fatec.doesangue.presentation.auth.ChangePasswordViewModel
 import br.edu.fatec.doesangue.presentation.auth.PasswordRecoveryViewModel
 import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkViewModel
 import br.edu.fatec.doesangue.presentation.auth.ResetPasswordViewModel
@@ -238,6 +239,14 @@ class AppContainer(
     val resetPasswordViewModelFactory = viewModelFactory {
         initializer {
             ResetPasswordViewModel(
+                authRepository = authRepository,
+            )
+        }
+    }
+
+    val changePasswordViewModelFactory = viewModelFactory {
+        initializer {
+            ChangePasswordViewModel(
                 authRepository = authRepository,
             )
         }
