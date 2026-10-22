@@ -35,6 +35,7 @@ fun DoeSangueApp(
         changePasswordViewModelFactory =
             appContainer.changePasswordViewModelFactory,
         profileViewModelFactory = appContainer.profileViewModelFactory,
+        editProfileViewModelFactory = appContainer.editProfileViewModelFactory,
         appointmentsViewModelFactory = appContainer.appointmentsViewModelFactory,
         appointmentDetailViewModelFactory =
             appContainer::appointmentDetailViewModelFactory,

@@ -44,4 +44,16 @@ class CampaignAndProfileMapperTest {
     @Test fun unrecognizedProfileTypeIsNotSilentlyChangedToUnknown() {
         assertThrows(IllegalArgumentException::class.java) { DonorProfileDto("synthetic", "Doador", "INVALIDO").toDomain() }
     }
+
+    @Test fun profileOptionalFieldsRemainNullForLegacyAndPreserveCalendarDate() {
+        val legacy = DonorProfileDto("synthetic", "Doador").toDomain()
+        assertNull(legacy.phone)
+        assertNull(legacy.birthDate)
+        val profile = json.decodeFromString<DonorProfileDto>("""
+            {"id":"synthetic","nome_exibicao":"Doador","tipo_sanguineo":"O+",
+            "telefone":"00900000000","data_nascimento":"2000-02-29"}
+        """).toDomain()
+        assertEquals("00900000000", profile.phone)
+        assertEquals(java.time.LocalDate.of(2000, 2, 29), profile.birthDate)
+    }
 }

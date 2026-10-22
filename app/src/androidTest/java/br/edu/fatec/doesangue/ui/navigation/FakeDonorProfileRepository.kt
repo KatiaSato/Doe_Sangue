@@ -14,6 +14,17 @@ class FakeDonorProfileRepository(
         ),
     ),
 ) : DonorProfileRepository {
+    override suspend fun updateCurrentProfile(
+        displayName: String,
+        bloodType: BloodType,
+        phone: String?,
+        birthDate: java.time.LocalDate?,
+    ): Result<DonorProfile> {
+        val profile = result.getOrNull() ?: return Result.failure(IllegalStateException("Perfil ausente."))
+        val updated = profile.copy(displayName = displayName, bloodType = bloodType, phone = phone, birthDate = birthDate)
+        result = Result.success(updated)
+        return Result.success(updated)
+    }
     override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> {
         val profile = result.getOrNull() ?: return Result.failure(IllegalStateException("Perfil ausente."))
         val updated = profile.copy(bloodType = bloodType)

@@ -38,7 +38,13 @@ class LogoutFlowTest {
 
     private fun openSettings() {
         val profiles = object : DonorProfileRepository {
-        override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> =
+        override suspend fun updateCurrentProfile(
+        displayName: String,
+        bloodType: BloodType,
+        phone: String?,
+        birthDate: java.time.LocalDate?,
+    ): Result<DonorProfile> = error("Atualização completa não configurada neste teste.")
+    override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> =
             Result.failure(UnsupportedOperationException("Edição do tipo não configurada neste roteiro."))
 
             override suspend fun getCurrentProfile(): Result<DonorProfile?> = Result.success(
@@ -85,6 +91,7 @@ class LogoutFlowTest {
                     passwordRecoveryViewModelFactory = container.passwordRecoveryViewModelFactory,
                     resetPasswordViewModelFactory = { container.resetPasswordViewModelFactory },
                     changePasswordViewModelFactory = container.changePasswordViewModelFactory,
+                    editProfileViewModelFactory = container.editProfileViewModelFactory,
                 )
             }
         }

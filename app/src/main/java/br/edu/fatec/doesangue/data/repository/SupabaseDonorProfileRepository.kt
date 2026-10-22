@@ -5,6 +5,8 @@ import br.edu.fatec.doesangue.domain.model.DonorProfile
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
 import kotlinx.coroutines.CancellationException
+import br.edu.fatec.doesangue.data.supabase.mapper.toProfileFailure
+import java.time.LocalDate
 
 // Implementa a consulta ao perfil usando a fonte Supabase.
 /*
@@ -16,6 +18,18 @@ import kotlinx.coroutines.CancellationException
 class SupabaseDonorProfileRepository(
     private val dataSource: SupabaseDonorProfileDataSource,
 ) : DonorProfileRepository {
+    override suspend fun updateCurrentProfile(
+        displayName: String,
+        bloodType: BloodType,
+        phone: String?,
+        birthDate: LocalDate?,
+    ): Result<DonorProfile> = try {
+        Result.success(dataSource.updateCurrentProfile(displayName, bloodType, phone, birthDate))
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (exception: Exception) {
+        Result.failure(exception.toProfileFailure())
+    }
 
     override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> = try {
         Result.success(dataSource.updateCurrentBloodType(bloodType))
@@ -34,7 +48,7 @@ class SupabaseDonorProfileRepository(
             throw exception
         } catch (exception: Exception) {
             // Devolve a falha para quem solicitou o perfil.
-            Result.failure(exception)
+            Result.failure(exception.toProfileFailure())
         }
     }
 

@@ -73,6 +73,7 @@ class LoginFlowTest {
                     passwordRecoveryViewModelFactory = container.passwordRecoveryViewModelFactory,
                     resetPasswordViewModelFactory = { container.resetPasswordViewModelFactory },
                     changePasswordViewModelFactory = container.changePasswordViewModelFactory,
+                    editProfileViewModelFactory = container.editProfileViewModelFactory,
                 )
             }
         }

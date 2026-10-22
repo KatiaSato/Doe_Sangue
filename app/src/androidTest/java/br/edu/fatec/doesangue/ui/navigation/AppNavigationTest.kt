@@ -38,6 +38,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import androidx.test.espresso.Espresso.pressBack
 
 /** Testa os grafos reais por cliques; não autentica nem persiste dados. */
 @RunWith(AndroidJUnit4::class)
@@ -90,6 +91,7 @@ class AppNavigationTest {
                     passwordRecoveryViewModelFactory = appContainer.passwordRecoveryViewModelFactory,
                     resetPasswordViewModelFactory = { appContainer.resetPasswordViewModelFactory },
                     changePasswordViewModelFactory = appContainer.changePasswordViewModelFactory,
+                    editProfileViewModelFactory = appContainer.editProfileViewModelFactory,
                 )
             } // Fecha DoeSangueTheme
         } // Fecha restoration.setContent — faltou esta chave
@@ -188,6 +190,27 @@ class AppNavigationTest {
         assertRoute<AppRoute.Profile>()
         tap("‹")
         assertRoute<AppRoute.Home>()
+    }
+
+    @Test
+    fun androidBackFromProfileReturnsHomeAndKeepsInternalReturnPath() {
+        enterMain()
+        tapTab("Perfil")
+        assertNoPreviousScreen()
+        pressBack()
+        assertRoute<AppRoute.Home>()
+        assertNoPreviousScreen()
+
+        tapTab("Perfil")
+        tap("Configurações")
+        tap("Sobre o app")
+        pressBack()
+        assertRoute<AppRoute.Settings>()
+        pressBack()
+        assertRoute<AppRoute.Profile>()
+        pressBack()
+        assertRoute<AppRoute.Home>()
+        assertNoPreviousScreen()
     }
 
     @Test

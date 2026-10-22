@@ -28,6 +28,7 @@ import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.auth.SessionViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
+import br.edu.fatec.doesangue.presentation.profile.EditProfileViewModel
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailViewModel
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
@@ -201,6 +202,10 @@ class AppContainer(
         }
     }
     // Cria o ViewModel do perfil com o repository configurado.
+    val editProfileViewModelFactory = viewModelFactory {
+        initializer { EditProfileViewModel(donorProfileRepository) }
+    }
+
     val profileViewModelFactory = viewModelFactory {
         initializer {
             ProfileViewModel(

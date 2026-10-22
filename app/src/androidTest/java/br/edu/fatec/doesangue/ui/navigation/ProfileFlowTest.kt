@@ -69,6 +69,7 @@ class ProfileFlowTest {
                     passwordRecoveryViewModelFactory = container.passwordRecoveryViewModelFactory,
                     resetPasswordViewModelFactory = { container.resetPasswordViewModelFactory },
                     changePasswordViewModelFactory = container.changePasswordViewModelFactory,
+                    editProfileViewModelFactory = container.editProfileViewModelFactory,
                 )
             }
         }
@@ -196,6 +197,8 @@ class ProfileFlowTest {
         repository.storedProfile = DonorProfile("test-user-1", "Doador sintético")
         openProfile()
         compose.onNodeWithText("Tipo sanguíneo informado: Não sei").assertExists()
+        compose.onNodeWithText("Salvar tipo sanguíneo").assertDoesNotExist()
+        compose.onNodeWithText("Alterar tipo sanguíneo").performScrollTo().performClick()
         compose.onNodeWithText("Salvar tipo sanguíneo").assertIsNotEnabled()
         compose.onNodeWithText("O+").performScrollTo().performClick()
         compose.onNodeWithText("Salvar tipo sanguíneo").performScrollTo().performClick()
@@ -203,7 +206,7 @@ class ProfileFlowTest {
         compose.onNodeWithText("Tipo sanguíneo informado: O+").assertExists()
         compose.runOnIdle { model.loadProfile() }
         compose.waitForIdle()
-        compose.onNodeWithText("O+").assertIsSelected()
+        compose.onNodeWithText("O+").assertDoesNotExist()
         compose.runOnIdle { assertEquals(1, repository.updates) }
     }
 
@@ -212,11 +215,15 @@ class ProfileFlowTest {
         repository.storedProfile = DonorProfile("test-user-1", "Doador sintético")
         repository.updateAnswer = { response.await() }
         openProfile()
+        compose.onNodeWithText("Alterar tipo sanguíneo").performScrollTo().performClick()
         compose.onNodeWithText("AB-").performScrollTo().performClick()
         compose.onNodeWithText("Salvar tipo sanguíneo").performScrollTo().performClick()
         compose.waitForIdle()
         compose.onNodeWithText("Salvando tipo…").assertIsNotEnabled()
         compose.onNodeWithText("A+").assertIsNotEnabled()
+        androidx.test.espresso.Espresso.pressBack()
+        compose.waitForIdle()
+        compose.onNodeWithText("Salvando tipo…").assertIsNotEnabled()
         compose.runOnIdle {
             model.saveBloodType(); model.loadProfile(); model.selectBloodType(BloodType.O_POSITIVE)
             assertEquals(1, repository.updates); assertEquals(1, repository.reads)
@@ -238,7 +245,13 @@ class ProfileFlowTest {
         var updateAnswer: suspend (BloodType) -> Result<DonorProfile> = { type ->
             Result.success(storedProfile!!.copy(bloodType = type))
         }
-        override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> {
+        override suspend fun updateCurrentProfile(
+        displayName: String,
+        bloodType: BloodType,
+        phone: String?,
+        birthDate: java.time.LocalDate?,
+    ): Result<DonorProfile> = error("Atualização completa não configurada neste teste.")
+    override suspend fun updateCurrentBloodType(bloodType: BloodType): Result<DonorProfile> {
             updates++
             return updateAnswer(bloodType).onSuccess { storedProfile = it }
         }

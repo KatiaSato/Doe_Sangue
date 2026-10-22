@@ -85,6 +85,7 @@ class DonationRestrictionsTest {
                     passwordRecoveryViewModelFactory = appContainer.passwordRecoveryViewModelFactory,
                     resetPasswordViewModelFactory = { appContainer.resetPasswordViewModelFactory },
                     changePasswordViewModelFactory = appContainer.changePasswordViewModelFactory,
+                    editProfileViewModelFactory = appContainer.editProfileViewModelFactory,
                     )
                 }
             }

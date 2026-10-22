@@ -24,16 +24,30 @@ class ProfileViewModel(
     private var loadJob: Job? = null
     private var bloodTypeJob: Job? = null
 
+    fun startBloodTypeEdit() {
+        val current = _uiState.value as? ProfileUiState.Loaded ?: return
+        if (!current.isSavingBloodType) _uiState.value = current.copy(
+            isEditingBloodType = true, selectedBloodType = current.profile.bloodType, bloodTypeError = null,
+        )
+    }
+
+    fun cancelBloodTypeEdit() {
+        val current = _uiState.value as? ProfileUiState.Loaded ?: return
+        if (!current.isSavingBloodType) _uiState.value = current.copy(
+            isEditingBloodType = false, selectedBloodType = current.profile.bloodType, bloodTypeError = null,
+        )
+    }
+
     fun selectBloodType(value: BloodType) {
         val current = _uiState.value as? ProfileUiState.Loaded ?: return
-        if (!current.isSavingBloodType) {
+        if (current.isEditingBloodType && !current.isSavingBloodType) {
             _uiState.value = current.copy(selectedBloodType = value, bloodTypeError = null)
         }
     }
 
     fun saveBloodType() {
         val current = _uiState.value as? ProfileUiState.Loaded ?: return
-        if (current.isSavingBloodType || bloodTypeJob?.isActive == true || loadJob?.isActive == true) return
+        if (!current.isEditingBloodType || current.isSavingBloodType || bloodTypeJob?.isActive == true || loadJob?.isActive == true) return
         if (current.selectedBloodType == current.profile.bloodType) return
         _uiState.value = current.copy(isSavingBloodType = true, bloodTypeError = null)
         bloodTypeJob = viewModelScope.launch {

@@ -17,6 +17,7 @@ import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
 import br.edu.fatec.doesangue.presentation.auth.ChangePasswordViewModel
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
+import br.edu.fatec.doesangue.presentation.profile.EditProfileViewModel
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionDetailScreen
 import br.edu.fatec.doesangue.presentation.home.HomeViewModel
@@ -55,6 +56,7 @@ fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
     schedulingViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
+    editProfileViewModelFactory: ViewModelProvider.Factory,
     changePasswordViewModelFactory: ViewModelProvider.Factory,
     appointmentsViewModelFactory: ViewModelProvider.Factory,
     appointmentDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
@@ -358,12 +360,19 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         // Perfil e configurações
-        composable<AppRoute.Profile> {
+        composable<AppRoute.Profile> { entry ->
             val profileViewModel: ProfileViewModel = viewModel(
                 factory = profileViewModelFactory,
             )
 
             val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                if (entry.savedStateHandle.get<Boolean>("profileOpened") == true &&
+                    (profileViewModel.uiState.value as? br.edu.fatec.doesangue.presentation.profile.ProfileUiState.Loaded)?.isEditingBloodType != true) {
+                    profileViewModel.loadProfile()
+                }
+                entry.savedStateHandle["profileOpened"] = true
+            }
             ProfileScreen(
                 uiState = uiState,
                 onRetry = profileViewModel::loadProfile,
@@ -371,6 +380,8 @@ fun NavGraphBuilder.mainNavGraph(
                 onCreateProfile = profileViewModel::createProfile,
                 onBloodTypeChange = profileViewModel::selectBloodType,
                 onSaveBloodType = profileViewModel::saveBloodType,
+                onStartBloodTypeEdit = profileViewModel::startBloodTypeEdit,
+                onCancelBloodTypeEdit = profileViewModel::cancelBloodTypeEdit,
                 onBack = {
                     navController.navigateBackOrHome()
                 },
@@ -381,6 +392,7 @@ fun NavGraphBuilder.mainNavGraph(
                     navController.navigate(AppRoute.DonationsAppointments)
                 },
                 onSettings = {
+                    profileViewModel.cancelBloodTypeEdit()
                     navController.navigate(AppRoute.Settings)
                 },
                 onNavigate = onNavigateMain,
@@ -428,7 +440,16 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable<AppRoute.EditProfile> {
+            val model: EditProfileViewModel = viewModel(factory = editProfileViewModelFactory)
+            val state by model.uiState.collectAsStateWithLifecycle()
             EditProfileScreen(
+                state = state,
+                onNameChange = model::updateName,
+                onBloodTypeChange = model::updateBloodType,
+                onPhoneChange = model::updatePhone,
+                onBirthDateChange = model::updateBirthDate,
+                onRetry = model::load,
+                onSave = model::save,
                 onBack = { navController.popBackStack() },
             )
         }

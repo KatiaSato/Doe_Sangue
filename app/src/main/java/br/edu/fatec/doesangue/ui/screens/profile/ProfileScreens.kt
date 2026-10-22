@@ -59,6 +59,7 @@ import br.edu.fatec.doesangue.ui.theme.BloodRedSoft
 import br.edu.fatec.doesangue.ui.theme.Border
 import br.edu.fatec.doesangue.ui.theme.Ink
 import br.edu.fatec.doesangue.ui.theme.InkSecondary
+import br.edu.fatec.doesangue.R
 
 @Composable
 fun ProfileScreen(
@@ -73,12 +74,17 @@ fun ProfileScreen(
     onCreateProfile: () -> Unit,
     onBloodTypeChange: (BloodType) -> Unit,
     onSaveBloodType: () -> Unit,
+    onStartBloodTypeEdit: () -> Unit,
+    onCancelBloodTypeEdit: () -> Unit,
 ) {
+    val saving = (uiState as? ProfileUiState.Loaded)?.isSavingBloodType == true
+    // A aba pode ser a única tela da pilha. O Voltar do Android usa a mesma saída da seta.
+    BackHandler { if (!saving) onBack() }
     DsScreen(
         title = "Meu perfil",
-        onBack = onBack,
+        onBack = if (saving) null else onBack,
         bottomRoute = AppRoute.Profile,
-        onNavigate = onNavigate,
+        onNavigate = { if (!saving) onNavigate(it) },
     ) {
         ProfileContent(
             uiState = uiState,
@@ -87,15 +93,14 @@ fun ProfileScreen(
             onCreateProfile = onCreateProfile,
             onBloodTypeChange = onBloodTypeChange,
             onSaveBloodType = onSaveBloodType,
+            onStartBloodTypeEdit = onStartBloodTypeEdit,
+            onCancelBloodTypeEdit = onCancelBloodTypeEdit,
         )
 
-        Spacer(Modifier.height(16.dp))
-        SecondaryButton("Minhas doações", onDonations)
-        Spacer(Modifier.height(10.dp))
-        SecondaryButton("Meu agendamento", onAppointment)
-        Spacer(Modifier.height(10.dp))
-        SecondaryButton("Configurações", onSettings)
-        Spacer(Modifier.height(12.dp))
+        ProfileMenuRow("Minhas doações", R.drawable.home_ic_heart, onDonations, enabled = !saving)
+        ProfileMenuRow("Meu agendamento", R.drawable.home_ic_calendar, onAppointment, enabled = !saving)
+        ProfileMenuRow("Configurações", R.drawable.profile_ic_settings, onSettings, enabled = !saving)
+        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -180,25 +185,6 @@ private fun SettingsRow(
         Text("›", style = MaterialTheme.typography.titleLarge, color = BloodRed)
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(Border))
-}
-
-@Composable
-fun EditProfileScreen(onBack: () -> Unit) {
-    DsScreen(title = "Editar perfil", onBack = onBack) {
-        Spacer(Modifier.height(12.dp))
-        VisualField("Nome completo", "Mariana Silva")
-        Spacer(Modifier.height(12.dp))
-        VisualField("E-mail", "mariana@email.com")
-        Spacer(Modifier.height(12.dp))
-        VisualField("Telefone", "(19) 99999-9999")
-        Spacer(Modifier.height(12.dp))
-        VisualField("Data de nascimento", "15/04/1996")
-        Spacer(Modifier.height(12.dp))
-        Text("Para atualizar seu tipo sanguíneo, use a tela Perfil.",
-            style = MaterialTheme.typography.bodySmall)
-        Spacer(Modifier.height(60.dp))
-        PrimaryButton("Salvar alterações", {})
-    }
 }
 
 @Composable
@@ -481,8 +467,9 @@ fun PrivacyTermsScreen(onBack: () -> Unit) {
         listOf(
             "Uso de demonstração" to "Unidades, horários, campanhas, estoques e histórico são fictícios. " +
                 "O aplicativo não realiza reservas em hemocentros reais e não substitui atendimento, triagem ou avaliação de aptidão.",
-            "Conta e perfil" to "O Supabase Auth gerencia e-mail, senha e sessão. O perfil guarda nome de exibição e tipo sanguíneo autodeclarado, " +
-                "incluindo Não sei. Não informe dados clínicos ou de terceiros para esta demonstração.",
+            "Conta e perfil" to "O Supabase Auth gerencia e-mail, senha e sessão. O perfil guarda nome de exibição, tipo sanguíneo autodeclarado " +
+                "(incluindo Não sei) e, se informados, telefone e data de nascimento. Use somente dados fictícios nesta demonstração; " +
+                "não informe dados clínicos ou de terceiros.",
             "Dados consultados e persistidos" to "O aplicativo consulta unidades e campanhas publicadas. Reservas, cancelamentos, perfil e histórico " +
                 "são vinculados à conta. Estoques e registros de doação desta versão são demonstrações publicadas manualmente; agendar não confirma coleta.",
             "Acesso aos dados" to "As consultas privadas identificam a conta pela sessão. As regras do servidor limitam o acesso do doador aos próprios " +

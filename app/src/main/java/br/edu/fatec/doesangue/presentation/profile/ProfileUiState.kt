@@ -14,6 +14,7 @@ sealed interface ProfileUiState {
         val selectedBloodType: BloodType = profile.bloodType,
         val isSavingBloodType: Boolean = false,
         val bloodTypeError: String? = null,
+        val isEditingBloodType: Boolean = false,
     ) : ProfileUiState
 
     data class Missing(                         //consulta concluida, mas a conta ainda nao possui perfil

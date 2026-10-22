@@ -1,5 +1,14 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Edição de perfil — preparação local em 22/10/2026
+
+- `migrations/20261022000100_edicao_perfil_contato_nascimento.sql`: acrescenta telefone e data de nascimento opcionais, CHECKs e UPDATE somente dessas colunas para authenticated. Preserva policies existentes e dados dos perfis; ID/criação continuam protegidos, Auth preservado e sem dados inferidos.
+- `tests/perfil_edicao_integridade_isolamento.sql`: verificação com dois perfis sintéticos existentes, isolamento por RLS, privilégios por coluna, campos opcionais/invalidade/futuro e preservação da reserva 23. Executar inteiro no desenvolvimento como administrador; termina em ROLLBACK, sem criar contas Auth.
+- `tests/perfil_edicao_catalogo.sql`: somente leitura de colunas/tipos/NULL, grants por coluna, RLS e CHECKs; sem retornar dados pessoais.
+- `tests/local/validar_edicao_perfil.mjs`: PostgreSQL em memória com Auth mínimo simulado; migrações, novos campos nulos, teste de edição e preservação dos perfis/reserva 23 aprovados localmente. Executar `node supabase/tests/local/validar_edicao_perfil.mjs <diretório da ferramenta PGlite>`; resultado ignorado em `app/build/reports/sql/edicao-perfil.json`.
+
+**Migração aplicada e conferida no Supabase em 22/10, após autorização explícita**, incluindo confirmação de que o projeto fbrycvxelubxxafjstbo (main Production no painel) é o ambiente acadêmico de testes. Catálogos e roteiro de integridade/isolamento com ROLLBACK aprovados; comparação posterior confirma perfis/reserva 23 preservados e opcionais nulos. Falha inicial 42601 no editor foi corrigida antes da aplicação; migração bem-sucedida executada uma vez. **Não reaplicar**, não executar migrações antigas, seed, db reset ou db push. Código/testes e limites em [docs/35](../docs/35-edicao-perfil.md); falta aceite manual no aplicativo. Registros abaixo históricos.
+
 **Estado local mais recente:** estoque/histórico preparados e testados em PostgreSQL temporário; aplicação no Supabase pendente. A ordem manual e o runner local estão na seção “Estoque e histórico — arquivos locais de 15/10/2026” ao final deste arquivo. Ver também [docs/28](../docs/28-home-estoque-historico-privacidade.md). Não reaplicar migrações antigas.
 
 ## Tipo sanguíneo/cadastro/filtro — preparado localmente em 15/10/2026

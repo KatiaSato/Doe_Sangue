@@ -18,4 +18,10 @@ data class DonorProfileDto (
 
     @SerialName("tipo_sanguineo")
     val bloodType: String = "NAO_SEI",
+
+    @SerialName("telefone")
+    val phone: String? = null,
+
+    @SerialName("data_nascimento")
+    val birthDate: String? = null,
 )
