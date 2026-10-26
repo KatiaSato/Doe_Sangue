@@ -1,5 +1,10 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import android.app.Activity
+import android.app.Instrumentation
+import android.content.Intent
+import androidx.test.filters.SdkSuppress
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.lifecycle.ViewModelProvider
@@ -10,6 +15,7 @@ import androidx.navigation.toRoute
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.domain.model.DonationCenter
+import br.edu.fatec.doesangue.domain.model.GeoCoordinates
 import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 import br.edu.fatec.doesangue.presentation.centers.CentersViewModel
 import br.edu.fatec.doesangue.presentation.centers.CenterDetailViewModel
@@ -367,6 +373,44 @@ class CentersReadFlowTest {
         compose.onNodeWithText(fresh.name).assertExists()
         compose.onNodeWithText(rows[1].name).assertExists()
         compose.runOnIdle { assertEquals(3, calls) }
+    }
+
+    @Test @SdkSuppress(minSdkVersion = 26)
+    fun detailMapUsesSelectedPositionAndKeepsRouteSearchAndScheduling() {
+        val selected = rows[1].copy(coordinates = GeoCoordinates(-22.91, -47.06))
+        answer = { Result.success(listOf(rows[0], selected)) }
+        openUnits()
+        search("gama")
+        compose.onNodeWithText(selected.name).performScrollTo().performClick()
+        compose.waitForIdle()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        var captured: Intent? = null
+        val monitor = object : Instrumentation.ActivityMonitor() {
+            override fun onStartActivity(intent: Intent): Instrumentation.ActivityResult? {
+                if (intent.data?.scheme != "geo") return null
+                captured = Intent(intent)
+                return Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null)
+            }
+        }
+        instrumentation.addMonitor(monitor)
+        try {
+            compose.onNodeWithText("Abrir no mapa").performScrollTo().performClick()
+            compose.runOnIdle {
+                assertEquals(Intent.ACTION_VIEW, captured?.action)
+                assertTrue(captured?.dataString?.startsWith("geo:-22.91,-47.06?q=") == true)
+                assertTrue(android.net.Uri.decode(captured?.dataString)?.contains(selected.name) == true)
+                assertEquals("c", nav.currentBackStackEntry?.toRoute<AppRoute.CenterDetailById>()?.centerId)
+                assertEquals(2, calls)
+            }
+        } finally {
+            instrumentation.removeMonitor(monitor)
+        }
+        compose.onNodeWithText("‹").performClick()
+        compose.onNodeWithText("Buscar por nome ou cidade").assertTextContains("gama")
+        compose.onNodeWithText(rows[0].name).assertDoesNotExist()
+        compose.onNodeWithText(selected.name).performScrollTo().performClick()
+        compose.onNodeWithText("Agendar doação").performScrollTo().performClick()
+        compose.runOnIdle { assertTrue(nav.currentDestination?.hasRoute<AppRoute.ScheduleCenter>() == true) }
     }
 
     private fun search(query: String) {

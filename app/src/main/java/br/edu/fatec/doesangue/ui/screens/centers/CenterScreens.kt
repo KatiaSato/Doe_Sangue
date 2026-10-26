@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import br.edu.fatec.doesangue.domain.model.DonationCenter
 import br.edu.fatec.doesangue.presentation.centers.CenterDetailUiState
 import br.edu.fatec.doesangue.presentation.centers.CentersUiState
 import br.edu.fatec.doesangue.ui.components.DsScreen
@@ -145,6 +146,7 @@ fun CenterDetailReadScreen(
     onBack: () -> Unit,
     onSchedule: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
+    onOpenMap: (DonationCenter) -> Unit,
 ) {
     DsScreen(
         title = "Detalhe da unidade",
@@ -195,6 +197,24 @@ fun CenterDetailReadScreen(
                             "Horários não informados."
                         },
                     )
+                }
+
+                Spacer(Modifier.height(20.dp))
+                SectionHeader("Localização")
+
+                if (center.coordinates != null) {
+                    Text(
+                        "Posição fictícia para demonstração.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = InkSecondary,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    SecondaryButton(
+                        "Abrir no mapa",
+                        { onOpenMap(center) },
+                    )
+                } else {
+                    Text("Localização não cadastrada.")
                 }
 
                 Spacer(Modifier.height(24.dp))

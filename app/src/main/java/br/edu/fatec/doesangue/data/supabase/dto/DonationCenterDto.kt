@@ -30,4 +30,9 @@ data class DonationCenterDto(
 
     @SerialName("publicada")
     val published: Boolean,
+
+    // O DTO recebe as duas colunas separadas do banco;
+    // o domínio representa a posição com um único objeto GeoCoordinates
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )

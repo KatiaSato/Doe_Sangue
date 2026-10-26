@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailViewModel
@@ -33,6 +34,7 @@ import br.edu.fatec.doesangue.presentation.campaigns.CampaignsViewModel
 import br.edu.fatec.doesangue.presentation.campaigns.CampaignDetailViewModel
 import br.edu.fatec.doesangue.presentation.centers.CenterDetailViewModel
 import br.edu.fatec.doesangue.presentation.centers.CentersViewModel
+import br.edu.fatec.doesangue.ui.maps.openCenterMap
 import br.edu.fatec.doesangue.ui.screens.centers.CenterDetailReadScreen
 import br.edu.fatec.doesangue.ui.screens.centers.CenterDetailScreen
 import br.edu.fatec.doesangue.ui.screens.centers.CentersScreen
@@ -327,6 +329,8 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable<AppRoute.CenterDetailById> { entry ->
+            // O context permite acessar a operação do Android que abre outro aplicativo
+            val context = LocalContext.current
             val route = entry.toRoute<AppRoute.CenterDetailById>()
 
             val model: CenterDetailViewModel = viewModel(
@@ -337,6 +341,9 @@ fun NavGraphBuilder.mainNavGraph(
             CenterDetailReadScreen(
                 state = state,
                 onRetry = model::loadCenter,
+                onOpenMap = { center ->
+                    openCenterMap(context, center)
+                },
                 onBack = {
                     navController.navigateBackOrHome()
                 },
