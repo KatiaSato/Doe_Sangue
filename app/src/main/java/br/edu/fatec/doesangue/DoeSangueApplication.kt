@@ -6,7 +6,9 @@ import br.edu.fatec.doesangue.di.AppContainer
 open class DoeSangueApplication : Application() {
 
     open val appContainer: AppContainer by lazy {
-        AppContainer()
+        AppContainer(schedulingDraftStore = br.edu.fatec.doesangue.data.local.FileSchedulingDraftStore(
+            java.io.File(noBackupFilesDir, "scheduling-drafts"),
+        ))
     }
 
     // Só um marcador, sem código, senha ou token. Recuperação interrompida não abre Home.

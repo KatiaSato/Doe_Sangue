@@ -5,6 +5,11 @@ import br.edu.fatec.doesangue.domain.model.AppointmentSummary
 
 // Define a criação de um agendamento para a conta autenticada.
 interface AppointmentRepository {
+    // A implementação vincula a chamada à conta esperada, sem trocar de identidade no envio.
+    suspend fun createAppointmentForOwner(ownerId: String, timeSlotId: String, idempotencyKey: String): Result<Appointment> =
+        Result.failure(br.edu.fatec.doesangue.domain.model.DataFailure(
+            br.edu.fatec.doesangue.domain.model.DataError.SESSION_UNAVAILABLE))
+
     suspend fun createAppointment(
         timeSlotId: String,
         idempotencyKey: String,

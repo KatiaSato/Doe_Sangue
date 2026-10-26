@@ -60,6 +60,8 @@ Os documentos em `docs/` usam **Confirmado**, **Proposto**, **Implementado** e *
 
 A observação da sessão durante o uso, os encaminhamentos e seus limites estão em [T01 — sessão durante o uso](docs/42-sessao-durante-uso.md).
 
+A retomada do rascunho e a identificação durável do pedido estão em [T02 — rascunho do agendamento](docs/43-retomada-rascunho-agendamento.md), com estado de validação e limites.
+
 ## Navegação e testes — atualização de 23/09/2026
 
 **Implementado:** Navigation Compose 2.9.8, rotas tipadas e grafos Auth/Main/Scheduling. As telas enviam callbacks; as decisões de navegação ficam em `ui/navigation`. As setas das raízes retornam à Home quando não há tela anterior. Histórico independente por aba e persistência do rascunho continuam pendentes.

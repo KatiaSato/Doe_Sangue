@@ -41,4 +41,9 @@ data class SchedulingUiState(
 
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val draftNotice: String? = null,
+    val draftSaveFailed: Boolean = false,
+    val requestLocked: Boolean = false,
+    val canReviewRejectedRequest: Boolean = false,
+    val draftFinished: Boolean = false,
 )

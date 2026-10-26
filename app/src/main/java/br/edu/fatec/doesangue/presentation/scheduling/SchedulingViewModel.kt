@@ -23,6 +23,11 @@ import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 import br.edu.fatec.doesangue.domain.usecase.GetDonationTimeSlotsUseCase
 import br.edu.fatec.doesangue.domain.usecase.GetAvailableDonationDatesUseCase
 import java.util.UUID
+import br.edu.fatec.doesangue.domain.model.*
+import br.edu.fatec.doesangue.domain.repository.AuthRepository
+import br.edu.fatec.doesangue.domain.repository.SchedulingDraftStore
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.CancellationException
 
 /*
 * Recebe o contrato de consulta às unidades.
@@ -35,6 +40,8 @@ class SchedulingViewModel(
     private val appointmentRepository: AppointmentRepository,
     private val getAvailableDates: GetAvailableDonationDatesUseCase,
     private val clock: Clock = Clock.systemUTC(),
+    private val draftStore: SchedulingDraftStore? = null,
+    private val authRepository: AuthRepository? = null,
 ) : ViewModel() {
     /*
     SchedulingUiState() cria o estado inicial: nenhuma unidade selecionada.
@@ -53,22 +60,61 @@ class SchedulingViewModel(
     private data class AppointmentRequest(
         val timeSlotId: String,
         val idempotencyKey: String,
+        val prepared: Boolean = false,
     )
 
     private var appointmentRequest: AppointmentRequest? = null
 
+    private val _draftRecovery = MutableStateFlow(DraftRecoveryUiState(
+        phase = if (draftStore == null) DraftRecoveryPhase.READY else DraftRecoveryPhase.LOADING,
+    ))
+    val draftRecovery = _draftRecovery.asStateFlow()
+    private var draftOwner: String? = null
+    private var draftStep = SchedulingStep.CENTER
+    private var draftSaveJob: Job? = null
+    private var draftReadJob: Job? = null
+    private var draftRestoreJob: Job? = null
+    private var creationJob: Job? = null
+    private var requestSnapshot: SchedulingDraft? = null
+    private var finishingDraft = false
+    private val requestProtected get() = draftStore != null && appointmentRequest?.prepared == true &&
+        !_uiState.value.canReviewRejectedRequest
+
     init {
         loadCenters()
+        if (draftStore != null) {
+            requireNotNull(authRepository)
+            viewModelScope.launch {
+                authRepository.observeSession().collect { presence ->
+                    when (presence) {
+                        is SessionPresence.Authenticated -> if (draftOwner != presence.user.id) {
+                            clearOwnedWork()
+                            draftOwner = presence.user.id
+                            readDraft()
+                        }
+                        is SessionPresence.NotAuthenticated -> {
+                            clearOwnedWork()
+                            draftOwner = null
+                        }
+                        else -> Unit // Refresh pendente da mesma conta não descarta o rascunho.
+                    }
+                }
+            }
+        }
     }
 
     // Essa função limpa a identidade do pedido e reinicia o estado de gravação
     // Ela não cancela nem apaga uma reserva no banco; apenas limpa os dados locais
     private fun resetAppointmentRequest() {
         appointmentRequest = null
+        requestSnapshot = null
 
         _uiState.update { current ->
             current.copy(
                 appointmentCreation = AppointmentCreationUiState(),
+                requestLocked = false,
+                canReviewRejectedRequest = false,
+                draftNotice = null,
             )
         }
     }
@@ -78,7 +124,7 @@ class SchedulingViewModel(
     // Ao trocar de unidade, cancela a consulta e limpa as escolhas anteriores.
     fun selectCenter(center: DonationCenter) {
         val state = _uiState.value
-        if (state.appointmentCreation.isLoading) return
+        if ((state.appointmentCreation.isLoading || requestProtected)) return
         if (state.selectedCenter?.id == center.id) return
 
         resetAppointmentRequest()
@@ -97,6 +143,7 @@ class SchedulingViewModel(
                 calendarAvailability = CalendarAvailabilityUiState(),
             )
         }
+        persistDraft()
     }
 
     // Essa função recebe a intenção de agendar naquela unidade, evita repetir uma
@@ -107,7 +154,7 @@ class SchedulingViewModel(
         val state = _uiState.value
 
         if (
-            state.appointmentCreation.isLoading ||
+            (state.appointmentCreation.isLoading || requestProtected) ||
             state.centerPreparation == CenterPreparationUiState.Loading(centerId) ||
             state.centerPreparation == CenterPreparationUiState.Ready(centerId)
         ) {
@@ -154,7 +201,7 @@ class SchedulingViewModel(
         if (
             state.isLoading ||
             state.errorMessage != null ||
-            state.appointmentCreation.isLoading
+            (state.appointmentCreation.isLoading || requestProtected)
         ) {
             return
         }
@@ -193,7 +240,7 @@ class SchedulingViewModel(
         val state = _uiState.value
 
         if (
-            state.appointmentCreation.isLoading ||
+            (state.appointmentCreation.isLoading || requestProtected) ||
             state.selectedCenter == null ||
             state.selectedDate == date
         ) {
@@ -212,12 +259,13 @@ class SchedulingViewModel(
         }
 
         loadTimeSlots()
+        persistDraft()
     }
 
     // Localiza e valida o registro de horário escolhido pelo seu ID.
     fun selectTimeSlot(slotId: String) {
         val state = _uiState.value
-        if (state.appointmentCreation.isLoading) return
+        if ((state.appointmentCreation.isLoading || requestProtected)) return
 
         val previousSlotId = state.selectedTimeSlotId
         _uiState.update { current ->
@@ -252,92 +300,74 @@ class SchedulingViewModel(
         }
         if (_uiState.value.selectedTimeSlotId != previousSlotId) {
             resetAppointmentRequest()
+            persistDraft()
         }
     }
 
     fun confirmAppointment() {
         val state = _uiState.value
-
-        if (
-            state.appointmentCreation.isLoading ||
-            state.appointmentCreation.appointment != null ||
-            state.isLoadingTimeSlots ||
-            state.timeSlotsErrorMessage != null
-        ) {
-            return
-        }
-
+        if (state.appointmentCreation.isLoading || state.appointmentCreation.appointment != null ||
+            _draftRecovery.value.phase != DraftRecoveryPhase.READY) return
         val slotId = state.selectedTimeSlotId ?: return
-
         val center = state.selectedCenter ?: return
         val date = state.selectedDate ?: return
-
-        val slot = state.timeSlots.firstOrNull {
-            it.id == slotId && it.centerId == center.id
-        } ?: return
-
-        // Repetir um pedido enviado pode recuperar uma reserva, inclusive após o início.
-        // Somente uma intenção nova é barrada localmente.
-        if (appointmentRequest == null && (slot.availableSpots <= 0 || slot.startsAt <= clock.instant())) {
-            val reason = if (slot.startsAt <= clock.instant()) DataError.SLOT_STARTED else DataError.SLOT_FULL
-            _uiState.update { current -> current.copy(appointmentCreation = AppointmentCreationUiState(
-                errorMessage = DataFailure(reason).toDataMessage("Não foi possível confirmar o agendamento. Tente novamente."),
-            )) }
-            return
-        }
-
-        val localStart = slot.startsAt.atZone(ZoneId.of(center.timeZoneId))
-        if (localStart.toLocalDate() != date) return
-        if (localStart.toLocalTime() != state.selectedTime) return
-
-        /*
-        Se já existe um pedido, reutilizamos sua chave. Caso contrário, criamos e guardamos um novo.
-        Isso permitirá tentar novamente após uma falha sem gerar outra reserva.
-         */
-        val request = appointmentRequest ?: AppointmentRequest(
-            timeSlotId = slotId,
-            idempotencyKey = UUID.randomUUID().toString(),
-        ).also {
-            appointmentRequest = it
-        }
-
-        // marca o início da gravação e limpa a mensagem de erro anterio
-        _uiState.update { current ->
-            current.copy(
-                appointmentCreation = AppointmentCreationUiState(
-                    isLoading = true,
-                ),
-            )
-        }
-
-        // viewModelScope.launch inicia a corrotina para chamar a função suspensa.
-        // O repository recebe o horário e a chave que guardamos.
-        // ensureActive() impede continuar se a corrotina tiver sido cancelada
-        viewModelScope.launch {
-            val result = appointmentRepository.createAppointment(
-                timeSlotId = request.timeSlotId,
-                idempotencyKey = request.idempotencyKey,
-            )
-
-            ensureActive()
-
-            _uiState.update { current ->
-                current.copy(
-                    appointmentCreation = result.fold(              // O fold escolhe entre os dois caminhos do Result
-                        onSuccess = { appointment ->
-                            AppointmentCreationUiState(
-                                appointment = appointment,
-                            )
-                        },
-                        onFailure = {
-                            AppointmentCreationUiState(
-                                errorMessage =
-                                    it.toDataMessage("Não foi possível confirmar o agendamento. Tente novamente."),
-                            )
-                        },
-                    ),
-                )
+        val existing = appointmentRequest
+        // Um pedido durável pode recuperar o resultado sem depender de oferta pública atual.
+        val durable = draftStore != null && existing?.prepared == true
+        if (!durable) {
+            if (state.isLoadingTimeSlots || state.timeSlotsErrorMessage != null) return
+            val slot = state.timeSlots.firstOrNull { it.id == slotId && it.centerId == center.id } ?: return
+            if ((existing == null || (draftStore != null && !existing.prepared)) &&
+                (slot.availableSpots <= 0 || slot.startsAt <= clock.instant())) {
+                val reason = if (slot.startsAt <= clock.instant()) DataError.SLOT_STARTED else DataError.SLOT_FULL
+                _uiState.update { it.copy(appointmentCreation = AppointmentCreationUiState(
+                    errorMessage = DataFailure(reason).toDataMessage("Não foi possível confirmar o agendamento. Tente novamente."))) }
+                return
             }
+            val localStart = slot.startsAt.atZone(ZoneId.of(center.timeZoneId))
+            if (localStart.toLocalDate() != date || localStart.toLocalTime() != state.selectedTime) return
+        }
+        val owner = draftOwner
+        if (draftStore != null && owner == null) return
+        val request = existing ?: AppointmentRequest(slotId, UUID.randomUUID().toString()).also { appointmentRequest = it }
+        if (request.timeSlotId != slotId) return
+        _uiState.update { it.copy(appointmentCreation = AppointmentCreationUiState(isLoading = true)) }
+        creationJob = viewModelScope.launch {
+            if (draftStore != null) {
+                draftSaveJob?.cancelAndJoin()
+                val snapshot = runCatching { snapshot(request) }.getOrNull() ?: run {
+                    _uiState.update { it.copy(appointmentCreation = AppointmentCreationUiState(errorMessage = SAVE_ERROR)) }
+                    return@launch
+                }
+                val saved = draftStore.save(snapshot)
+                ensureActive()
+                if (draftOwner != owner) return@launch
+                if (saved.isFailure) {
+                    _uiState.update { it.copy(appointmentCreation = AppointmentCreationUiState(errorMessage = SAVE_ERROR)) }
+                    return@launch // Nenhum pedido sai antes de a chave estar durável.
+                }
+                appointmentRequest = request.copy(prepared = true)
+                requestSnapshot = snapshot
+                _uiState.update { it.copy(requestLocked = true, draftNotice = null) }
+            }
+            val result = if (draftStore != null) appointmentRepository.createAppointmentForOwner(
+                checkNotNull(owner), request.timeSlotId, request.idempotencyKey,
+            ) else appointmentRepository.createAppointment(request.timeSlotId, request.idempotencyKey)
+            ensureActive()
+            if (draftStore != null && owner != draftOwner) return@launch
+            val checked = result.mapCatching { appointment ->
+                check(draftStore == null || (appointment.donorId == owner && appointment.timeSlotId == request.timeSlotId))
+                appointment
+            }
+            val rejected = (checked.exceptionOrNull() as? DataFailure)?.reason in DEFINITE_REJECTIONS
+            _uiState.update { it.copy(
+                canReviewRejectedRequest = draftStore != null && rejected,
+                appointmentCreation = checked.fold(
+                    onSuccess = { appointment -> AppointmentCreationUiState(appointment = appointment) },
+                    onFailure = { failure -> AppointmentCreationUiState(errorMessage = failure.toDataMessage(
+                        "Não foi possível confirmar o agendamento. Tente novamente.")) },
+                ),
+            ) }
         }
     }
 
@@ -350,7 +380,7 @@ class SchedulingViewModel(
      */
     fun loadAvailableDates(month: YearMonth) {
         val state = _uiState.value
-        if (state.appointmentCreation.isLoading) return
+        if ((state.appointmentCreation.isLoading || requestProtected)) return
         val center = state.selectedCenter ?: return
         if (state.calendarAvailability.month == month && state.calendarAvailability.isLoading) return
         availableDatesJob?.cancel()
@@ -373,7 +403,7 @@ class SchedulingViewModel(
 
     fun loadTimeSlots() {
         val state = _uiState.value
-        if (state.appointmentCreation.isLoading) return
+        if ((state.appointmentCreation.isLoading || requestProtected)) return
 
         val center = state.selectedCenter ?: return
         val date = state.selectedDate ?: return
@@ -391,6 +421,7 @@ class SchedulingViewModel(
             )
         }
 
+        persistDraft()
         timeSlotsJob = viewModelScope.launch {
             val result = getDonationTimeSlots(center, date)
 
@@ -476,6 +507,223 @@ class SchedulingViewModel(
                 },
             )
         }
+    }
+
+    // Persistência do percurso: separada das credenciais e sempre associada ao dono.
+    private fun clearOwnedWork() {
+        draftReadJob?.cancel(); draftRestoreJob?.cancel(); draftSaveJob?.cancel(); creationJob?.cancel()
+        timeSlotsJob?.cancel(); availableDatesJob?.cancel()
+        appointmentRequest = null; requestSnapshot = null; draftStep = SchedulingStep.CENTER; finishingDraft = false
+        _uiState.update { SchedulingUiState(centers = it.centers, isLoading = it.isLoading, errorMessage = it.errorMessage) }
+        _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.LOADING)
+    }
+
+    private fun readDraft() {
+        val store = draftStore ?: return
+        val owner = draftOwner ?: return
+        draftReadJob?.cancel()
+        _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.LOADING)
+        draftReadJob = viewModelScope.launch {
+            val result = store.read(owner)
+            ensureActive()
+            if (owner != draftOwner) return@launch
+            _draftRecovery.value = result.fold(
+                onSuccess = { draft ->
+                    if (draft == null) DraftRecoveryUiState()
+                    else if (draft.ownerId != owner || runCatching { draft.validated() }.isFailure)
+                        DraftRecoveryUiState(phase = DraftRecoveryPhase.ERROR, message = READ_ERROR, canDiscard = true)
+                    else DraftRecoveryUiState(phase = DraftRecoveryPhase.OFFER, draft = draft,
+                        canDiscard = draft.requestKey == null)
+                },
+                onFailure = { DraftRecoveryUiState(phase = DraftRecoveryPhase.ERROR, message = READ_ERROR,
+                    canDiscard = it is InvalidSchedulingDraft) },
+            )
+        }
+    }
+
+    fun retryDraftRecovery() {
+        if (_draftRecovery.value.phase != DraftRecoveryPhase.ERROR) return
+        if (_draftRecovery.value.draft == null) readDraft() else resumeDraft()
+    }
+
+    fun resumeDraft() {
+        val store = draftStore ?: return
+        val owner = draftOwner ?: return
+        val draft = _draftRecovery.value.draft ?: return
+        if (_draftRecovery.value.phase !in setOf(DraftRecoveryPhase.OFFER, DraftRecoveryPhase.ERROR)) return
+        draftRestoreJob?.cancel()
+        _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.RESTORING, draft = draft)
+        draftRestoreJob = viewModelScope.launch {
+            try {
+                if (draft.ownerId != owner) throw InvalidSchedulingDraft()
+                draft.validated()
+                if (draft.requestKey != null) {
+                    // Estes são os dados do pedido anterior, não uma oferta atual.
+                    val center = DonationCenter(draft.centerId, draft.centerName, "", "", "", "", draft.timeZoneId)
+                    val start = java.time.Instant.parse(draft.startsAtIso).atZone(ZoneId.of(draft.timeZoneId))
+                    appointmentRequest = AppointmentRequest(checkNotNull(draft.slotId), draft.requestKey, prepared = true)
+                    requestSnapshot = draft
+                    draftStep = SchedulingStep.CONFIRM
+                    _uiState.value = SchedulingUiState(centers = _uiState.value.centers, selectedCenter = center,
+                        selectedDate = start.toLocalDate(), selectedTime = start.toLocalTime(),
+                        selectedTimeSlotId = draft.slotId, requestLocked = true,
+                        draftNotice = "Pedido anterior recuperado. A confirmação usará a mesma identificação; nenhuma reserva foi enviada automaticamente.")
+                    _draftRecovery.value = DraftRecoveryUiState(resumeStep = SchedulingStep.CONFIRM)
+                    return@launch
+                }
+                val centers = donationCenterRepository.getCenters().getOrThrow()
+                ensureActive()
+                if (owner != draftOwner) return@launch
+                val center = centers.firstOrNull { it.id == draft.centerId }
+                if (center == null) {
+                    if (store.clear(owner).isFailure) throw DraftWriteException()
+                    ensureActive()
+                    _uiState.value = SchedulingUiState(centers = centers,
+                        draftNotice = "A unidade do rascunho não está mais disponível. Escolha outra unidade.")
+                    _draftRecovery.value = DraftRecoveryUiState(resumeStep = SchedulingStep.CENTER)
+                    return@launch
+                }
+                val savedDate = draft.dateIso?.let(LocalDate::parse)
+                val date = savedDate?.takeUnless { it.isBefore(LocalDate.now(clock.withZone(ZoneId.of(center.timeZoneId)))) }
+                val slots = if (date != null) getDonationTimeSlots(center, date).getOrThrow() else emptyList()
+                ensureActive()
+                if (owner != draftOwner) return@launch
+                val slot = slots.firstOrNull { it.id == draft.slotId }
+                val target = if (slot != null && draft.step in setOf(SchedulingStep.RECURRENCE, SchedulingStep.CONFIRM))
+                    draft.step else SchedulingStep.DATE
+                draftStep = target
+                val notice = when {
+                    savedDate != null && date == null -> "A data do rascunho já passou. Escolha uma nova data e horário."
+                    draft.slotId != null && slot == null -> "O horário do rascunho não está mais disponível. Escolha outro horário."
+                    else -> "Rascunho recuperado. Confira as escolhas antes de confirmar."
+                }
+                _uiState.value = SchedulingUiState(centers = centers, selectedCenter = center, selectedDate = date,
+                    selectedTimeSlotId = slot?.id, selectedTime = slot?.startsAt?.atZone(ZoneId.of(center.timeZoneId))?.toLocalTime(),
+                    timeSlots = slots, draftNotice = notice)
+                val updated = snapshot() ?: throw InvalidSchedulingDraft()
+                if (store.save(updated).isFailure) throw DraftWriteException()
+                ensureActive()
+                if (owner == draftOwner) _draftRecovery.value = DraftRecoveryUiState(resumeStep = target)
+            } catch (cancelled: CancellationException) { throw cancelled }
+              catch (failure: Exception) {
+                if (owner == draftOwner) _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.ERROR,
+                    draft = draft, message = if (failure is DraftWriteException) SAVE_ERROR else
+                        failure.toDataMessage("Não foi possível recuperar o rascunho. Verifique a conexão e tente novamente."),
+                    canDiscard = false)
+            }
+        }
+    }
+
+    fun discardDraft() {
+        val store = draftStore ?: return
+        val owner = draftOwner ?: return
+        if (!_draftRecovery.value.canDiscard) return
+        draftReadJob?.cancel(); draftRestoreJob?.cancel()
+        _draftRecovery.value = _draftRecovery.value.copy(phase = DraftRecoveryPhase.RESTORING)
+        draftRestoreJob = viewModelScope.launch {
+            val result = store.clear(owner)
+            ensureActive()
+            if (owner != draftOwner) return@launch
+            if (result.isSuccess) {
+                appointmentRequest = null; requestSnapshot = null
+                _uiState.update { SchedulingUiState(centers = it.centers, isLoading = it.isLoading, errorMessage = it.errorMessage) }
+                _draftRecovery.value = DraftRecoveryUiState(resumeStep = SchedulingStep.CENTER)
+            } else _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.ERROR,
+                message = "Não foi possível descartar o rascunho neste aparelho. Tente novamente.", canDiscard = true)
+        }
+    }
+
+    fun consumeDraftResumeStep() {
+        _draftRecovery.value = _draftRecovery.value.copy(resumeStep = null)
+    }
+
+    fun onStepVisible(step: SchedulingStep) {
+        if (_draftRecovery.value.phase != DraftRecoveryPhase.READY || _draftRecovery.value.resumeStep != null) return
+        if (draftStep == step) return
+        draftStep = step
+        persistDraft()
+    }
+
+    private fun snapshot(request: AppointmentRequest? = appointmentRequest): SchedulingDraft? {
+        val owner = draftOwner ?: return null
+        val state = _uiState.value
+        val center = state.selectedCenter ?: return null
+        if (request?.prepared == true) return requestSnapshot
+        val slot = state.timeSlots.firstOrNull { it.id == state.selectedTimeSlotId }
+        return SchedulingDraft(owner, center.id, center.name.take(512), center.timeZoneId,
+            state.selectedDate?.toString(), slot?.id, slot?.startsAt?.toString(),
+            if (request != null) SchedulingStep.CONFIRM else draftStep, request?.idempotencyKey).validated()
+    }
+
+    fun retrySavingDraft() = persistDraft()
+
+    private fun persistDraft() {
+        val store = draftStore ?: return
+        val owner = draftOwner ?: return
+        if (_draftRecovery.value.phase != DraftRecoveryPhase.READY || finishingDraft) return
+        val draftResult = runCatching { snapshot() }
+        if (draftResult.isFailure) {
+            _uiState.update { it.copy(draftSaveFailed = true, draftNotice = SAVE_ERROR) }
+            return
+        }
+        val draft = draftResult.getOrNull()
+        draftSaveJob?.cancel()
+        draftSaveJob = viewModelScope.launch {
+            val result = if (draft == null) store.clear(owner) else store.save(draft)
+            ensureActive()
+            if (owner == draftOwner) _uiState.update { it.copy(draftSaveFailed = result.isFailure, draftNotice = if (result.isFailure) SAVE_ERROR else it.draftNotice?.takeUnless { text -> text == SAVE_ERROR }) }
+        }
+    }
+
+    fun reviewRejectedRequest() {
+        val store = draftStore ?: return
+        val owner = draftOwner ?: return
+        if (!_uiState.value.canReviewRejectedRequest || _uiState.value.appointmentCreation.isLoading) return
+        val draft = requestSnapshot?.copy(requestKey = null, step = SchedulingStep.DATE) ?: return
+        _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.RESTORING, draft = draft)
+        draftRestoreJob = viewModelScope.launch {
+            draftSaveJob?.cancelAndJoin()
+            val result = store.save(draft)
+            ensureActive()
+            if (owner != draftOwner) return@launch
+            if (result.isSuccess) {
+                appointmentRequest = null; requestSnapshot = null
+                _uiState.update { it.copy(requestLocked = false, canReviewRejectedRequest = false) }
+                _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.OFFER, draft = draft, canDiscard = true)
+            } else _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.ERROR, draft = requestSnapshot,
+                message = SAVE_ERROR)
+        }
+    }
+
+    fun finishDraft() {
+        if (finishingDraft || _uiState.value.draftFinished) return
+        if (draftStore == null) { _uiState.update { it.copy(draftFinished = true) }; return }
+        // Limpar um pedido exige um resultado confirmado, inclusive quando já cancelado.
+        if (_uiState.value.appointmentCreation.appointment == null) {
+            // Destino antigo sem resultado: sair sem apagar um eventual pedido pendente.
+            _uiState.update { it.copy(draftFinished = true) }
+            return
+        }
+        val owner = draftOwner ?: return
+        finishingDraft = true
+        viewModelScope.launch {
+            draftSaveJob?.cancelAndJoin()
+            val result = draftStore.clear(owner)
+            ensureActive()
+            if (owner != draftOwner) return@launch
+            finishingDraft = false
+            _uiState.update { it.copy(draftFinished = result.isSuccess,
+                draftNotice = if (result.isFailure) "Seu pedido foi conferido, mas não foi possível concluir a limpeza local. Tente novamente." else null) }
+        }
+    }
+
+    private class DraftWriteException : Exception()
+    companion object {
+        private const val SAVE_ERROR = "Não foi possível guardar o rascunho neste aparelho. Tente novamente antes de confirmar."
+        private const val READ_ERROR = "Não foi possível ler o rascunho neste aparelho. Tente novamente. Se descartá-lo, confira seus agendamentos antes de fazer outro pedido."
+        private val DEFINITE_REJECTIONS = setOf(DataError.SLOT_UNAVAILABLE, DataError.SLOT_STARTED,
+            DataError.SLOT_FULL, DataError.ALREADY_BOOKED, DataError.REQUEST_CONFLICT,
+            DataError.PROFILE_REQUIRED, DataError.INVALID_DATA)
     }
 
 }

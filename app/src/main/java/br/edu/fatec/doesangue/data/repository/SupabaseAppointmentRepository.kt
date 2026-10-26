@@ -13,6 +13,11 @@ import kotlin.coroutines.cancellation.CancellationException
 class SupabaseAppointmentRepository(
     private val dataSource: SupabaseAppointmentDataSource,
 ) : AppointmentRepository {             //: AppointmentRepository indica que a classe cumpre o contrato do domínio
+    override suspend fun createAppointmentForOwner(ownerId: String, timeSlotId: String, idempotencyKey: String): Result<Appointment> = try {
+        Result.success(dataSource.createAppointment(timeSlotId, idempotencyKey, expectedOwnerId = ownerId))
+    } catch (cancelled: CancellationException) { throw cancelled }
+      catch (failure: Exception) { Result.failure(failure.toAppointmentFailure()) }
+
 
     override suspend fun createAppointment(
         timeSlotId: String,

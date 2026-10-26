@@ -289,6 +289,8 @@ fun ScheduleConfirmScreen(
     uiState: SchedulingUiState,
     onBack: () -> Unit,
     onConfirm: () -> Unit,
+    onReviewRejected: () -> Unit = {},
+    onFinishPrevious: () -> Unit = {},
 ) {
     val creation = uiState.appointmentCreation
 
@@ -351,6 +353,11 @@ fun ScheduleConfirmScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.fillMaxWidth(),
             )
+            Spacer(Modifier.height(12.dp))
+            if (uiState.requestLocked) PrimaryButton("Concluir", onFinishPrevious)
+        }
+        if (uiState.canReviewRejectedRequest) {
+            SecondaryButton("Rever escolhas", onReviewRejected)
             Spacer(Modifier.height(12.dp))
         }
         PrimaryButton(

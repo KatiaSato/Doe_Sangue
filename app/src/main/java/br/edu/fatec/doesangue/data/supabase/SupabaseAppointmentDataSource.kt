@@ -11,6 +11,10 @@ import br.edu.fatec.doesangue.domain.model.Appointment
 import br.edu.fatec.doesangue.domain.model.AppointmentSummary
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.annotations.SupabaseInternal
+import io.github.jan.supabase.auth.api.authenticatedSupabaseApi
+import io.github.jan.supabase.postgrest.result.PostgrestResult
+import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -18,15 +22,18 @@ import kotlinx.serialization.json.put
 class SupabaseAppointmentDataSource(
     private val client: SupabaseClient,
 ) {
+    @OptIn(SupabaseInternal::class)
     suspend fun createAppointment(
         timeSlotId: String,
         idempotencyKey: String,
+        expectedOwnerId: String? = null,
     ): Appointment {
         val slotId = timeSlotId.toLongOrNull()?.takeIf { it > 0 }
             ?: throw DataFailure(DataError.INVALID_DATA)
         if (idempotencyKey.isBlank()) throw DataFailure(DataError.INVALID_DATA)
 
-        client.requireDataUser()
+        val session = client.requireDataSession()
+        if (expectedOwnerId != null && session.user?.id != expectedOwnerId) throw DataFailure(DataError.SESSION_UNAVAILABLE)
 
         // A chave recebida é preservada para recuperar o mesmo pedido nas tentativas.
         val parameters = buildJsonObject {
@@ -34,9 +41,18 @@ class SupabaseAppointmentDataSource(
             put("p_chave_idempotencia", idempotencyKey)
         }
 
-        val appointments = client.postgrest
-            .rpc("criar_agendamento", parameters)
-            .decodeList<AppointmentDto>()
+        val result = if (expectedOwnerId == null) client.postgrest.rpc("criar_agendamento", parameters)
+        else {
+            // A credencial capturada com o ID fica só em memória durante esta chamada.
+            val api = client.authenticatedSupabaseApi(client.postgrest, requireSession = true) {
+                jwtToken = session.accessToken
+            }
+            val response = api.postJson("rpc/criar_agendamento", parameters.toString()) {
+                headers["Content-Profile"] = client.postgrest.config.defaultSchema
+            }
+            PostgrestResult(response.bodyAsText(), response.headers, client.postgrest)
+        }
+        val appointments = result.decodeList<AppointmentDto>()
 
         check(appointments.size == 1) {
             "A reserva deve retornar exatamente um agendamento."

@@ -67,6 +67,7 @@ class AppContainer(
     private val campaignRepositoryOverride: CampaignRepository? = null,
     private val bloodStockRepositoryOverride: BloodStockRepository? = null,
     private val donationHistoryRepositoryOverride: DonationHistoryRepository? = null,
+    private val schedulingDraftStore: br.edu.fatec.doesangue.domain.repository.SchedulingDraftStore? = null,
 ) {
     val sessionMonitorViewModelFactory = viewModelFactory {
         initializer { SessionMonitorViewModel(authRepository) }
@@ -302,6 +303,8 @@ class AppContainer(
                 getDonationTimeSlots = getDonationTimeSlots,
                 appointmentRepository = appointmentRepository,
                 getAvailableDates = getAvailableDonationDates,
+                draftStore = schedulingDraftStore,
+                authRepository = if (schedulingDraftStore != null) authRepository else null,
             )
         }
     }

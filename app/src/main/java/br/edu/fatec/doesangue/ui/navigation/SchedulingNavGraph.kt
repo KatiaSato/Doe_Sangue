@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.toRoute
 import br.edu.fatec.doesangue.domain.model.AppointmentStatus
+import br.edu.fatec.doesangue.domain.model.SchedulingStep
 import br.edu.fatec.doesangue.presentation.scheduling.CenterPreparationUiState
 import br.edu.fatec.doesangue.presentation.scheduling.SchedulingViewModel
 import br.edu.fatec.doesangue.ui.screens.scheduling.CenterPreparationScreen
@@ -57,39 +58,41 @@ fun NavGraphBuilder.schedulingNavGraph(
 
             val state by model.uiState.collectAsStateWithLifecycle()
 
-            LaunchedEffect(route.centerId) {
-                model.prepareCenterFromOrigin(route.centerId)
-            }
-
-            LaunchedEffect(state.centerPreparation, route.centerId) {
-                val preparation = state.centerPreparation
-                        as? CenterPreparationUiState.Ready
-                    ?: return@LaunchedEffect
-
-                if (
-                    preparation.centerId != route.centerId ||
-                    state.selectedCenter?.id != route.centerId
-                ) {
-                    return@LaunchedEffect
-                }
-
-                navController.navigate(AppRoute.ScheduleDate) {
-                    popUpTo<AppRoute.ScheduleFromCenter> {
-                        inclusive = true
-                    }
-                    launchSingleTop = true
-                }
-            }
-
-            CenterPreparationScreen(
-                state = state.centerPreparation,
-                onRetry = {
+            SchedulingDraftGate(model, navController, entry, SchedulingStep.CENTER, onFinishScheduling) {
+                LaunchedEffect(route.centerId) {
                     model.prepareCenterFromOrigin(route.centerId)
-                },
-                onBack = {
-                    navController.navigateBackOrHome()
-                },
-            )
+                }
+
+                LaunchedEffect(state.centerPreparation, route.centerId) {
+                    val preparation = state.centerPreparation
+                            as? CenterPreparationUiState.Ready
+                        ?: return@LaunchedEffect
+
+                    if (
+                        preparation.centerId != route.centerId ||
+                        state.selectedCenter?.id != route.centerId
+                    ) {
+                        return@LaunchedEffect
+                    }
+
+                    navController.navigate(AppRoute.ScheduleDate) {
+                        popUpTo<AppRoute.ScheduleFromCenter> {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+
+                CenterPreparationScreen(
+                    state = state.centerPreparation,
+                    onRetry = {
+                        model.prepareCenterFromOrigin(route.centerId)
+                    },
+                    onBack = {
+                        navController.navigateBackOrHome()
+                    },
+                )
+            }
         }
 
         composable<AppRoute.ScheduleCenter> { entry ->
@@ -106,19 +109,21 @@ fun NavGraphBuilder.schedulingNavGraph(
             // Observa o estado respeitando o ciclo de vida da tela.
             val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
 
-            //::selectCenter passa uma referência à função. Ela será executada quando a tela comunicar a escolha.
-            ScheduleCenterScreen(
-                uiState = uiState,
-                onSelectCenter = schedulingViewModel::selectCenter,
-                onBack = {
-                    navController.navigateBackOrHome()
-                },
-                onContinue = {
-                    navController.navigate(AppRoute.ScheduleDate)
-                },
-                onNavigate = onNavigateMain,
-                onRetry = schedulingViewModel::loadCenters,
-            )
+            SchedulingDraftGate(schedulingViewModel, navController, entry, SchedulingStep.CENTER, onFinishScheduling) {
+                //::selectCenter passa uma referência à função. Ela será executada quando a tela comunicar a escolha.
+                ScheduleCenterScreen(
+                    uiState = uiState,
+                    onSelectCenter = schedulingViewModel::selectCenter,
+                    onBack = {
+                        navController.navigateBackOrHome()
+                    },
+                    onContinue = {
+                        navController.navigate(AppRoute.ScheduleDate)
+                    },
+                    onNavigate = onNavigateMain,
+                    onRetry = schedulingViewModel::loadCenters,
+                )
+            }
         }
 
         composable<AppRoute.ScheduleDate> { entry ->
@@ -135,30 +140,38 @@ fun NavGraphBuilder.schedulingNavGraph(
 
             val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
 
-            ScheduleDateScreen(
-                uiState = uiState,
-                onSelectDate = schedulingViewModel::selectDate,
-                onSelectTimeSlot = schedulingViewModel::selectTimeSlot,
-                onRetry = schedulingViewModel::loadTimeSlots,
-                onLoadAvailableDates = schedulingViewModel::loadAvailableDates,
-                onBack = {
-                    navController.popBackStack()
-                },
-                onContinue = {
-                    navController.navigate(AppRoute.ScheduleRecurrence)
-                },
-            )
+            SchedulingDraftGate(schedulingViewModel, navController, entry, SchedulingStep.DATE, onFinishScheduling) {
+                ScheduleDateScreen(
+                    uiState = uiState,
+                    onSelectDate = schedulingViewModel::selectDate,
+                    onSelectTimeSlot = schedulingViewModel::selectTimeSlot,
+                    onRetry = schedulingViewModel::loadTimeSlots,
+                    onLoadAvailableDates = schedulingViewModel::loadAvailableDates,
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onContinue = {
+                        navController.navigate(AppRoute.ScheduleRecurrence)
+                    },
+                )
+            }
         }
 
-        composable<AppRoute.ScheduleRecurrence> {
-            ScheduleRecurrenceScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                onContinue = {
-                    navController.navigate(AppRoute.ScheduleConfirm)
-                },
+        composable<AppRoute.ScheduleRecurrence> { entry ->
+            val schedulingEntry = remember(entry) { navController.getBackStackEntry<AppGraph.Scheduling>() }
+            val schedulingViewModel: SchedulingViewModel = viewModel(
+                viewModelStoreOwner = schedulingEntry, factory = schedulingViewModelFactory,
             )
+            SchedulingDraftGate(schedulingViewModel, navController, entry, SchedulingStep.RECURRENCE, onFinishScheduling) {
+                ScheduleRecurrenceScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onContinue = {
+                        navController.navigate(AppRoute.ScheduleConfirm)
+                    },
+                )
+            }
         }
 
         composable<AppRoute.ScheduleConfirm> { entry ->
@@ -177,23 +190,27 @@ fun NavGraphBuilder.schedulingNavGraph(
             val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
             val appointment = uiState.appointmentCreation.appointment
 
-            LaunchedEffect(appointment?.id, appointment?.status) {
-                if (appointment?.status == AppointmentStatus.SCHEDULED) {
-                    navController.navigate(AppRoute.ScheduleSuccess) {
-                        popUpTo<AppRoute.ScheduleConfirm> {
-                            inclusive = true
+            SchedulingDraftGate(schedulingViewModel, navController, entry, SchedulingStep.CONFIRM, onFinishScheduling) {
+                LaunchedEffect(appointment?.id, appointment?.status) {
+                    if (appointment?.status == AppointmentStatus.SCHEDULED) {
+                        navController.navigate(AppRoute.ScheduleSuccess) {
+                            popUpTo<AppRoute.ScheduleConfirm> {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
                         }
-                        launchSingleTop = true
                     }
                 }
+                ScheduleConfirmScreen(
+                    uiState = uiState,
+                    onBack = {
+                        if (uiState.requestLocked) onFinishScheduling() else navController.popBackStack()
+                    },
+                    onConfirm = schedulingViewModel::confirmAppointment,
+                    onReviewRejected = schedulingViewModel::reviewRejectedRequest,
+                    onFinishPrevious = schedulingViewModel::finishDraft,
+                )
             }
-            ScheduleConfirmScreen(
-                uiState = uiState,
-                onBack = {
-                    navController.popBackStack()
-                },
-                onConfirm = schedulingViewModel::confirmAppointment,
-            )
         }
 
         composable<AppRoute.ScheduleSuccess> { entry ->
@@ -208,10 +225,12 @@ fun NavGraphBuilder.schedulingNavGraph(
 
             val uiState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
 
-            ScheduleSuccessScreen(
-                uiState = uiState,
-                onHome = onFinishScheduling,
-            )
+            SchedulingDraftGate(schedulingViewModel, navController, entry, SchedulingStep.CONFIRM, onFinishScheduling) {
+                ScheduleSuccessScreen(
+                    uiState = uiState,
+                    onHome = schedulingViewModel::finishDraft,
+                )
+            }
         }
     }
 }
