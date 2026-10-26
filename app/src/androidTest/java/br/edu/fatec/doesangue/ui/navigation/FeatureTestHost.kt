@@ -20,9 +20,11 @@ internal fun FeatureTestHost(
     campaignsFactory: ViewModelProvider.Factory = container.campaignsViewModelFactory,
     homeFactory: ViewModelProvider.Factory = isolatedHomeFactory(),
     recoveryLinkState: StateFlow<RecoveryLinkUiState> = idleRecoveryLinkState,
+    sessionState: StateFlow<br.edu.fatec.doesangue.presentation.auth.SessionMonitorUiState>? = null,
 ) {
     AppNavHost(
         recoveryLinkState = recoveryLinkState,
+        sessionState = sessionState,
         navController = nav,
         schedulingViewModelFactory = container.schedulingViewModelFactory,
         loginViewModelFactory = container.loginViewModelFactory,

@@ -11,6 +11,7 @@ internal fun Throwable.toProfileFailure(): ProfileFailure = when (this) {
     else -> ProfileFailure(when (toDataFailure().reason) {
         DataError.NETWORK -> ProfileError.NETWORK
         DataError.SESSION_UNAVAILABLE -> ProfileError.SESSION_UNAVAILABLE
+        DataError.SESSION_RETRYING -> ProfileError.SESSION_RETRYING
         DataError.ACCESS_DENIED -> ProfileError.ACCESS_DENIED
         DataError.INVALID_DATA -> ProfileError.INVALID_DATA
         DataError.SERVICE_UNAVAILABLE -> ProfileError.SCHEMA_NOT_READY

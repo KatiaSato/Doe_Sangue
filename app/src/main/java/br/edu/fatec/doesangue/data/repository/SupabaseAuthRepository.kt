@@ -14,6 +14,8 @@ class SupabaseAuthRepository(
     private val dataSource: SupabaseAuthDataSource,
 ) : AuthRepository {
 
+    override fun observeSession() = dataSource.observeSession()
+
     override suspend fun resendEmailConfirmation(email: String): Result<Unit> = try {
         dataSource.resendEmailConfirmation(email)
         Result.success(Unit)

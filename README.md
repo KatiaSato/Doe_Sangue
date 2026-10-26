@@ -58,6 +58,8 @@ A consulta, seleção de unidade e repetição da consulta são funcionais. As d
 
 Os documentos em `docs/` usam **Confirmado**, **Proposto**, **Implementado** e **Pendente** para distinguir requisitos, escolhas atuais e código pronto.
 
+A observação da sessão durante o uso, os encaminhamentos e seus limites estão em [T01 — sessão durante o uso](docs/42-sessao-durante-uso.md).
+
 ## Navegação e testes — atualização de 23/09/2026
 
 **Implementado:** Navigation Compose 2.9.8, rotas tipadas e grafos Auth/Main/Scheduling. As telas enviam callbacks; as decisões de navegação ficam em `ui/navigation`. As setas das raízes retornam à Home quando não há tela anterior. Histórico independente por aba e persistência do rascunho continuam pendentes.

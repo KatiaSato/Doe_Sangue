@@ -1,5 +1,17 @@
 # Validação
 
+## T01 — sessão durante o uso — 26/10/2026
+
+Implementação direta autorizada somente para T01 após F19 aceita/enviada emdc0c1c0. Diagrama antes do código em [docs/42](42-sessao-durante-uso.md). SessionPresence/observação no repository, tradução SDK3.6.0, SessionMonitorViewModel no escopo raiz, política de navegação e gate Main/Scheduling implementados. Perda definitiva limpa destinos/ViewModels e abre Login com explicação; logout solicitado abre Boas-vindas; renovação transitória mantém conta/rascunho, e identidade desconhecida bloqueia apresentação privada. Conta diferente remove estado anterior. Login/cadastro aguardam observador do mesmo usuário, F07 mantém prioridade e F09 continua isolado. Guardas comuns aguardam inicialização e distinguem SESSION_RETRYING para agendamento/perfil/histórico.
+
+**75 JVM aprovados** (zero falhas/erros,0,894s), incluindo6 novos de política. **76 Android distintos aprovados** no Moto g04/Android14 USB, sem somar repetições:7 SDK/mapper,4 VM,14 UI T01,10 Activity F07,6 Activity F09,5 login,5 logout,5 restauração,6 cadastro,6 UI F19,4 SDK F19,4 SDK edição de perfil. Todas as fontes fictícias; SDK real com transporte interceptado/armazenamento em memória. Testes antigos de fluxos isolados deixam o monitor opcional no host; novos T01 e Activity F07/F09 validam a ligação do monitor. Nenhuma sessão persistida real foi lida/renovada ou revogada por esses testes.
+
+Rodada integral UI/regressão49 aprovada em119,284s. Os11 SDK/VM passaram em final.txt;16 F07/F09 passaram em integration.txt. Esses logs conservam também falhas anteriores da preparação: scroll em diálogo sem rolagem, teste removendo seu próprio último destino Login, seletor confundindo título/botão. Corrigidos somente testes; aprovação posterior das14 UI em final-ui-regression.txt inclui resposta tardia de leitura/criação, limpeza da pilha/VMs, mudança de conta, restauração, espera do observador e preservação do editor durante renovação. Não atribuir prova de revogação/JWT remoto a essas simulações.
+
+APKs/Lint finais aprovados em3m37s, **zero erros/14 avisos**, instalação -r preservando dados. Captura com teclado revelou aviso escondido na posição inferior; margem do IME não resolveu nesse host e foi substituída por aviso no topo. Teste dirigido de posição/preservação passou em7,240s após o último ajuste (banner-final.txt). Capturas de sessão encerrada e renovação revisadas e legíveis. Evidências ignoradas app/build/reports/t01-session e captures/2026-10-26-sessao-durante-uso.
+
+Sem SQL/migração/seed/Supabase remoto/e-mail/credenciais ou reservas reais; perfis, ambas as reservas anteriores (incluindo23), applicationId e arquivos ignorados preservados. O SDK pode descobrir revogação somente depois; não prometemos efeito instantâneo enquanto o JWT ainda vale. T02 de rascunho após morte de processo permanece separado. **Validação técnica concluída; em26/10 a usuária aprovou o fechamento e autorizou commit/push do conjunto completo.** Não atribuir novo teste manual ou revogação real a essa aprovação. Próximos conceitos voltam à tutoria, sem backlog automático.
+
 ## F19 — erros específicos de operações e consultas — 26/10/2026
 
 **Aceite manual posterior:** usuária respondeu “confirmo teste”. F19 encerrada neste recorte com aceite por relato, sem atribuir cenários adicionais, novas reservas/cancelamentos ou prova HTTP/JWT. Somente documentação atualizada; testes e operações remotas aprovados não foram repetidos. Nenhum commit/push F19 autorizado.

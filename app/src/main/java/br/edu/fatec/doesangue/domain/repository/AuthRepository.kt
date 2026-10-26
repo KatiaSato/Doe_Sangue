@@ -4,6 +4,8 @@ import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential
+import br.edu.fatec.doesangue.domain.model.SessionPresence
+import kotlinx.coroutines.flow.Flow
 
 // Define a operação de login sem depender do Supabase.
 /*
@@ -13,6 +15,8 @@ import br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential
 - interface define a operação; a implementação na camada data fará a comunicação com o Supabase.
 */
 interface AuthRepository {
+
+    fun observeSession(): Flow<SessionPresence>
 
     suspend fun resendEmailConfirmation(email: String): Result<Unit>
 

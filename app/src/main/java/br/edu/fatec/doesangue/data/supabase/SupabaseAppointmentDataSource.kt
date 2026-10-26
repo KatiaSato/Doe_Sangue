@@ -10,7 +10,6 @@ import br.edu.fatec.doesangue.data.supabase.mapper.toDomain
 import br.edu.fatec.doesangue.domain.model.Appointment
 import br.edu.fatec.doesangue.domain.model.AppointmentSummary
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -27,8 +26,7 @@ class SupabaseAppointmentDataSource(
             ?: throw DataFailure(DataError.INVALID_DATA)
         if (idempotencyKey.isBlank()) throw DataFailure(DataError.INVALID_DATA)
 
-        client.auth.awaitInitialization()
-        if (client.auth.currentUserOrNull() == null) throw DataFailure(DataError.SESSION_UNAVAILABLE)
+        client.requireDataUser()
 
         // A chave recebida é preservada para recuperar o mesmo pedido nas tentativas.
         val parameters = buildJsonObject {
@@ -47,8 +45,7 @@ class SupabaseAppointmentDataSource(
     }
 
     suspend fun getMyAppointments(): List<AppointmentSummary> {
-        client.auth.awaitInitialization()
-        if (client.auth.currentUserOrNull() == null) throw DataFailure(DataError.SESSION_UNAVAILABLE)
+        client.requireDataUser()
 
         return client.postgrest
             .rpc("consultar_meus_agendamentos", buildJsonObject {})
@@ -66,8 +63,7 @@ class SupabaseAppointmentDataSource(
         val reservationId = appointmentId.toLongOrNull()?.takeIf { it > 0 }
             ?: throw DataFailure(DataError.INVALID_DATA)
 
-        client.auth.awaitInitialization()
-        if (client.auth.currentUserOrNull() == null) throw DataFailure(DataError.SESSION_UNAVAILABLE)
+        client.requireDataUser()
 
         val parameters = buildJsonObject {
             put("p_agendamento_id", reservationId)

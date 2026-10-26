@@ -16,6 +16,10 @@ import io.github.jan.supabase.auth.OtpType
 import br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import br.edu.fatec.doesangue.data.supabase.mapper.toSessionPresence
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 // Realiza a autenticação usando o cliente Supabase.
 class SupabaseAuthDataSource(
@@ -24,6 +28,12 @@ class SupabaseAuthDataSource(
         createConfirmationSupabaseClient(client.supabaseHttpUrl, client.supabaseKey)
     },
 ) {
+    private val explicitSignOut = MutableStateFlow(false)
+
+    fun observeSession() = combine(client.auth.sessionStatus, explicitSignOut) { status, requested ->
+        status.toSessionPresence(requested)
+    }.distinctUntilChanged()
+
     suspend fun resendEmailConfirmation(email: String) {
         client.auth.awaitInitialization()
         client.auth.resendEmail(OtpType.Email.SIGNUP, email.trim(), redirectUrl = CONFIRMATION_REDIRECT)
@@ -67,6 +77,7 @@ class SupabaseAuthDataSource(
         require(displayName.isNotBlank()) { "Informe seu nome." }
         client.auth.awaitInitialization()
         check(client.auth.currentUserOrNull() == null) { "Já existe uma sessão conectada." }
+        explicitSignOut.value = false
         client.auth.signUpWith(Email, redirectUrl = CONFIRMATION_REDIRECT) {
             this.email = email.trim()
             this.password = password
@@ -85,6 +96,7 @@ class SupabaseAuthDataSource(
         password: String,
     ): AuthenticatedUser {
         client.auth.awaitInitialization()
+        explicitSignOut.value = false
 
         client.auth.signInWith(Email) {
             this.email = email
@@ -121,6 +133,7 @@ class SupabaseAuthDataSource(
             throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
         }
 
+        explicitSignOut.value = false
         val session = client.auth.exchangeCodeForSession(code)
         val user = session.user
             ?: throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
@@ -159,7 +172,13 @@ class SupabaseAuthDataSource(
     // Encerra somente a sessão atual.
     suspend fun signOut() {
         client.auth.awaitInitialization()
-        client.auth.signOut(scope = SignOutScope.LOCAL)
+        explicitSignOut.value = true
+        try {
+            client.auth.signOut(scope = SignOutScope.LOCAL)
+        } catch (failure: Exception) {
+            if (client.auth.sessionStatus.value !is SessionStatus.NotAuthenticated) explicitSignOut.value = false
+            throw failure
+        }
     }
 
     suspend fun restoreSession(): AuthenticatedUser? {

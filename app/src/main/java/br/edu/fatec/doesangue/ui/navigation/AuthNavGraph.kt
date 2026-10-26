@@ -16,6 +16,7 @@ import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
 import br.edu.fatec.doesangue.presentation.auth.PasswordRecoveryViewModel
 import br.edu.fatec.doesangue.presentation.auth.RegistrationViewModel
 import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationUiState
+import br.edu.fatec.doesangue.presentation.auth.SessionMonitorUiState
 import kotlinx.coroutines.flow.StateFlow
 import br.edu.fatec.doesangue.ui.screens.auth.EmailVerificationScreen
 import br.edu.fatec.doesangue.ui.screens.auth.ForgotPasswordScreen
@@ -35,6 +36,7 @@ fun NavGraphBuilder.authNavGraph(
     onConfirmationEmailChange: (String) -> Unit,
     onResendConfirmation: () -> Unit,
     onEnterMain: () -> Unit,
+    sessionState: StateFlow<SessionMonitorUiState>? = null,
 ) {
     navigation<AppGraph.Auth>(startDestination = AppRoute.Welcome) {
         composable<AppRoute.Welcome> { entry ->
@@ -48,8 +50,10 @@ fun NavGraphBuilder.authNavGraph(
             val login: LoginViewModel = viewModel(factory = loginViewModelFactory)
             val registration = registrationModel(navController, registrationViewModelFactory, entry)
             val state by login.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(state.authenticatedUser?.id) {
-                if (state.authenticatedUser != null) onEnterMain()
+            val monitored = sessionState?.collectAsStateWithLifecycle()?.value
+            LaunchedEffect(state.authenticatedUser?.id, monitored) {
+                val user = state.authenticatedUser
+                if (user != null && sessionState?.value.permitsLoginUser(user.id)) onEnterMain()
             }
             LoginScreen(state, login::signIn,
                 onForgot = { navController.navigate(AppRoute.ForgotPassword) },
@@ -91,9 +95,12 @@ fun NavGraphBuilder.authNavGraph(
         composable<AppRoute.Register4> { entry ->
             val model = registrationModel(navController, registrationViewModelFactory, entry)
             val state by model.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(state.result) {
+            val monitored = sessionState?.collectAsStateWithLifecycle()?.value
+            LaunchedEffect(state.result, monitored) {
                 state.result?.let { result ->
-                    if (result.authenticatedUser != null) onEnterMain()
+                    if (result.authenticatedUser != null) {
+                        if (sessionState?.value.permitsLoginUser(result.authenticatedUser.id)) onEnterMain()
+                    }
                     else navController.navigate(AppRoute.EmailVerification) {
                         popUpTo<AppRoute.Register1> { inclusive = true }; launchSingleTop = true
                     }

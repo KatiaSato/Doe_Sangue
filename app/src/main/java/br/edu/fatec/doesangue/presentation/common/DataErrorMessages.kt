@@ -10,6 +10,7 @@ internal fun Throwable.toDataMessage(fallback: String): String {
     return when ((this as? DataFailure)?.reason) {
         DataError.NETWORK -> "Não foi possível conectar ao serviço. Verifique sua conexão e tente novamente."
         DataError.SESSION_UNAVAILABLE -> "Sua sessão não está disponível. Entre novamente para continuar."
+        DataError.SESSION_RETRYING -> "Estamos tentando renovar sua sessão. Aguarde e tente novamente."
         DataError.ACCESS_DENIED -> "Você não tem permissão para realizar esta operação."
         DataError.SERVICE_UNAVAILABLE -> "Este serviço está indisponível no momento. Tente novamente mais tarde."
         DataError.INVALID_DATA -> "Os dados da solicitação são inválidos. Volte e confira sua escolha."

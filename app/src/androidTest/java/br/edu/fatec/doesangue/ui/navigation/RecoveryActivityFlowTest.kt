@@ -34,7 +34,12 @@ import org.junit.runner.RunWith
 class RecoveryActivityFlowTest {
     @get:Rule val compose = createEmptyComposeRule()
     private val user = AuthenticatedUser("synthetic-recovery-user")
+    private val presence = kotlinx.coroutines.flow.MutableStateFlow<SessionPresence>(SessionPresence.NotAuthenticated())
     private var session: AuthenticatedUser? = null
+        set(value) {
+            field = value
+            presence.value = value?.let(SessionPresence::Authenticated) ?: SessionPresence.NotAuthenticated()
+        }
     private val exchanges = mutableListOf<String>()
     private val saves = mutableListOf<String>()
     private var signOuts = 0
@@ -69,6 +74,7 @@ class RecoveryActivityFlowTest {
     @Before fun configure() {
         RecoveryTestApplication.pending = false
         val repository = object : AuthRepository by FakeAuthRepository() {
+            override fun observeSession() = presence
             override suspend fun restoreSession() = Result.success(session)
             override suspend fun exchangeRecoveryCode(code: String): Result<AuthenticatedUser> {
                 exchanges += code

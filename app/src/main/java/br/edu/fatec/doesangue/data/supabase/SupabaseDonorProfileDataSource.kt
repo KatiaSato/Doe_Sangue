@@ -9,7 +9,6 @@ import br.edu.fatec.doesangue.domain.model.ProfileFailure
 import br.edu.fatec.doesangue.domain.validation.ProfileValidator
 import java.time.LocalDate
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -31,9 +30,7 @@ class SupabaseDonorProfileDataSource(
             (birthDate != null && (birthDate.year < 1 || birthDate.isAfter(LocalDate.now())))) {
             throw ProfileFailure(ProfileError.INVALID_DATA)
         }
-        client.auth.awaitInitialization()
-        val user = client.auth.currentUserOrNull()
-            ?: throw ProfileFailure(ProfileError.SESSION_UNAVAILABLE)
+        val user = client.requireDataUser()
         val rows = client.from("perfil_doador").update(buildJsonObject {
             put("nome_exibicao", name)
             put("tipo_sanguineo", bloodType.databaseValue)
@@ -52,9 +49,7 @@ class SupabaseDonorProfileDataSource(
     }
 
     suspend fun updateCurrentBloodType(bloodType: BloodType): DonorProfile {
-        client.auth.awaitInitialization()
-        val user = client.auth.currentUserOrNull()
-            ?: throw ProfileFailure(ProfileError.SESSION_UNAVAILABLE)
+        val user = client.requireDataUser()
         return client.from("perfil_doador").update(buildJsonObject {
             put("tipo_sanguineo", bloodType.databaseValue)
         }) {
@@ -64,10 +59,8 @@ class SupabaseDonorProfileDataSource(
     }
 
     suspend fun getCurrentProfile(): DonorProfile? {
-        client.auth.awaitInitialization()
 
-        val user = client.auth.currentUserOrNull()
-            ?: throw ProfileFailure(ProfileError.SESSION_UNAVAILABLE)
+        val user = client.requireDataUser()
 
         val profiles = client.from("perfil_doador").select {
                 filter {
@@ -89,10 +82,8 @@ class SupabaseDonorProfileDataSource(
         val normalizedName = displayName.trim()
         if (normalizedName.isBlank()) throw ProfileFailure(ProfileError.INVALID_DATA)
 
-        client.auth.awaitInitialization()
 
-        val user = client.auth.currentUserOrNull()
-            ?: throw ProfileFailure(ProfileError.SESSION_UNAVAILABLE)
+        val user = client.requireDataUser()
 
         // Envia somente as colunas permitidas na criação, sem os novos campos do DTO.
         val createdProfile = client.from("perfil_doador").insert(buildJsonObject {

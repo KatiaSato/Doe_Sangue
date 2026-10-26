@@ -7,6 +7,8 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 
 class SupabaseDonationHistoryDataSource(private val client: SupabaseClient) {
-    suspend fun getMyDonations(): List<DonationRecord> =
-        client.postgrest.rpc("consultar_minhas_doacoes").decodeList<DonationRecordDto>().map { it.toDomain() }
+    suspend fun getMyDonations(): List<DonationRecord> {
+        client.requireDataUser()
+        return client.postgrest.rpc("consultar_minhas_doacoes").decodeList<DonationRecordDto>().map { it.toDomain() }
+    }
 }

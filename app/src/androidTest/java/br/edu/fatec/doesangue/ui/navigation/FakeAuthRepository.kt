@@ -12,6 +12,8 @@ class FakeAuthRepository(
     private val result: Result<AuthenticatedUser> =
         Result.success(AuthenticatedUser(id = "test-user-1")),
 ) : AuthRepository {
+    override fun observeSession(): kotlinx.coroutines.flow.Flow<br.edu.fatec.doesangue.domain.model.SessionPresence> = kotlinx.coroutines.flow.emptyFlow()
+
     override suspend fun resendEmailConfirmation(email: String): Result<Unit> =
         Result.failure(UnsupportedOperationException("Confirmação não configurada neste teste."))
     override suspend fun verifyEmailConfirmation(credential: br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential): Result<Unit> =

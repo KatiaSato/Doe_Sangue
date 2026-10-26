@@ -29,6 +29,7 @@ import br.edu.fatec.doesangue.data.supabase.SupabaseDonorProfileDataSource
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
 import br.edu.fatec.doesangue.presentation.auth.SessionViewModel
+import br.edu.fatec.doesangue.presentation.auth.SessionMonitorViewModel
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.presentation.profile.EditProfileViewModel
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
@@ -67,6 +68,9 @@ class AppContainer(
     private val bloodStockRepositoryOverride: BloodStockRepository? = null,
     private val donationHistoryRepositoryOverride: DonationHistoryRepository? = null,
 ) {
+    val sessionMonitorViewModelFactory = viewModelFactory {
+        initializer { SessionMonitorViewModel(authRepository) }
+    }
     val bloodStockRepository: BloodStockRepository by lazy {
         bloodStockRepositoryOverride ?: SupabaseBloodStockRepository(SupabaseBloodStockDataSource(supabaseClient))
     }

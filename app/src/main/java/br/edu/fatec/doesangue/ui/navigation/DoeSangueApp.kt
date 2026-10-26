@@ -6,6 +6,8 @@ import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkUiState
 import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationViewModel
 import kotlinx.coroutines.flow.StateFlow
+import androidx.lifecycle.viewmodel.compose.viewModel
+import br.edu.fatec.doesangue.presentation.auth.SessionMonitorViewModel
 
 @Composable
 fun DoeSangueApp(
@@ -18,9 +20,11 @@ fun DoeSangueApp(
     emailConfirmationViewModel: EmailConfirmationViewModel,
 ) {
     val navController = rememberNavController()
+    val sessionMonitor: SessionMonitorViewModel = viewModel(factory = appContainer.sessionMonitorViewModelFactory)
 
     AppNavHost(
         navController = navController,
+        sessionState = sessionMonitor.uiState,
         recoveryLinkState = recoveryLinkState,
         onRetryRecovery = onRetryRecovery,
         onFinishRecovery = onFinishRecovery,

@@ -34,7 +34,12 @@ import org.junit.Assert.*
 class EmailConfirmationActivityTest {
     @get:Rule val compose = createEmptyComposeRule()
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+    private val presence = kotlinx.coroutines.flow.MutableStateFlow<SessionPresence>(SessionPresence.NotAuthenticated())
     private var session: AuthenticatedUser? = null
+        set(value) {
+            field = value
+            presence.value = value?.let(SessionPresence::Authenticated) ?: SessionPresence.NotAuthenticated()
+        }
     private var requireConfirmation = false
     private val verified = mutableListOf<EmailConfirmationCredential>()
     private val sends = mutableListOf<String>()
@@ -48,6 +53,7 @@ class EmailConfirmationActivityTest {
     @Before fun setup() {
         RecoveryTestApplication.pending = false
         val repo = object : AuthRepository by FakeAuthRepository() {
+            override fun observeSession() = presence
             override suspend fun restoreSession() = Result.success(session)
             override suspend fun signIn(email: String, password: String): Result<AuthenticatedUser> =
                 if (requireConfirmation) Result.failure(AuthFailure(AuthError.EMAIL_NOT_CONFIRMED))
