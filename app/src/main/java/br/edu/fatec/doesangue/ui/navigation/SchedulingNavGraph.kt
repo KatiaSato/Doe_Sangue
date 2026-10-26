@@ -10,8 +10,11 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.toRoute
 import br.edu.fatec.doesangue.domain.model.AppointmentStatus
+import br.edu.fatec.doesangue.presentation.scheduling.CenterPreparationUiState
 import br.edu.fatec.doesangue.presentation.scheduling.SchedulingViewModel
+import br.edu.fatec.doesangue.ui.screens.scheduling.CenterPreparationScreen
 
 import br.edu.fatec.doesangue.ui.screens.scheduling.ScheduleCenterScreen
 import br.edu.fatec.doesangue.ui.screens.scheduling.ScheduleConfirmScreen
@@ -40,6 +43,55 @@ fun NavGraphBuilder.schedulingNavGraph(
     navigation<AppGraph.Scheduling>(
         startDestination = AppRoute.ScheduleCenter,
     ) {
+        composable<AppRoute.ScheduleFromCenter> { entry ->
+            val route = entry.toRoute<AppRoute.ScheduleFromCenter>()
+
+            val schedulingEntry = remember(entry) {
+                navController.getBackStackEntry<AppGraph.Scheduling>()
+            }
+
+            val model: SchedulingViewModel = viewModel(
+                viewModelStoreOwner = schedulingEntry,
+                factory = schedulingViewModelFactory,
+            )
+
+            val state by model.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(route.centerId) {
+                model.prepareCenterFromOrigin(route.centerId)
+            }
+
+            LaunchedEffect(state.centerPreparation, route.centerId) {
+                val preparation = state.centerPreparation
+                        as? CenterPreparationUiState.Ready
+                    ?: return@LaunchedEffect
+
+                if (
+                    preparation.centerId != route.centerId ||
+                    state.selectedCenter?.id != route.centerId
+                ) {
+                    return@LaunchedEffect
+                }
+
+                navController.navigate(AppRoute.ScheduleDate) {
+                    popUpTo<AppRoute.ScheduleFromCenter> {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+
+            CenterPreparationScreen(
+                state = state.centerPreparation,
+                onRetry = {
+                    model.prepareCenterFromOrigin(route.centerId)
+                },
+                onBack = {
+                    navController.navigateBackOrHome()
+                },
+            )
+        }
+
         composable<AppRoute.ScheduleCenter> { entry ->
             // Localiza o grafo de agendamento que contém esta tela.
             val schedulingEntry = remember(entry) {

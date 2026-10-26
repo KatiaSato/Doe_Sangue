@@ -17,6 +17,7 @@ import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailViewMod
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
 import br.edu.fatec.doesangue.presentation.auth.ChangePasswordViewModel
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
+import br.edu.fatec.doesangue.presentation.campaigns.CampaignDetailUiState
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.presentation.profile.EditProfileViewModel
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
@@ -32,6 +33,7 @@ import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignsReadScreen
 import br.edu.fatec.doesangue.ui.screens.campaigns.CampaignDetailReadScreen
 import br.edu.fatec.doesangue.presentation.campaigns.CampaignsViewModel
 import br.edu.fatec.doesangue.presentation.campaigns.CampaignDetailViewModel
+import br.edu.fatec.doesangue.presentation.centers.CenterDetailUiState
 import br.edu.fatec.doesangue.presentation.centers.CenterDetailViewModel
 import br.edu.fatec.doesangue.presentation.centers.CentersViewModel
 import br.edu.fatec.doesangue.ui.maps.openCenterMap
@@ -289,11 +291,31 @@ fun NavGraphBuilder.mainNavGraph(
 
         composable<AppRoute.CampaignDetailById> { entry ->
             val route = entry.toRoute<AppRoute.CampaignDetailById>()
-            val model: CampaignDetailViewModel = viewModel(factory = campaignDetailViewModelFactory(route.campaignId))
+
+            val model: CampaignDetailViewModel = viewModel(
+                factory = campaignDetailViewModelFactory(route.campaignId),
+            )
+
             val state by model.uiState.collectAsStateWithLifecycle()
-            CampaignDetailReadScreen(state, model::loadCampaign,
-                onBack = { navController.navigateBackOrHome() },
-                onSchedule = { onNavigateMain(AppRoute.ScheduleCenter) }, onNavigate = onNavigateMain)
+
+            CampaignDetailReadScreen(
+                state = state,
+                onRetry = model::loadCampaign,
+                onBack = {
+                    navController.navigateBackOrHome()
+                },
+                onSchedule = {
+                    val campaign =
+                        (state as? CampaignDetailUiState.Loaded)?.campaign
+
+                    if (campaign != null) {
+                        onNavigateMain(
+                            AppRoute.ScheduleFromCenter(campaign.centerId),
+                        )
+                    }
+                },
+                onNavigate = onNavigateMain,
+            )
         }
 
         composable<AppRoute.CampaignDetail> {
@@ -348,7 +370,13 @@ fun NavGraphBuilder.mainNavGraph(
                     navController.navigateBackOrHome()
                 },
                 onSchedule = {
-                    onNavigateMain(AppRoute.ScheduleCenter)
+                    val center = (state as? CenterDetailUiState.Loaded)?.center
+
+                    if (center != null) {
+                        onNavigateMain(
+                            AppRoute.ScheduleFromCenter(center.id),
+                        )
+                    }
                 },
                 onNavigate = onNavigateMain,
             )

@@ -25,6 +25,11 @@ data class SchedulingUiState(
     val appointmentCreation: AppointmentCreationUiState =
         AppointmentCreationUiState(),
 
+    // o estado geral do agendamento também guardará o andamento da preparação da unidade.
+    // Ele começa em Idle, pois nenhuma preparação foi solicitada.
+    val centerPreparation: CenterPreparationUiState =
+        CenterPreparationUiState.Idle,
+
     // Guarda os horários retornados para a unidade e a data escolhidas.
     val timeSlots: List<DonationTimeSlot> = emptyList(),
 

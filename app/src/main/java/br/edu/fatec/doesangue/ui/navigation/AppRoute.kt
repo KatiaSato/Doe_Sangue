@@ -58,6 +58,12 @@ sealed interface AppRoute {
     @Serializable
     data object ScheduleCenter : AppRoute
 
+    // Essa rota carrega somente o identificador da unidade
+    @Serializable
+    data class ScheduleFromCenter(
+        val centerId: String,
+    ) : AppRoute
+
     @Serializable
     data object ScheduleDate : AppRoute
 

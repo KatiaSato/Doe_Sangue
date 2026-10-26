@@ -87,6 +87,93 @@ class SchedulingViewModel(
         }
     }
 
+    // Essa função recebe a intenção de agendar naquela unidade, evita repetir uma
+    // preparação já em andamento ou concluída e solicita o catálogo.
+    // Se a consulta inicial já estiver acontecendo, a guarda existente em loadCenters()
+    // evita outra consulta simultânea
+    fun prepareCenterFromOrigin(centerId: String) {
+        val state = _uiState.value
+
+        if (
+            state.appointmentCreation.isLoading ||
+            state.centerPreparation == CenterPreparationUiState.Loading(centerId) ||
+            state.centerPreparation == CenterPreparationUiState.Ready(centerId)
+        ) {
+            return
+        }
+
+        if (centerId.isBlank()) {
+            _uiState.update { current ->
+                current.copy(
+                    centerPreparation = CenterPreparationUiState.Error(
+                        centerId = centerId,
+                        message = "Não foi possível identificar a unidade. Volte e tente novamente.",
+                    ),
+                )
+            }
+            return
+        }
+
+        // resetAppointmentRequest() limpa a chave do pedido local
+        resetAppointmentRequest()
+        timeSlotsJob?.cancel()
+
+        // Criar um novo SchedulingUiState limpa a data e o horário anteriores.
+        _uiState.update { current ->
+            SchedulingUiState(
+                centers = current.centers,
+                isLoading = current.isLoading,
+                centerPreparation = CenterPreparationUiState.Loading(centerId),
+            )
+        }
+
+        loadCenters()
+    }
+
+    // Essa função procura a unidade no catálogo recebido. Se encontrar, reutiliza selectCenter()
+    // e marca Ready; se não encontrar, apresenta uma causa específica.
+    private fun completeCenterPreparation() {
+        val state = _uiState.value
+        // O as? tenta reconhecer o estado como Loading. Caso seja outro estado, ?: return encerra a função.
+        val preparation = state.centerPreparation
+                as? CenterPreparationUiState.Loading ?: return
+
+        if (
+            state.isLoading ||
+            state.errorMessage != null ||
+            state.appointmentCreation.isLoading
+        ) {
+            return
+        }
+
+        val center = state.centers.firstOrNull {
+            it.id == preparation.centerId
+        }
+
+        if (center == null) {
+            _uiState.update { current ->
+                current.copy(
+                    centerPreparation = CenterPreparationUiState.Error(
+                        centerId = preparation.centerId,
+                        message = "Esta unidade não está mais disponível para agendamento.",
+                    ),
+                )
+            }
+            return
+        }
+
+        selectCenter(center)
+
+        _uiState.update { current ->
+            current.copy(
+                selectedCenter = center,
+                centerPreparation = CenterPreparationUiState.Ready(
+                    preparation.centerId,
+                ),
+            )
+        }
+    }
+
     // Guarda a data escolhida e limpa o horário quando a data muda.
     // Guarda uma nova data e consulta os horários correspondentes.
     fun selectDate(date: LocalDate) {
@@ -304,20 +391,37 @@ class SchedulingViewModel(
         }
 
         viewModelScope.launch {
-            donationCenterRepository.getCenters().fold(
+            val result = donationCenterRepository.getCenters()
+
+            ensureActive()
+
+            result.fold(
                 onSuccess = { centers ->
-                    _uiState.update { currentState ->
-                        currentState.copy(
+                    _uiState.update { current ->
+                        current.copy(
                             centers = centers,
                             isLoading = false,
                         )
                     }
+
+                    completeCenterPreparation()
                 },
                 onFailure = {
-                    _uiState.update { currentState ->
-                        currentState.copy(
+                    val message = "Não foi possível carregar as unidades."
+
+                    _uiState.update { current ->
+                        val preparation = current.centerPreparation
+                                as? CenterPreparationUiState.Loading
+
+                        current.copy(
                             isLoading = false,
-                            errorMessage = "Não foi possível carregar as unidades.",
+                            errorMessage = message,
+                            centerPreparation = preparation?.let {
+                                CenterPreparationUiState.Error(
+                                    centerId = it.centerId,
+                                    message = message,
+                                )
+                            } ?: current.centerPreparation,
                         )
                     }
                 },

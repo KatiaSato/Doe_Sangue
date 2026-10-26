@@ -20,6 +20,7 @@ import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 import br.edu.fatec.doesangue.presentation.centers.CentersViewModel
 import br.edu.fatec.doesangue.presentation.centers.CenterDetailViewModel
 import br.edu.fatec.doesangue.presentation.centers.CenterDetailUiState
+import br.edu.fatec.doesangue.presentation.scheduling.SchedulingViewModel
 import br.edu.fatec.doesangue.ui.theme.DoeSangueTheme
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
@@ -186,7 +187,9 @@ class CentersReadFlowTest {
         compose.onNodeWithText("Agendar doação").performScrollTo().performClick()
         compose.waitForIdle()
         compose.runOnIdle {
-            assertTrue(nav.currentDestination?.hasRoute<AppRoute.ScheduleCenter>() == true)
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.ScheduleDate>() == true)
+            val scheduling = ViewModelProvider(nav.getBackStackEntry<AppGraph.Scheduling>())[SchedulingViewModel::class.java]
+            assertEquals(rows[0].id, scheduling.uiState.value.selectedCenter?.id)
         }
     }
 
@@ -410,7 +413,11 @@ class CentersReadFlowTest {
         compose.onNodeWithText(rows[0].name).assertDoesNotExist()
         compose.onNodeWithText(selected.name).performScrollTo().performClick()
         compose.onNodeWithText("Agendar doação").performScrollTo().performClick()
-        compose.runOnIdle { assertTrue(nav.currentDestination?.hasRoute<AppRoute.ScheduleCenter>() == true) }
+        compose.runOnIdle {
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.ScheduleDate>() == true)
+            val scheduling = ViewModelProvider(nav.getBackStackEntry<AppGraph.Scheduling>())[SchedulingViewModel::class.java]
+            assertEquals(selected.id, scheduling.uiState.value.selectedCenter?.id)
+        }
     }
 
     private fun search(query: String) {
