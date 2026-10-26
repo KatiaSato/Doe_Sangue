@@ -1,5 +1,31 @@
 # Validação
 
+## F19 — erros específicos de operações e consultas — 26/10/2026
+
+**Aceite manual posterior:** usuária respondeu “confirmo teste”. F19 encerrada neste recorte com aceite por relato, sem atribuir cenários adicionais, novas reservas/cancelamentos ou prova HTTP/JWT. Somente documentação atualizada; testes e operações remotas aprovados não foram repetidos. Nenhum commit/push F19 autorizado.
+
+**Autorização posterior de Git:** usuária autorizou commit e push do conjunto completo F19 (produção/testes/SQL/documentação), preservando os arquivos ignorados. Sem nova execução de testes ou operações no banco pelo fechamento. Referências de Git pendente abaixo conservam o estado anterior.
+
+Etapa delegada diretamente pela usuária para após15h24 America/Sao_Paulo; execução agendada iniciou15h25. Diagrama em [docs/41](41-erros-operacoes-dados.md) antes do código. Implementados DataError/DataFailure, mapper comum e mapper de operações com SQLSTATE+DETAIL exatos/versionados, mensagens em português e integração em repositories/VMs/ReadUiState. ProfileFailure existente reaproveitado; criação/tipo/perfil agora preservam causas. Auth, regras de reserva e navegação global de sessão fora do escopo. Guardas locais tipadas; escolhas/dados/chave de repetição mantidos em falha.
+
+**9 JVM aprovados**, sem falhas/erros/ignorados:6 DataErrorMapperTest e3 DataErrorMessagesTest. Mesma resposta HTTP400 com causas distintas, escopo/versão/código/DETAIL, desconhecido sem inferência por frase/status, permissão versus sessão, schema/dados/busy/transporte, cancelamento/falha já tipada, mensagens/ReadUiState/perfil e ausência de detalhes privados. Rodada final após textos finais:0,566s; build14s. Primeiro build falhou no import InternalAPI do teste; corrigido somente no teste.
+
+**89 Android distintos aprovados** no Moto g04/Android14 USB ZF524LTN7L, por rodadas sem somar repetições:
+
+| Rodada | Casos | Resultado e alcance |
+| --- | --- | --- |
+| SupabaseDataFailuresTest4 + SupabaseProfileEditTest4 |8| OK em4,168s. SDK/Auth/Postgrest reais com transporte interceptado e sessão em memória; DETAIL, mesma chave em retry, IDs/sessão inválidos sem REST, categorias nos sete caminhos de consulta e perfil |
+| DataFailureFlowTest6 + AvailabilityViewModelTest7 |13| OK em28,730s. Grafo/VM/telas reais com fontes fictícias: vaga/conexão/desconhecido/sucesso sem perder rascunho/chave, prazo/cancelamento sem falso sucesso e retry pelo mesmo ID, calendário bloqueado durante erro/retry, unidade com serviço indisponível/retry, perfil/tipo preservados e guarda temporal/idempotência de T03 |
+| Criação6 + detalhe14 + lista6 + unidades14 + campanhas4 + perfil7 + edição5 + Home12 |68| OK em233,204s. Regressão das telas e estados afetados, fontes fictícias/sem rede |
+
+APKs/Lint finais aprovados em2m2s, **zero erros/14 avisos**, instalados com -r preservando dados. Uma execução intermediária de Lint falhou internamente no LeakDetector (Unexpected owner function); repetição final sem cache de configuração passou com todas as verificações ativas, sem supressão. Capturas sintéticas sem-vagas.png e prazo-cancelamento.png revisadas, mensagens legíveis, dados anteriores e ações preservados. A data exibida em captura sintética não comprova regra temporal real: falhas são respostas artificiais do teste. Relatórios ignorados app/build/reports/f19-errors e pastas JVM/Lint usuais.
+
+**SQL local e remoto:** PGlite0.5.10/15 migrações aprovado. Migração20261026000200 somente acrescenta DETAIL estável nos19 RAISE das funções criar/cancelar, preservando mensagens, SQLSTATE e demais corpos/metadados/ACL/RLS. Runner remove somente os novos DETAIL e compara os corpos antes/depois; confirma dados/grants e executa o roteiro descartável. Roteiro novo confere17 rejeições do fluxo principal e4 nos isolamentos, criação/repetição/cancelamento/evento único, alheio e inexistente com mesma resposta, ausência de alteração dos dados. Local usa Auth mínimo fictício; remoto usa perfis existentes, sem criar/alterar contas Auth ou perfis.
+
+Usuária autorizou especificamente aplicar essa migração e erros_agendamento_identificadores.sql com ROLLBACK no projeto acadêmico fbrycvxelubxxafjstbo/main Production. Conferência inicial: **2 unidades/6 horários/3 perfis/2 agendamentos**; o segundo agendamento já existia após o teste manual T03. Ambos preservados. Corpos remotos antigos coincidiram com a base local normalizada antes de aplicar. Migração aplicada uma vez com Success; roteiro integral aprovado; conferência final **10 true** para dados, corpos sem DETAIL/metadados, identificadores, RLS/EXECUTE e reserva23. Teste não cria/altera perfil/conta ou reserva real; somente fixtures do domínio foram criadas/canceladas em transações desfeitas. Sequências podem avançar. Não reaplicar migração/testes/seed já aprovados.
+
+Evidências ignoradas captures/2026-10-26-erros-operacoes: baseline.json, migracao-aplicada.png, testes-supabase.png, conferencia-final.png/SQL, resultado.json e duas capturas de UI. Prova final exibida no chat e aba mantida com resultado. SQL administrativo SET ROLE não equivale a JWT/HTTP real; SDK/UI usam respostas interceptadas/fictícias e não acessam sessão persistida da usuária. Não foram repetidos testes de concorrência real, nem simulada perda real de resposta. Validação técnica concluída e aceite manual confirmado por relato posterior. Nenhum commit/push F19 autorizado e nenhum próximo ID iniciado.
+
 ## T03 — calendário e horários com vagas — 26/10/2026
 
 **Aceite manual posterior:** usuária informou que realizou o teste manual sem bugs ou erros. T03 encerrada neste recorte com aceite por relato, sem atribuir cenários adicionais ou criação de reserva e sem nova captura/inspeção HTTP/JWT. Somente documentação atualizada; testes, SQL, seed e operações remotas aprovados não foram repetidos. Nenhum novo commit/push autorizado.

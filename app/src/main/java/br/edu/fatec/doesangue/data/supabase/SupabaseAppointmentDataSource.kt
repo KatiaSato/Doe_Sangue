@@ -1,5 +1,9 @@
 package br.edu.fatec.doesangue.data.supabase
 
+import br.edu.fatec.doesangue.domain.model.DataFailure
+
+import br.edu.fatec.doesangue.domain.model.DataError
+
 import br.edu.fatec.doesangue.data.supabase.dto.AppointmentDto
 import br.edu.fatec.doesangue.data.supabase.dto.AppointmentSummaryDto
 import br.edu.fatec.doesangue.data.supabase.mapper.toDomain
@@ -19,14 +23,12 @@ class SupabaseAppointmentDataSource(
         timeSlotId: String,
         idempotencyKey: String,
     ): Appointment {
-        val slotId = timeSlotId.toLong()
-        require(slotId > 0) { "Informe um horário válido." }
-        require(idempotencyKey.isNotBlank()) { "Informe a chave do pedido." }
+        val slotId = timeSlotId.toLongOrNull()?.takeIf { it > 0 }
+            ?: throw DataFailure(DataError.INVALID_DATA)
+        if (idempotencyKey.isBlank()) throw DataFailure(DataError.INVALID_DATA)
 
         client.auth.awaitInitialization()
-        checkNotNull(client.auth.currentUserOrNull()) {
-            "É necessário entrar para agendar."
-        }
+        if (client.auth.currentUserOrNull() == null) throw DataFailure(DataError.SESSION_UNAVAILABLE)
 
         // A chave recebida é preservada para recuperar o mesmo pedido nas tentativas.
         val parameters = buildJsonObject {
@@ -46,9 +48,7 @@ class SupabaseAppointmentDataSource(
 
     suspend fun getMyAppointments(): List<AppointmentSummary> {
         client.auth.awaitInitialization()
-        checkNotNull(client.auth.currentUserOrNull()) {
-            "É necessário entrar para consultar os agendamentos."
-        }
+        if (client.auth.currentUserOrNull() == null) throw DataFailure(DataError.SESSION_UNAVAILABLE)
 
         return client.postgrest
             .rpc("consultar_meus_agendamentos", buildJsonObject {})
@@ -63,15 +63,11 @@ class SupabaseAppointmentDataSource(
     suspend fun cancelAppointment(
         appointmentId: String,
     ): Appointment {
-        val reservationId = appointmentId.toLong()
-        require(reservationId > 0) {
-            "Informe um agendamento válido."
-        }
+        val reservationId = appointmentId.toLongOrNull()?.takeIf { it > 0 }
+            ?: throw DataFailure(DataError.INVALID_DATA)
 
         client.auth.awaitInitialization()
-        checkNotNull(client.auth.currentUserOrNull()) {
-            "É necessário entrar para cancelar."
-        }
+        if (client.auth.currentUserOrNull() == null) throw DataFailure(DataError.SESSION_UNAVAILABLE)
 
         val parameters = buildJsonObject {
             put("p_agendamento_id", reservationId)

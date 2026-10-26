@@ -59,7 +59,7 @@ class ProfileViewModel(
                         ProfileUiState.Loaded(profile)
                     } else current.copy(bloodTypeError = "Não foi possível atualizar o tipo sanguíneo.")
                 },
-                onFailure = { current.copy(bloodTypeError = "Não foi possível atualizar o tipo sanguíneo. Tente novamente.") },
+                onFailure = { current.copy(bloodTypeError = it.toProfileMessage("Não foi possível atualizar o tipo sanguíneo. Tente novamente.")) },
             )
         }
     }
@@ -89,7 +89,7 @@ class ProfileViewModel(
                 },
                 onFailure = {
                     ProfileUiState.Error(
-                        message = "Não foi possível carregar o perfil. Tente novamente.",
+                        message = it.toProfileMessage("Não foi possível carregar o perfil. Tente novamente."),
                     )
                 },
             )
@@ -147,7 +147,7 @@ class ProfileViewModel(
                     onFailure = {
                         currentState.copy(
                             isSaving = false,
-                            errorMessage = "Não foi possível concluir a criação do perfil.",
+                            errorMessage = it.toProfileMessage("Não foi possível concluir a criação do perfil."),
                         )
                     },
                 )

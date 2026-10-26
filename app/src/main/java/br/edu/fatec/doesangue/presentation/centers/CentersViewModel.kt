@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.presentation.centers
 
+import br.edu.fatec.doesangue.presentation.common.toDataMessage
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.fatec.doesangue.domain.model.DonationCenter
@@ -58,7 +60,7 @@ class CentersViewModel(
                         isLoading = false,
                         centers = emptyList(),
                         errorMessage =
-                            "Não foi possível carregar as unidades. Tente novamente.",
+                            it.toDataMessage("Não foi possível carregar as unidades. Tente novamente."),
                     )
                 },
             )

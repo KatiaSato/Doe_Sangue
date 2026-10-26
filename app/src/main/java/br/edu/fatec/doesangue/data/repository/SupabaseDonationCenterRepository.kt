@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.data.repository
 
+import br.edu.fatec.doesangue.data.supabase.mapper.toDataFailure
+
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonationCenterDataSource
 import br.edu.fatec.doesangue.domain.model.DonationCenter
 import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
@@ -19,7 +21,7 @@ class SupabaseDonationCenterRepository(
             throw exception
         } catch (exception: Exception) {
             // Devolve a falha para quem solicitou a consulta.
-            Result.failure(exception)
+            Result.failure(exception.toDataFailure())
         }
     }
 }

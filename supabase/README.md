@@ -1,5 +1,13 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Erros identificáveis de criação/cancelamento — F19, 26/10/2026
+
+`migrations/20261026000200_identificar_erros_agendamento.sql` é a15ª migração, aplicada uma vez no projeto acadêmico fbrycvxelubxxafjstbo após autorização específica. **Não reaplicar.** CREATE OR REPLACE preserva as duas funções e acrescenta somente DETAIL estável doesangue.*.v1 nos19 RAISE; SQLSTATE, mensagens, regras/bloqueios/idempotência/grants/RLS permanecem. Não cria tabela, seed ou permissão. Android classifica campo/código exatos e mantém fallback seguro para respostas antigas/desconhecidas; nunca compara frase/HTTP para inventar causa.
+
+`tests/erros_agendamento_identificadores.sql` aprovado inteiro no SQL Editor com ROLLBACK, usando perfis existentes e somente registros temporários do domínio, sem criar/alterar contas Auth/perfis. Conferência final10 true:2 unidades/6 horários/3 perfis/**2 agendamentos** anteriores preservados (incluindo23), eventos, corpos normalizados/metadados e execução restrita/RLS. Esse total2 já existia antes da F19; não limpar o segundo agendamento. Sequências podem avançar apesar do ROLLBACK. Testes administrativos não comprovam JWT/API de doador.
+
+Runner local `tests/local/validar_erros_agendamento.mjs`: PGlite0.5.10 externo ao app,15 migrações e base descartável; compara corpo sem DETAIL/assinaturas/ACL/RLS/dados e valida identificadores, privacidade, repetição/evento único e isolamentos rejeitados. Executar `node supabase/tests/local/validar_erros_agendamento.mjs <diretório da ferramenta>`. Relatório ignorado app/build/reports/sql/erros-agendamento.json. Nenhum db push/reset ou repetição de fixtures remotas. [Diagrama e detalhes](../docs/41-erros-operacoes-dados.md), [evidências](../docs/12-validacao.md).
+
 ## Disponibilidade de calendário/horários — T03, 26/10/2026
 
 Migração `migrations/20261026000100_consultar_disponibilidade_agendamento.sql` aplicada uma vez no projeto acadêmico fbrycvxelubxxafjstbo após autorização específica; **não reaplicar**. Cria duas RPCs STABLE/SECURITY DEFINER/search_path vazio, EXECUTE explícito anon/authenticated, sem abrir leitura de reservas. Dias por mês no fuso da unidade e horários futuros/ativos/publicados com capacidade menos todas as reservas agendadas; cancelados não ocupam. Função criar_agendamento, ACL/RLS das tabelas, perfis e reserva23 preservados.

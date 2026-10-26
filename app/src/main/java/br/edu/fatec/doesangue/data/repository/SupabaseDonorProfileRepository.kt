@@ -36,7 +36,7 @@ class SupabaseDonorProfileRepository(
     } catch (exception: CancellationException) {
         throw exception
     } catch (exception: Exception) {
-        Result.failure(exception)
+        Result.failure(exception.toProfileFailure())
     }
 
     override suspend fun getCurrentProfile(): Result<DonorProfile?> {
@@ -63,7 +63,7 @@ class SupabaseDonorProfileRepository(
             throw exception
         } catch (exception: Exception) {
             // Devolve a falha para quem solicitou a criação.
-            Result.failure(exception)
+            Result.failure(exception.toProfileFailure())
         }
     }
 }

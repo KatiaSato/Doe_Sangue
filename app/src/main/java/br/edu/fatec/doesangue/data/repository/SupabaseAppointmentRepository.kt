@@ -1,5 +1,9 @@
 package br.edu.fatec.doesangue.data.repository
 
+import br.edu.fatec.doesangue.data.supabase.mapper.toDataFailure
+
+import br.edu.fatec.doesangue.data.supabase.mapper.toAppointmentFailure
+
 import br.edu.fatec.doesangue.data.supabase.SupabaseAppointmentDataSource
 import br.edu.fatec.doesangue.domain.model.Appointment
 import br.edu.fatec.doesangue.domain.model.AppointmentSummary
@@ -23,7 +27,7 @@ class SupabaseAppointmentRepository(
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
-            Result.failure(exception)
+            Result.failure(exception.toAppointmentFailure())
         }
     }
 
@@ -33,7 +37,7 @@ class SupabaseAppointmentRepository(
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
-            Result.failure(exception)
+            Result.failure(exception.toDataFailure())
         }
     }
 
@@ -51,7 +55,7 @@ class SupabaseAppointmentRepository(
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
-            Result.failure(exception)
+            Result.failure(exception.toAppointmentFailure())
         }
     }
 }

@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.data.repository
 
+import br.edu.fatec.doesangue.data.supabase.mapper.toDataFailure
+
 import br.edu.fatec.doesangue.data.supabase.SupabaseDonationTimeSlotDataSource
 import br.edu.fatec.doesangue.domain.model.DonationTimeSlot
 import br.edu.fatec.doesangue.domain.repository.DonationTimeSlotRepository
@@ -18,7 +20,7 @@ class SupabaseDonationTimeSlotRepository(
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
-            Result.failure(exception)
+            Result.failure(exception.toDataFailure())
         }
 
     override suspend fun getTimeSlots(
@@ -39,7 +41,7 @@ class SupabaseDonationTimeSlotRepository(
             throw exception
         } catch (exception: Exception) {
             // Comunica a falha para quem solicitou a consulta.
-            Result.failure(exception)
+            Result.failure(exception.toDataFailure())
         }
     }
 }

@@ -127,7 +127,7 @@ class AvailabilityViewModelTest {
         clock.current = slot.startsAt
         onMain { model.confirmAppointment() }
         assertTrue(keys.isEmpty())
-        assertEquals("Este horário não está mais disponível. Volte e escolha outro horário.",
+        assertEquals("O horário escolhido já começou. Volte e escolha outro horário.",
             model.uiState.value.appointmentCreation.errorMessage)
     }
 

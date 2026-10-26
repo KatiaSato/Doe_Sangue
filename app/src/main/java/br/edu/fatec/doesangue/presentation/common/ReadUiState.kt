@@ -8,5 +8,5 @@ sealed interface ReadUiState<out T> {
 
 internal fun <T> Result<T>.toReadState(message: String): ReadUiState<T> = fold(
     onSuccess = { ReadUiState.Loaded(it) },
-    onFailure = { ReadUiState.Error(message) },
+    onFailure = { ReadUiState.Error(it.toDataMessage(message)) },
 )

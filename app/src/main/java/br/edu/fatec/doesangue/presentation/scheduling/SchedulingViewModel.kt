@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.presentation.scheduling
 
+import br.edu.fatec.doesangue.presentation.common.toDataMessage
+
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.Clock
@@ -14,6 +16,8 @@ import kotlinx.coroutines.ensureActive
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import br.edu.fatec.doesangue.domain.model.DonationCenter
+import br.edu.fatec.doesangue.domain.model.DataError
+import br.edu.fatec.doesangue.domain.model.DataFailure
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 import br.edu.fatec.doesangue.domain.usecase.GetDonationTimeSlotsUseCase
@@ -275,8 +279,9 @@ class SchedulingViewModel(
         // Repetir um pedido enviado pode recuperar uma reserva, inclusive após o início.
         // Somente uma intenção nova é barrada localmente.
         if (appointmentRequest == null && (slot.availableSpots <= 0 || slot.startsAt <= clock.instant())) {
+            val reason = if (slot.startsAt <= clock.instant()) DataError.SLOT_STARTED else DataError.SLOT_FULL
             _uiState.update { current -> current.copy(appointmentCreation = AppointmentCreationUiState(
-                errorMessage = "Este horário não está mais disponível. Volte e escolha outro horário.",
+                errorMessage = DataFailure(reason).toDataMessage("Não foi possível confirmar o agendamento. Tente novamente."),
             )) }
             return
         }
@@ -327,7 +332,7 @@ class SchedulingViewModel(
                         onFailure = {
                             AppointmentCreationUiState(
                                 errorMessage =
-                                    "Não foi possível confirmar o agendamento. Tente novamente.",
+                                    it.toDataMessage("Não foi possível confirmar o agendamento. Tente novamente."),
                             )
                         },
                     ),
@@ -360,7 +365,7 @@ class SchedulingViewModel(
                 current.copy(calendarAvailability = result.fold(
                     onSuccess = { dates -> CalendarAvailabilityUiState(month = month, dates = dates) },
                     onFailure = { CalendarAvailabilityUiState(month = month,
-                        errorMessage = "Não foi possível consultar os dias disponíveis. Tente novamente.") },
+                        errorMessage = it.toDataMessage("Não foi possível consultar os dias disponíveis. Tente novamente.")) },
                 ))
             }
         }
@@ -411,7 +416,7 @@ class SchedulingViewModel(
                         current.copy(
                             isLoadingTimeSlots = false,
                             timeSlotsErrorMessage =
-                                "Não foi possível carregar os horários.",
+                                it.toDataMessage("Não foi possível carregar os horários."),
                         )
                     },
                 )
@@ -451,7 +456,7 @@ class SchedulingViewModel(
                     completeCenterPreparation()
                 },
                 onFailure = {
-                    val message = "Não foi possível carregar as unidades."
+                    val message = it.toDataMessage("Não foi possível carregar as unidades.")
 
                     _uiState.update { current ->
                         val preparation = current.centerPreparation

@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.data.repository
 
+import br.edu.fatec.doesangue.data.supabase.mapper.toDataFailure
+
 import br.edu.fatec.doesangue.data.supabase.SupabaseCampaignDataSource
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.model.Campaign
@@ -12,6 +14,6 @@ class SupabaseCampaignRepository(private val dataSource: SupabaseCampaignDataSou
     } catch (exception: CancellationException) {
         throw exception
     } catch (exception: Exception) {
-        Result.failure(exception)
+        Result.failure(exception.toDataFailure())
     }
 }

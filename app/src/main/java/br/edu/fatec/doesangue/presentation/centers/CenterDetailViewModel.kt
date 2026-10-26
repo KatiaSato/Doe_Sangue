@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.presentation.centers
 
+import br.edu.fatec.doesangue.presentation.common.toDataMessage
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
@@ -50,7 +52,7 @@ class CenterDetailViewModel(
                 },
                 onFailure = {
                     CenterDetailUiState.Error(
-                        message = "Não foi possível carregar a unidade. Tente novamente.",
+                        message = it.toDataMessage("Não foi possível carregar a unidade. Tente novamente."),
                     )
                 },
             )

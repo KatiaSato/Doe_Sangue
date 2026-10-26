@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.presentation.campaigns
 
+import br.edu.fatec.doesangue.presentation.common.toDataMessage
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.fatec.doesangue.domain.model.BloodType
@@ -35,7 +37,7 @@ class CampaignsViewModel(private val repository: CampaignRepository) : ViewModel
             _uiState.value = result.fold(
                 onSuccess = { CampaignsUiState(selected, isLoading = false, campaigns = it) },
                 onFailure = { CampaignsUiState(selected, isLoading = false,
-                    errorMessage = "Não foi possível carregar as campanhas. Tente novamente.") },
+                    errorMessage = it.toDataMessage("Não foi possível carregar as campanhas. Tente novamente.")) },
             )
         }
     }

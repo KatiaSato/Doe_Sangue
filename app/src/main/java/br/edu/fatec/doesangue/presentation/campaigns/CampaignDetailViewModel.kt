@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.presentation.campaigns
 
+import br.edu.fatec.doesangue.presentation.common.toDataMessage
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.fatec.doesangue.domain.model.Campaign
@@ -34,7 +36,7 @@ class CampaignDetailViewModel(
             _uiState.value = result.fold(
                 onSuccess = { rows -> rows.firstOrNull { it.id == campaignId }
                     ?.let { CampaignDetailUiState.Loaded(it) } ?: CampaignDetailUiState.NotFound },
-                onFailure = { CampaignDetailUiState.Error("Não foi possível carregar a campanha. Tente novamente.") },
+                onFailure = { CampaignDetailUiState.Error(it.toDataMessage("Não foi possível carregar a campanha. Tente novamente.")) },
             )
         }
     }

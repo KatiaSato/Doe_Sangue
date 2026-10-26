@@ -1,5 +1,7 @@
 package br.edu.fatec.doesangue.presentation.appointments
 
+import br.edu.fatec.doesangue.presentation.common.toDataMessage
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
@@ -40,7 +42,7 @@ class AppointmentsViewModel(
                 },
                 onFailure = {
                     AppointmentsUiState.Error(
-                        message = "Não foi possível carregar os agendamentos. Tente novamente.",
+                        message = it.toDataMessage("Não foi possível carregar os agendamentos. Tente novamente."),
                     )
                 },
             )
