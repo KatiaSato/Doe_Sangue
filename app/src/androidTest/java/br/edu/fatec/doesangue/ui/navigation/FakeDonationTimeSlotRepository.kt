@@ -5,9 +5,13 @@ import br.edu.fatec.doesangue.domain.repository.DonationTimeSlotRepository
 import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.LocalDate
+import java.time.YearMonth
 
 // Fornece horários previsíveis para os testes de navegação.
 class FakeDonationTimeSlotRepository : DonationTimeSlotRepository {
+    override suspend fun getAvailableDates(centerId: String, month: YearMonth): Result<Set<LocalDate>> =
+        Result.success(if (centerId == "test-center-1") (1..month.lengthOfMonth()).map { month.atDay(it) }.toSet() else emptySet())
 
     override suspend fun getTimeSlots(
         centerId: String,

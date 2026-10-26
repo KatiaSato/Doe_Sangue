@@ -34,7 +34,7 @@ class AppointmentCreationFlowTest {
     private lateinit var nav: NavHostController
     private lateinit var model: SchedulingViewModel
     private val repository = ControlledAppointmentRepository()
-    private val date = LocalDate.of(2026, 10, 19)
+    private val date = LocalDate.of(2026, 11, 20)
 
     private fun openScheduling() {
         val container = AppContainer(
@@ -53,6 +53,7 @@ class AppointmentCreationFlowTest {
                     container.donationCenterRepository,
                     container.getDonationTimeSlots,
                     repository,
+                    container.getAvailableDonationDates,
                 ).also { model = it }
             }
         }
@@ -119,7 +120,7 @@ class AppointmentCreationFlowTest {
         confirm()
         assertRoute<AppRoute.ScheduleSuccess>()
         compose.onNodeWithText("Número do agendamento: synthetic-1").assertExists()
-        compose.onNodeWithText("Seu agendamento é para\n19/10/2026 às 09:30").assertExists()
+        compose.onNodeWithText("Seu agendamento é para\n20/11/2026 às 09:30").assertExists()
         compose.onNodeWithText("Unidade Acadêmica de Demonstração").assertExists()
         compose.onNodeWithText("Endereço fictício").assertExists()
         compose.runOnIdle {

@@ -19,6 +19,6 @@ data class DonationTimeSlotDto(
     @SerialName("capacidade")
     val capacity: Int,
 
-    @SerialName("ativo")
-    val active: Boolean,
+    @SerialName("vagas_disponiveis")
+    val availableSpots: Int,
 )

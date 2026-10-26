@@ -5,11 +5,21 @@ import br.edu.fatec.doesangue.domain.model.DonationTimeSlot
 import br.edu.fatec.doesangue.domain.repository.DonationTimeSlotRepository
 import kotlinx.coroutines.CancellationException
 import java.time.Instant
+import java.time.LocalDate
+import java.time.YearMonth
 
 // Implementa o contrato de consulta dos horários usando o Supabase.
 class SupabaseDonationTimeSlotRepository(
     private val dataSource: SupabaseDonationTimeSlotDataSource,
 ) : DonationTimeSlotRepository {
+    override suspend fun getAvailableDates(centerId: String, month: YearMonth): Result<Set<LocalDate>> =
+        try {
+            Result.success(dataSource.getAvailableDates(centerId, month))
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Result.failure(exception)
+        }
 
     override suspend fun getTimeSlots(
         centerId: String,

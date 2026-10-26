@@ -30,6 +30,8 @@ data class SchedulingUiState(
     val centerPreparation: CenterPreparationUiState =
         CenterPreparationUiState.Idle,
 
+    val calendarAvailability: CalendarAvailabilityUiState = CalendarAvailabilityUiState(),
+
     // Guarda os horários retornados para a unidade e a data escolhidas.
     val timeSlots: List<DonationTimeSlot> = emptyList(),
 

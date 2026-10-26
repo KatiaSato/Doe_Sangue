@@ -1,5 +1,8 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.assertIsDisplayed
+
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.captureToImage
@@ -221,7 +224,7 @@ class AppNavigationTest {
             .performScrollTo()
             .performClick()
         tap("Continuar")
-        chooseDate("15")
+        chooseDate(firstAvailableDay)
         tap("09:30")
         tap("Continuar")
         compose.onNodeWithText("A cada 3 meses").assertDoesNotExist()
@@ -246,14 +249,14 @@ class AppNavigationTest {
         tap("Continuar")
         compose.onNodeWithText("09:30").assertDoesNotExist()
         compose.onNodeWithText("Continuar").assertIsNotEnabled()
-        chooseDate("15")
+        chooseDate(firstAvailableDay)
         tap("09:30")
         compose.onNodeWithText("09:30").assertIsSelected()
         compose.onNodeWithText("Continuar").assertIsEnabled()
 
         // Reabrir a data confirmada, escolher outra e cancelar preserva o horário.
         tapDateButton()
-        tapCalendarDay("16")
+        tapCalendarDay(firstAvailableDay.plusDays(1))
         tap("Cancelar")
         compose.onNodeWithText("09:30").assertIsSelected()
 
@@ -268,19 +271,29 @@ class AppNavigationTest {
         compose.onNodeWithText("09:30").assertIsSelected()
 
         tapDateButton()
-        tapCalendarDay("16")
+        tapCalendarDay(firstAvailableDay.plusDays(1))
         tap("Confirmar data")
         compose.onNodeWithText("09:30").assertIsNotSelected()
         compose.onNodeWithText("Continuar").assertIsNotEnabled()
     }
 
-    private fun chooseDate(day: String) {
+    private val firstAvailableDay = java.time.LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo")).plusDays(1)
+    private var calendarMonth = java.time.YearMonth.now(java.time.ZoneId.of("America/Sao_Paulo"))
+
+    private fun chooseDate(day: java.time.LocalDate) {
         tap("Selecionar data")
+        calendarMonth = java.time.YearMonth.now(java.time.ZoneId.of("America/Sao_Paulo"))
         tapCalendarDay(day)
         tap("Confirmar data")
     }
 
-    private fun tapCalendarDay(day: String) {
+    private fun tapCalendarDay(date: java.time.LocalDate) {
+        while (calendarMonth < java.time.YearMonth.from(date)) {
+            compose.onNode(hasContentDescription("next month",substring=true,ignoreCase=true) or
+                hasContentDescription("próximo mês",substring=true,ignoreCase=true)).performClick()
+            calendarMonth = calendarMonth.plusMonths(1)
+        }
+        val day = date.dayOfMonth.toString()
         // Material 3 expõe a data completa no texto acessível, em vez do número isolado.
         val dayNumber = Regex("(?<!\\d)$day(?!\\d)")
         val matcher = SemanticsMatcher("dia $day na descrição do calendário") { node ->
@@ -288,14 +301,19 @@ class AppNavigationTest {
                 ?.any { dayNumber.containsMatchIn(it.text) } == true
         }
         // Restringe a busca ao diálogo para não confundir o dia 15 com o horário 15:30.
-        compose.onNode(matcher and hasClickAction() and hasAnyAncestor(isDialog()))
-            .performClick()
+        val candidates=compose.onAllNodes(matcher and hasClickAction() and hasAnyAncestor(isDialog()))
+        val displayed=candidates.fetchSemanticsNodes().indices.filter {
+            runCatching { candidates[it].assertIsDisplayed() }.isSuccess
+        }
+        check(displayed.size==1) { "Esperado um dia $day visível, encontrados ${displayed.size}" }
+        candidates[displayed.single()].performClick()
         compose.waitForIdle()
     }
 
     private fun tapDateButton() {
         // A tela tem um único botão cujo texto é uma data dd/MM/yyyy.
         compose.onNode(hasText("/", substring = true) and hasClickAction()).performClick()
+        calendarMonth = java.time.YearMonth.from(firstAvailableDay)
         compose.waitForIdle()
     }
 

@@ -1,5 +1,41 @@
 # Validação
 
+## T03 — calendário e horários com vagas — 26/10/2026
+
+**Aceite manual posterior:** usuária informou que realizou o teste manual sem bugs ou erros. T03 encerrada neste recorte com aceite por relato, sem atribuir cenários adicionais ou criação de reserva e sem nova captura/inspeção HTTP/JWT. Somente documentação atualizada; testes, SQL, seed e operações remotas aprovados não foram repetidos. Nenhum novo commit/push autorizado.
+
+**Autorização posterior:** usuária autorizou commit e push do conjunto completo T03, incluindo produção/testes/SQL/documentação, preservando arquivos ignorados. Sem necessidade de repetir validações aprovadas. As referências de Git pendente abaixo são históricas.
+
+Etapa inteira delegada diretamente pela usuária, incluindo produção e testes. Implementados dias por mês/fuso, RPCs de disponibilidade agregada sem dados privados, horários futuros/com vagas, calendário assíncrono, refresh/retry e guarda local de início preservando chave de repetição já enviada. Função de criação de reserva não foi alterada. [Diagrama, decisões, arquivos e limites](40-disponibilidade-calendario-horarios.md).
+
+**Banco:** PGlite0.5.10/14 migrações aprovado, comparando dados, função de reserva e ACL/RLS antes/depois. Testes cobrem capacidade parcial/lotada, contagem de A e B apesar da leitura própria, cancelados, disponibilidade oculta/inativa/passada, bordas do dia/mês/fuso, parâmetros inválidos, EXECUTE/permissões e liberação após cancelamento. Fixture inicial repetiu unidade/início e foi corretamente rejeitada pela UNIQUE; corrigido só teste antes de aprovar. Seed futuro aprovado localmente com repetição sem duplicação e sem sobrescrever capacidade/ativo já alterados. Relatório ignorado app/build/reports/sql/disponibilidade.json.
+
+Migração20261026000100 aplicada uma vez pelo SQL Editor no projeto acadêmico fbrycvxelubxxafjstbo/main Production após autorização específica; roteiro disponibilidade_calendario_horarios.sql com ROLLBACK aprovado. Conferência9 true: funções/STABLE/SECURITY DEFINER/search_path vazio/grants, ausência de dados de doador na saída e preservação das2 unidades/3 horários/3 perfis/1 agendamento,23 agendada e definição de criar_agendamento. Testes administrativos SET ROLE não provam JWT/API.
+
+Seed_disponibilidade_futura.sql autorizado separadamente e aplicado uma vez: horários37/38/39 da Demo A,28/10/2026 às08h/10h e29/10 às08h, capacidades2/3/1. Conferência9 true, RPCs sob anon/authenticated e dados anteriores preservados; agora6 horários totais. Nenhuma reserva criada. Repetição do seed apenas local. Capturas/SQL/resumos ignorados em captures/2026-10-26-disponibilidade; provas finais de banco exibidas no chat. Não reaplicar migração/seed nem repetir os testes remotos aprovados.
+
+**Build:** cinco JVM AvailabilityUseCasesTest aprovados,0 falhas/erros/ignorados,0,14s: filtragem/ordenação/fuso, dia DST23h, datas/mês/relógio, cancelamento/erros e DTO obrigatório/valores inválidos. Primeiro JUnit não iniciou um método cujo runBlocking inferia retorno diferente de Unit; assinatura corrigida somente no teste. Build conjunto inicial com JVM/APKs/Lint aprovado em1m36s. Após ajuste de espaçamento do calendário, APKs/Lint aprovados em1m16s, **zero erros/14 avisos**. APKs instalados com -r no Moto g04/Android14, preservando dados.
+
+**54 testes Android distintos aprovados** no Moto g04/Android14 USB ZF524LTN7L, com evidências por rodadas:
+
+| Suíte | Casos | Evidência |
+| --- | --- | --- |
+| SupabaseAvailabilityTest |4| SDK Postgrest real interceptado antes da rede; endpoint/body/offset/bigint, sem fallback em404, campos obrigatórios e resposta vazia/malformada. Passaram na primeira rodada16,386s, cujo conjunto ainda falhou em seletores do calendário |
+| AvailabilityViewModelTest |7| Consulta lazy/duplicação pendente/retry/refresh, mês/unidade/resposta tardia, tempo/seleção inválida, nova confirmação expirada e repetição enviada com mesma chave após início; passaram na mesma rodada |
+| AvailabilityCalendarTest |5| Material3 real: atualização assíncrona, somente dias retornados, seleção/confirmar, troca de mês, erro/vazio/retry, rótulos de vagas e atualização explícita; final6 com percurso público,22,472s |
+| SupabaseTimeSlotsReadTest |1| HTTP/SDK público real, dois RPCs, dias28/29 e vagas2/3/1; rodada7 aprovada,23,858s |
+| SupabaseAvailabilityFlowTest |1| Grafo/telas reais + consultas públicas reais: Unidades → Demo A → Agendar → calendário →28/10 →08h/10h com2/3 vagas, seleção habilita Continuar; encerra antes de confirmar. Aprovado nas rodadas7 e6 citadas |
+| CenterPreparationViewModelTest |11| Regressão de preparação/limpeza/chave/identidade e respostas tardias |
+| SchedulingOriginFlowTest |8| Regressão de origens campanha/unidade, retorno e VM compartilhado |
+| AppointmentCreationFlowTest |6| Regressão da confirmação/idempotência com fake; fixture movida de data passada para20/11/2026 |
+| AppNavigationTest |11| Regressão dos grafos, escolha de datas futuras e restauração; datas agora relativas ao relógio |
+
+Últimas quatro suítes: **OK (36 tests),97,584s**, sem falhas/ignorados, fontes fictícias/sem rede. SDK/VM não foram repetidos por alteração somente visual no calendário. Rodadas iniciais do calendário falharam por buscar número isolado e depois encontrar também dia de mês adjacente fora da tela; corrigidos somente seletores para data acessível completa e nó visível. Rodada final7 passou integralmente antes do espaçamento; final6 passou após ajuste. Uma tentativa de iniciar instrumentação usou nome de executor padrão inexistente, não iniciou testes nem alterou produção; execução corrigida para RecoveryTestRunner configurado no projeto.
+
+Testes públicos opt-in usam cliente Postgrest **sem Auth**; percurso UI injeta sessão/perfil/reservas fictícios, sem ler/renovar/gravar a sessão persistida da usuária e sem enviar pedido de reserva. Demonstram contrato/HTTP público e integração de consulta, não JWT de doador, concorrência de confirmação, morte de processo ou aceite manual. Capturas calendario-supabase.png/horarios-supabase.png revisadas; calendário permite28/29, demais dias sem oferta bloqueados, slots apresentam2/3 vagas. Captura antiga de raiz errada foi substituída por screenshot da interface correta no teste público.
+
+Relatórios ignorados app/build/reports/t03-availability: new-tests.txt e calendar-sdk-real.txt conservam falhas de seletores; calendar-public-final.txt, regression-final.txt e calendar-layout-final.txt conservam aprovações. Lint/JVM nas pastas usuais. Ofertas expiram em28/29Oct; apresentação de novembro continua B04. Aceite manual confirmado por relato posterior da usuária; sem Git novo autorizado e sem iniciar próximo ID.
+
 ## T05 — atalhos e integração dos grafos — 26/10/2026
 
 **Aceite manual posterior:** usuária confirmou os dois caminhos (unidade e campanha), abertura de data/horário com unidade correta selecionada e Voltar ao detalhe de origem. T05 concluída neste recorte por relato, sem captura nova/inspeção HTTP/JWT nem atribuição de criação de reserva. Somente documentação atualizada, sem repetir testes/SQL/remoto ou executar Git.

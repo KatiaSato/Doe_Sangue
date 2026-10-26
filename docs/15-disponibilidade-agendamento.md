@@ -1,5 +1,7 @@
 # Disponibilidade de agendamento por unidade
 
+**T03 implementada e validada em26/10/2026:** calendário consulta dias por mês no fuso da unidade e habilita somente dias futuros/atuais com oferta disponível. Horários retornam vagas calculadas no servidor contando todas as reservas ativas; passados/lotados/inativos/unidade oculta ficam ausentes. Atualização explícita e erro/retry; confirmação continua usando a função existente como autoridade, com guarda local de início para intenção nova e preservação da chave em repetição já enviada. Migração/seed futuros aplicados e conferidos mediante autorizações específicas; nenhuma reserva nova criada. [Diagrama, arquivos, testes e limites](40-disponibilidade-calendario-horarios.md). Registros abaixo são históricos quando descrevem calendário livre, ausência de vagas agregadas ou integração ainda pendente.
+
 Registro de decisão — 06/10/2026. A usuária aprovou a direção funcional e pediu seu registro na documentação. A implementação continuará em pequenos passos, com explicação de cada camada.
 
 ## Cancelamento no servidor — 14/10/2026

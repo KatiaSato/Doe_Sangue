@@ -1,5 +1,13 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## Disponibilidade de calendário/horários — T03, 26/10/2026
+
+Migração `migrations/20261026000100_consultar_disponibilidade_agendamento.sql` aplicada uma vez no projeto acadêmico fbrycvxelubxxafjstbo após autorização específica; **não reaplicar**. Cria duas RPCs STABLE/SECURITY DEFINER/search_path vazio, EXECUTE explícito anon/authenticated, sem abrir leitura de reservas. Dias por mês no fuso da unidade e horários futuros/ativos/publicados com capacidade menos todas as reservas agendadas; cancelados não ocupam. Função criar_agendamento, ACL/RLS das tabelas, perfis e reserva23 preservados.
+
+`tests/disponibilidade_calendario_horarios.sql` aprovado no SQL Editor com ROLLBACK; conferência final9 true. `seed_disponibilidade_futura.sql` aplicado separadamente uma vez após autorização: Demo A,28/10/2026 às08h/10h (capacidades2/3) e29/10 às08h (1), IDs37/38/39. Somente ausentes/ON CONFLICT DO NOTHING, sem reservas ou sobrescrita;6 horários totais, três originais preservados. Conferência pós-seed9 true, leitura anon/authenticated, perfis e23 preservados. Não repetir operações remotas aprovadas nem usar db push/reset para conciliar histórico manual.
+
+Runner local `tests/local/validar_disponibilidade.mjs`: PGlite0.5.10 externo ao app,14 migrações, fixtures descartáveis, testes SQL e seed/repetição/sem sobrescrita. Reprodução: `node supabase/tests/local/validar_disponibilidade.mjs <diretório da ferramenta>`. Resultado ignorado `app/build/reports/sql/disponibilidade.json`. Fixtures locais/SET ROLE não comprovam JWT; leitura pública real e percurso Android aprovados separadamente com cliente Postgrest sem Auth e sem escrita. [Diagrama, arquivos e limites](../docs/40-disponibilidade-calendario-horarios.md), [evidências](../docs/12-validacao.md). As ofertas datadas expiram em outubro; B04 prepara apresentação de novembro em etapa própria.
+
 ## F04 — coordenadas das unidades, validação local/remota em 24–25/10/2026
 
 - Migração `migrations/20261024000100_adicionar_coordenadas_unidade.sql`, escrita pela usuária: duas colunas `double precision` opcionais, par completo/ausente e faixas válidas. Aplicada uma vez em25/10 no SQL Editor de fbrycvxelubxxafjstbo após autorização específica, com sucesso; **não reaplicar**. Conferência inicial demonstrou ausência; conferência final confirmou colunas/três CHECKs/RLS e preservação de dados.

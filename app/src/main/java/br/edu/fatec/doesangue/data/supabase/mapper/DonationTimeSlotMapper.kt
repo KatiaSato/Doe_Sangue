@@ -11,5 +11,6 @@ fun DonationTimeSlotDto.toDomain(): DonationTimeSlot {
         centerId = centerId.toString(),
         startsAt = OffsetDateTime.parse(startsAt).toInstant(),  // Lê uma data/hora com deslocamento UTC e transforma em um Instante, um momento preciso no tempo
         capacity = capacity,
+        availableSpots = availableSpots,
     )
 }

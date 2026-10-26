@@ -1,6 +1,8 @@
 package br.edu.fatec.doesangue.presentation.scheduling
 
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.Clock
 import java.time.ZoneId
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +17,7 @@ import br.edu.fatec.doesangue.domain.model.DonationCenter
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import br.edu.fatec.doesangue.domain.repository.DonationCenterRepository
 import br.edu.fatec.doesangue.domain.usecase.GetDonationTimeSlotsUseCase
+import br.edu.fatec.doesangue.domain.usecase.GetAvailableDonationDatesUseCase
 import java.util.UUID
 
 /*
@@ -26,6 +29,8 @@ class SchedulingViewModel(
     private val donationCenterRepository: DonationCenterRepository,
     private val getDonationTimeSlots: GetDonationTimeSlotsUseCase,
     private val appointmentRepository: AppointmentRepository,
+    private val getAvailableDates: GetAvailableDonationDatesUseCase,
+    private val clock: Clock = Clock.systemUTC(),
 ) : ViewModel() {
     /*
     SchedulingUiState() cria o estado inicial: nenhuma unidade selecionada.
@@ -38,6 +43,7 @@ class SchedulingViewModel(
 
     // Guarda a consulta em andamento para permitir seu cancelamento.
     private var timeSlotsJob: Job? = null
+    private var availableDatesJob: Job? = null
     // Inicia a consulta uma vez para cada nova instância do ViewModel.
 
     private data class AppointmentRequest(
@@ -73,6 +79,7 @@ class SchedulingViewModel(
 
         resetAppointmentRequest()
         timeSlotsJob?.cancel()
+        availableDatesJob?.cancel()
 
         _uiState.update { current ->
             current.copy(
@@ -83,6 +90,7 @@ class SchedulingViewModel(
                 timeSlots = emptyList(),
                 isLoadingTimeSlots = false,
                 timeSlotsErrorMessage = null,
+                calendarAvailability = CalendarAvailabilityUiState(),
             )
         }
     }
@@ -117,6 +125,7 @@ class SchedulingViewModel(
         // resetAppointmentRequest() limpa a chave do pedido local
         resetAppointmentRequest()
         timeSlotsJob?.cancel()
+        availableDatesJob?.cancel()
 
         // Criar um novo SchedulingUiState limpa a data e o horário anteriores.
         _uiState.update { current ->
@@ -187,6 +196,7 @@ class SchedulingViewModel(
             return
         }
 
+        if (date.isBefore(LocalDate.now(clock.withZone(ZoneId.of(state.selectedCenter.timeZoneId))))) return
         resetAppointmentRequest()
 
         _uiState.update { current ->
@@ -220,6 +230,8 @@ class SchedulingViewModel(
             val slot = current.timeSlots.firstOrNull { item ->
                 item.id == slotId && item.centerId == center.id
             } ?: return@update current
+
+            if (slot.availableSpots <= 0 || slot.startsAt <= clock.instant()) return@update current
 
             val localStart = slot.startsAt.atZone(
                 ZoneId.of(center.timeZoneId)
@@ -259,6 +271,15 @@ class SchedulingViewModel(
         val slot = state.timeSlots.firstOrNull {
             it.id == slotId && it.centerId == center.id
         } ?: return
+
+        // Repetir um pedido enviado pode recuperar uma reserva, inclusive após o início.
+        // Somente uma intenção nova é barrada localmente.
+        if (appointmentRequest == null && (slot.availableSpots <= 0 || slot.startsAt <= clock.instant())) {
+            _uiState.update { current -> current.copy(appointmentCreation = AppointmentCreationUiState(
+                errorMessage = "Este horário não está mais disponível. Volte e escolha outro horário.",
+            )) }
+            return
+        }
 
         val localStart = slot.startsAt.atZone(ZoneId.of(center.timeZoneId))
         if (localStart.toLocalDate() != date) return
@@ -322,6 +343,29 @@ class SchedulingViewModel(
         Chama o caso de uso e guarda a lista recebida ou uma mensagem de erro.
         Confere se o resultado ainda corresponde à unidade e à data atuais.
      */
+    fun loadAvailableDates(month: YearMonth) {
+        val state = _uiState.value
+        if (state.appointmentCreation.isLoading) return
+        val center = state.selectedCenter ?: return
+        if (state.calendarAvailability.month == month && state.calendarAvailability.isLoading) return
+        availableDatesJob?.cancel()
+        _uiState.update { it.copy(calendarAvailability = CalendarAvailabilityUiState(month = month, isLoading = true)) }
+        availableDatesJob = viewModelScope.launch {
+            val result = getAvailableDates(center, month)
+            ensureActive()
+            _uiState.update { current ->
+                if (current.selectedCenter?.id != center.id || current.calendarAvailability.month != month) {
+                    return@update current
+                }
+                current.copy(calendarAvailability = result.fold(
+                    onSuccess = { dates -> CalendarAvailabilityUiState(month = month, dates = dates) },
+                    onFailure = { CalendarAvailabilityUiState(month = month,
+                        errorMessage = "Não foi possível consultar os dias disponíveis. Tente novamente.") },
+                ))
+            }
+        }
+    }
+
     fun loadTimeSlots() {
         val state = _uiState.value
         if (state.appointmentCreation.isLoading) return

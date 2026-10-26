@@ -9,6 +9,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import br.edu.fatec.doesangue.domain.model.*
 import br.edu.fatec.doesangue.domain.repository.*
 import br.edu.fatec.doesangue.domain.usecase.GetDonationTimeSlotsUseCase
+import br.edu.fatec.doesangue.domain.usecase.GetAvailableDonationDatesUseCase
+import java.time.YearMonth
 import br.edu.fatec.doesangue.ui.navigation.FakeAppointmentRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
@@ -49,6 +51,8 @@ class CenterPreparationViewModelTest {
             }
         }
         val slots = object : DonationTimeSlotRepository {
+            override suspend fun getAvailableDates(centerId: String, month: YearMonth) =
+                Result.success(setOf(date))
             override suspend fun getTimeSlots(centerId: String, fromInclusive: Instant,
                 untilExclusive: Instant): Result<List<DonationTimeSlot>> {
                 slotReads += centerId
@@ -63,7 +67,8 @@ class CenterPreparationViewModelTest {
         }
         onMain {
             model = ViewModelProvider(store, viewModelFactory {
-                initializer { SchedulingViewModel(centers, GetDonationTimeSlotsUseCase(slots), appointments) }
+                initializer { SchedulingViewModel(centers, GetDonationTimeSlotsUseCase(slots), appointments,
+                    GetAvailableDonationDatesUseCase(slots)) }
             })[SchedulingViewModel::class.java]
         }
     }

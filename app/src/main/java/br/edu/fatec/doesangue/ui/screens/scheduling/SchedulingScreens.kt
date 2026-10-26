@@ -2,6 +2,7 @@ package br.edu.fatec.doesangue.ui.screens.scheduling
 
 import androidx.activity.compose.BackHandler
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.background
@@ -143,6 +144,7 @@ fun ScheduleDateScreen(
     onSelectDate: (LocalDate) -> Unit,
     onSelectTimeSlot: (String) -> Unit,
     onRetry: () -> Unit,
+    onLoadAvailableDates: (YearMonth) -> Unit,
     onBack: () -> Unit,
     onContinue: () -> Unit,
 ) {
@@ -153,6 +155,10 @@ fun ScheduleDateScreen(
     if (showDatePicker) {
         DonationDatePickerDialog(
             selectedDate = uiState.selectedDate,
+            today = LocalDate.now(ZoneId.of(uiState.selectedCenter?.timeZoneId ?: "UTC")),
+            availability = uiState.calendarAvailability,
+            onMonthChanged = onLoadAvailableDates,
+            onRetry = { uiState.calendarAvailability.month?.let(onLoadAvailableDates) },
             onConfirm = onSelectDate,
             onDismiss = { showDatePicker = false },
         )
@@ -174,7 +180,7 @@ fun ScheduleDateScreen(
         )
         Spacer(Modifier.height(14.dp))
         Text(
-            text = "Horários de demonstração",
+            text = "Horários disponíveis de demonstração",
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(Modifier.height(10.dp))
@@ -224,7 +230,11 @@ fun ScheduleDateScreen(
                                 selected = uiState.selectedTimeSlotId == slot.id,
                                 onClick = { onSelectTimeSlot(slot.id) },
                                 label = {
-                                    Text(time.format(DateTimeFormatter.ofPattern("HH:mm")))
+                                    Column {
+                                        Text(time.format(DateTimeFormatter.ofPattern("HH:mm")))
+                                        Text(if (slot.availableSpots == 1) "1 vaga" else "${slot.availableSpots} vagas",
+                                            style = MaterialTheme.typography.labelSmall)
+                                    }
                                 },
                                 modifier = Modifier.weight(1f),
                             )
@@ -234,6 +244,11 @@ fun ScheduleDateScreen(
                 }
             }
         }
+        if (uiState.selectedDate != null && !uiState.isLoadingTimeSlots && timeSlotsError == null) {
+            TextAction("Atualizar horários", onRetry)
+        }
+        Text("As vagas podem mudar. A disponibilidade será conferida ao confirmar.",
+            style = MaterialTheme.typography.bodySmall, color = InkSecondary)
         Spacer(Modifier.height(12.dp))
         PrimaryButton(
             text = "Continuar",

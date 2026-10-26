@@ -10,6 +10,7 @@ import br.edu.fatec.doesangue.data.repository.SupabaseAuthRepository
 import br.edu.fatec.doesangue.data.supabase.SupabaseAuthDataSource
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 import br.edu.fatec.doesangue.domain.repository.DonationTimeSlotRepository
+import br.edu.fatec.doesangue.domain.usecase.GetAvailableDonationDatesUseCase
 import br.edu.fatec.doesangue.domain.usecase.GetDonationTimeSlotsUseCase
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -180,6 +181,7 @@ class AppContainer(
             repository = donationTimeSlotRepository,
         )
     }
+    val getAvailableDonationDates by lazy { GetAvailableDonationDatesUseCase(donationTimeSlotRepository) }
     private val demoDataSource = DemoDonationOverviewDataSource()
 
     val donationOverviewRepository: DonationOverviewRepository =
@@ -295,6 +297,7 @@ class AppContainer(
                 donationCenterRepository = donationCenterRepository,
                 getDonationTimeSlots = getDonationTimeSlots,
                 appointmentRepository = appointmentRepository,
+                getAvailableDates = getAvailableDonationDates,
             )
         }
     }

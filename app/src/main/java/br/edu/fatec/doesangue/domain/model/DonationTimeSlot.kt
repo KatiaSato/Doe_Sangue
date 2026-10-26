@@ -8,4 +8,9 @@ data class DonationTimeSlot(
     val centerId: String,
     val startsAt: Instant,
     val capacity: Int,
-)
+    val availableSpots: Int = capacity,
+) {
+    init {
+        require(capacity > 0 && availableSpots in 0..capacity) { "Disponibilidade inválida." }
+    }
+}

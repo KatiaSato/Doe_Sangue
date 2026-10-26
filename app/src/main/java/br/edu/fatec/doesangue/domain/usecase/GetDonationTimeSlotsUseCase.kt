@@ -6,9 +6,11 @@ import br.edu.fatec.doesangue.domain.repository.DonationTimeSlotRepository
 import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.Clock
 
 class GetDonationTimeSlotsUseCase(
     private val repository: DonationTimeSlotRepository,
+    private val clock: Clock = Clock.systemUTC(),
 ) {
     suspend operator fun invoke(
         center: DonationCenter,
@@ -30,7 +32,12 @@ class GetDonationTimeSlotsUseCase(
                 centerId = center.id,
                 fromInclusive = fromInclusive,
                 untilExclusive = untilExclusive,
-            )
+            ).map { slots ->
+                val now = clock.instant()
+                slots.filter { it.centerId == center.id && it.availableSpots > 0 &&
+                    it.startsAt > now && it.startsAt >= fromInclusive && it.startsAt < untilExclusive }
+                    .sortedWith(compareBy({ it.startsAt }, { it.id }))
+            }
         } catch (error: DateTimeException) {        // O catch transforma um problema de data ou fuso em Result.failure. Ele captura especificamente DateTimeException, preservando o cancelamento das corrotinas
             Result.failure(error)
         }
