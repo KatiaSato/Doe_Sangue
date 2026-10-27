@@ -36,7 +36,7 @@ class LoginFlowTest {
     private val repository = ControlledAuthRepository()
 
     private fun openLogin() {
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(),
             donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
@@ -56,6 +56,7 @@ class LoginFlowTest {
                     recoveryLinkState = idleRecoveryLinkState,
                     navController = nav,
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
+                    routineViewModelFactory = container.routineViewModelFactory,
                     loginViewModelFactory = factory,
                     profileViewModelFactory = container.profileViewModelFactory,
                     appointmentsViewModelFactory = container.appointmentsViewModelFactory,

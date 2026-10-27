@@ -46,4 +46,8 @@ data class SchedulingUiState(
     val requestLocked: Boolean = false,
     val canReviewRejectedRequest: Boolean = false,
     val draftFinished: Boolean = false,
+    val rescheduleOrigin: br.edu.fatec.doesangue.domain.model.RescheduleOrigin? = null,
+    val rescheduleLoading: Boolean = false,
+    val rescheduleError: String? = null,
+    val routine: br.edu.fatec.doesangue.domain.model.RoutineChoice? = null,
 )

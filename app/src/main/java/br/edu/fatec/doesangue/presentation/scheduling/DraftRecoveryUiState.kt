@@ -10,4 +10,5 @@ data class DraftRecoveryUiState(
     val message: String? = null,
     val canDiscard: Boolean = false,
     val resumeStep: SchedulingStep? = null,
+    val preserveEntryIntent: Boolean = false,
 )

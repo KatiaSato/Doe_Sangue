@@ -16,4 +16,7 @@ data class AppointmentSummaryDto(
 
     @SerialName("fuso_horario")
     val timeZoneId: String,
+    @SerialName("unidade_id") val centerId: Long? = null,
+    @SerialName("remarcado_para_id") val rescheduledToId: Long? = null,
+    @SerialName("remarcado_de_id") val rescheduledFromId: Long? = null,
 )

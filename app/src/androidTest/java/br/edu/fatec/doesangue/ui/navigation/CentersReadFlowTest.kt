@@ -50,7 +50,7 @@ class CentersReadFlowTest {
                 return answer()
             }
         }
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             centerRepositoryOverride = repository,
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             authRepositoryOverride = FakeAuthRepository(),

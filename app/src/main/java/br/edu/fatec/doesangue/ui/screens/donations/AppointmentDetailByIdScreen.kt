@@ -31,6 +31,8 @@ fun AppointmentDetailByIdScreen(
     onCancel: () -> Unit,
     onBack: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
+    onReschedule: () -> Unit = {},
+    onOpenReplacement: (String) -> Unit = {},
 ) {
     var showCancelConfirmation by rememberSaveable {
         mutableStateOf(false)
@@ -104,7 +106,7 @@ fun AppointmentDetailByIdScreen(
                 )
                 val statusLabel = when (summary.appointment.status) {
                     AppointmentStatus.SCHEDULED -> "Agendado"
-                    AppointmentStatus.CANCELLED -> "Cancelado"
+                    AppointmentStatus.CANCELLED -> if(summary.rescheduledToId != null) "Remarcado" else "Cancelado"
                 }
 
                 InfoCard {
@@ -126,6 +128,15 @@ fun AppointmentDetailByIdScreen(
                     Text(statusLabel, color = BloodRed)
                 }
 
+                summary.rescheduledToId?.let { replacement ->
+                    Spacer(Modifier.height(12.dp))
+                    br.edu.fatec.doesangue.ui.components.SecondaryButton("Ver novo agendamento $replacement",{onOpenReplacement(replacement)})
+                }
+                summary.rescheduledFromId?.let { Text("Remarcado a partir do agendamento $it.",style=MaterialTheme.typography.bodySmall) }
+                if (summary.appointment.status == AppointmentStatus.SCHEDULED && summary.startsAt > java.time.Instant.now()) {
+                    Spacer(Modifier.height(16.dp))
+                    br.edu.fatec.doesangue.ui.components.SecondaryButton("Remarcar agendamento",onReschedule,enabled=!state.isCancelling)
+                }
                 //O botão abre a confirmação e fica desabilitado durante o envio. Após a resposta Cancelado, ele desaparece
                 state.cancellationError?.let { message ->
                     Spacer(Modifier.height(12.dp))

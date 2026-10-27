@@ -75,6 +75,7 @@ class SchedulingViewModel(
     private var draftReadJob: Job? = null
     private var draftRestoreJob: Job? = null
     private var creationJob: Job? = null
+    private var sourceJob: Job? = null
     private var requestSnapshot: SchedulingDraft? = null
     private var finishingDraft = false
     private val requestProtected get() = draftStore != null && appointmentRequest?.prepared == true &&
@@ -122,6 +123,42 @@ class SchedulingViewModel(
     // Recebe a unidade escolhida e atualiza o estado do preenchimento.
     // O copy cria um novo estado com a unidade escolhida. O StateFlow comunica essa atualização
     // Ao trocar de unidade, cancela a consulta e limpa as escolhas anteriores.
+    fun prepareReschedule(appointmentId: String) {
+        if (requestProtected || _uiState.value.appointmentCreation.isLoading || _draftRecovery.value.phase != DraftRecoveryPhase.READY) return
+        if (_uiState.value.rescheduleOrigin?.appointmentId == appointmentId || _uiState.value.rescheduleLoading) return
+        val owner = draftOwner
+        sourceJob?.cancel()
+        resetAppointmentRequest()
+        timeSlotsJob?.cancel(); availableDatesJob?.cancel()
+        _uiState.update { SchedulingUiState(centers=it.centers,isLoading=it.isLoading,rescheduleLoading=true) }
+        sourceJob = viewModelScope.launch {
+            val result = appointmentRepository.getMyAppointments()
+            ensureActive()
+            if (draftStore != null && owner != draftOwner) return@launch
+            result.fold(onSuccess = { summaries ->
+                val summary = summaries.firstOrNull { it.appointment.id == appointmentId && (owner == null || it.appointment.donorId == owner) }
+                val error = when {
+                    summary == null -> DataError.APPOINTMENT_UNAVAILABLE
+                    summary.appointment.status != AppointmentStatus.SCHEDULED || summary.startsAt <= clock.instant() -> DataError.RESCHEDULING_CLOSED
+                    else -> null
+                }
+                val origin = if (error == null && summary != null) runCatching { RescheduleOrigin.from(summary) }.getOrNull() else null
+                val reason = error ?: if (origin == null) DataError.INVALID_DATA else null
+                if (reason != null) _uiState.update { it.copy(rescheduleLoading=false,rescheduleError=DataFailure(reason).toDataMessage("Não foi possível preparar a remarcação.")) }
+                else _uiState.update { it.copy(rescheduleLoading=false,rescheduleOrigin=origin,routine=null) }
+            },onFailure = { failure -> _uiState.update { it.copy(rescheduleLoading=false,rescheduleError=failure.toDataMessage("Não foi possível consultar o agendamento. Tente novamente.")) } })
+        }
+    }
+
+    fun selectRoutine(choice: RoutineChoice?) {
+        if (_uiState.value.appointmentCreation.isLoading || requestProtected || _uiState.value.rescheduleOrigin != null) return
+        choice?.validated()
+        if (_uiState.value.routine == choice) return
+        resetAppointmentRequest()
+        _uiState.update { it.copy(routine=choice) }
+        persistDraft()
+    }
+
     fun selectCenter(center: DonationCenter) {
         val state = _uiState.value
         if ((state.appointmentCreation.isLoading || requestProtected)) return
@@ -312,6 +349,18 @@ class SchedulingViewModel(
         val center = state.selectedCenter ?: return
         val date = state.selectedDate ?: return
         val existing = appointmentRequest
+        if (!(draftStore != null && existing?.prepared == true)) {
+            val origin = state.rescheduleOrigin
+            val reason = when {
+                origin != null && origin.startsAt <= clock.instant() -> DataError.RESCHEDULING_CLOSED
+                origin != null && origin.timeSlotId == slotId -> DataError.SLOT_SAME
+                else -> null
+            }
+            if (reason != null) {
+                _uiState.update { it.copy(appointmentCreation=AppointmentCreationUiState(errorMessage=DataFailure(reason).toDataMessage("Não foi possível remarcar."))) }
+                return
+            }
+        }
         // Um pedido durável pode recuperar o resultado sem depender de oferta pública atual.
         val durable = draftStore != null && existing?.prepared == true
         if (!durable) {
@@ -350,9 +399,15 @@ class SchedulingViewModel(
                 requestSnapshot = snapshot
                 _uiState.update { it.copy(requestLocked = true, draftNotice = null) }
             }
-            val result = if (draftStore != null) appointmentRepository.createAppointmentForOwner(
-                checkNotNull(owner), request.timeSlotId, request.idempotencyKey,
-            ) else appointmentRepository.createAppointment(request.timeSlotId, request.idempotencyKey)
+            val current = _uiState.value
+            val result = when {
+                current.rescheduleOrigin != null -> if (owner == null) Result.failure(DataFailure(DataError.SESSION_UNAVAILABLE))
+                    else appointmentRepository.rescheduleForOwner(owner,current.rescheduleOrigin.appointmentId,request.timeSlotId,request.idempotencyKey)
+                current.routine != null -> if (owner == null) Result.failure(DataFailure(DataError.SESSION_UNAVAILABLE))
+                    else appointmentRepository.createWithRoutineForOwner(owner,request.timeSlotId,request.idempotencyKey,current.routine)
+                draftStore != null -> appointmentRepository.createAppointmentForOwner(checkNotNull(owner),request.timeSlotId,request.idempotencyKey)
+                else -> appointmentRepository.createAppointment(request.timeSlotId,request.idempotencyKey)
+            }
             ensureActive()
             if (draftStore != null && owner != draftOwner) return@launch
             val checked = result.mapCatching { appointment ->
@@ -511,7 +566,7 @@ class SchedulingViewModel(
 
     // Persistência do percurso: separada das credenciais e sempre associada ao dono.
     private fun clearOwnedWork() {
-        draftReadJob?.cancel(); draftRestoreJob?.cancel(); draftSaveJob?.cancel(); creationJob?.cancel()
+        draftReadJob?.cancel(); draftRestoreJob?.cancel(); draftSaveJob?.cancel(); creationJob?.cancel(); sourceJob?.cancel()
         timeSlotsJob?.cancel(); availableDatesJob?.cancel()
         appointmentRequest = null; requestSnapshot = null; draftStep = SchedulingStep.CENTER; finishingDraft = false
         _uiState.update { SchedulingUiState(centers = it.centers, isLoading = it.isLoading, errorMessage = it.errorMessage) }
@@ -566,11 +621,20 @@ class SchedulingViewModel(
                     draftStep = SchedulingStep.CONFIRM
                     _uiState.value = SchedulingUiState(centers = _uiState.value.centers, selectedCenter = center,
                         selectedDate = start.toLocalDate(), selectedTime = start.toLocalTime(),
-                        selectedTimeSlotId = draft.slotId, requestLocked = true,
+                        selectedTimeSlotId = draft.slotId, requestLocked = true, rescheduleOrigin = draft.rescheduleOrigin, routine = draft.routine,
                         draftNotice = "Pedido anterior recuperado. A confirmação usará a mesma identificação; nenhuma reserva foi enviada automaticamente.")
                     _draftRecovery.value = DraftRecoveryUiState(resumeStep = SchedulingStep.CONFIRM)
                     return@launch
                 }
+                val restoredOrigin = draft.rescheduleOrigin?.let { saved ->
+                    val summary = appointmentRepository.getMyAppointments().getOrThrow().firstOrNull {
+                        it.appointment.id == saved.appointmentId && it.appointment.donorId == owner
+                    } ?: throw DataFailure(DataError.APPOINTMENT_UNAVAILABLE)
+                    if (summary.appointment.status != AppointmentStatus.SCHEDULED || summary.startsAt <= clock.instant())
+                        throw DataFailure(DataError.RESCHEDULING_CLOSED)
+                    RescheduleOrigin.from(summary)
+                }
+                ensureActive()
                 val centers = donationCenterRepository.getCenters().getOrThrow()
                 ensureActive()
                 if (owner != draftOwner) return@launch
@@ -579,7 +643,7 @@ class SchedulingViewModel(
                     if (store.clear(owner).isFailure) throw DraftWriteException()
                     ensureActive()
                     _uiState.value = SchedulingUiState(centers = centers,
-                        draftNotice = "A unidade do rascunho não está mais disponível. Escolha outra unidade.")
+                        rescheduleOrigin = restoredOrigin, routine = draft.routine, draftNotice = "A unidade do rascunho não está mais disponível. Escolha outra unidade.")
                     _draftRecovery.value = DraftRecoveryUiState(resumeStep = SchedulingStep.CENTER)
                     return@launch
                 }
@@ -599,7 +663,7 @@ class SchedulingViewModel(
                 }
                 _uiState.value = SchedulingUiState(centers = centers, selectedCenter = center, selectedDate = date,
                     selectedTimeSlotId = slot?.id, selectedTime = slot?.startsAt?.atZone(ZoneId.of(center.timeZoneId))?.toLocalTime(),
-                    timeSlots = slots, draftNotice = notice)
+                    timeSlots = slots, draftNotice = notice, rescheduleOrigin = restoredOrigin, routine = draft.routine)
                 val updated = snapshot() ?: throw InvalidSchedulingDraft()
                 if (store.save(updated).isFailure) throw DraftWriteException()
                 ensureActive()
@@ -609,7 +673,7 @@ class SchedulingViewModel(
                 if (owner == draftOwner) _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.ERROR,
                     draft = draft, message = if (failure is DraftWriteException) SAVE_ERROR else
                         failure.toDataMessage("Não foi possível recuperar o rascunho. Verifique a conexão e tente novamente."),
-                    canDiscard = false)
+                    canDiscard = draft.requestKey == null)
             }
         }
     }
@@ -627,14 +691,14 @@ class SchedulingViewModel(
             if (result.isSuccess) {
                 appointmentRequest = null; requestSnapshot = null
                 _uiState.update { SchedulingUiState(centers = it.centers, isLoading = it.isLoading, errorMessage = it.errorMessage) }
-                _draftRecovery.value = DraftRecoveryUiState(resumeStep = SchedulingStep.CENTER)
+                _draftRecovery.value = DraftRecoveryUiState(resumeStep = SchedulingStep.CENTER, preserveEntryIntent = true)
             } else _draftRecovery.value = DraftRecoveryUiState(phase = DraftRecoveryPhase.ERROR,
                 message = "Não foi possível descartar o rascunho neste aparelho. Tente novamente.", canDiscard = true)
         }
     }
 
     fun consumeDraftResumeStep() {
-        _draftRecovery.value = _draftRecovery.value.copy(resumeStep = null)
+        _draftRecovery.value = _draftRecovery.value.copy(resumeStep = null, preserveEntryIntent = false)
     }
 
     fun onStepVisible(step: SchedulingStep) {
@@ -652,7 +716,7 @@ class SchedulingViewModel(
         val slot = state.timeSlots.firstOrNull { it.id == state.selectedTimeSlotId }
         return SchedulingDraft(owner, center.id, center.name.take(512), center.timeZoneId,
             state.selectedDate?.toString(), slot?.id, slot?.startsAt?.toString(),
-            if (request != null) SchedulingStep.CONFIRM else draftStep, request?.idempotencyKey).validated()
+            if (request != null) SchedulingStep.CONFIRM else draftStep, request?.idempotencyKey, state.rescheduleOrigin, state.routine).validated()
     }
 
     fun retrySavingDraft() = persistDraft()
@@ -723,7 +787,8 @@ class SchedulingViewModel(
         private const val READ_ERROR = "Não foi possível ler o rascunho neste aparelho. Tente novamente. Se descartá-lo, confira seus agendamentos antes de fazer outro pedido."
         private val DEFINITE_REJECTIONS = setOf(DataError.SLOT_UNAVAILABLE, DataError.SLOT_STARTED,
             DataError.SLOT_FULL, DataError.ALREADY_BOOKED, DataError.REQUEST_CONFLICT,
-            DataError.PROFILE_REQUIRED, DataError.INVALID_DATA)
+            DataError.PROFILE_REQUIRED, DataError.INVALID_DATA, DataError.RESCHEDULING_CLOSED, DataError.SLOT_SAME,
+            DataError.APPOINTMENT_UNAVAILABLE, DataError.ROUTINE_CHANGED, DataError.ROUTINE_DATE_PAST)
     }
 
 }

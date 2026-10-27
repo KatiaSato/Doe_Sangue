@@ -23,6 +23,10 @@ internal fun Throwable.toDataMessage(fallback: String): String {
         DataError.REQUEST_CONFLICT -> "Este pedido está vinculado a outro horário. Volte e selecione o horário novamente."
         DataError.APPOINTMENT_UNAVAILABLE -> "Este agendamento não está disponível para sua conta. Volte à lista e atualize."
         DataError.CANCELLATION_CLOSED -> "O prazo para cancelar terminou porque o horário já começou."
+        DataError.RESCHEDULING_CLOSED -> "Este agendamento não pode mais ser remarcado. Atualize seus agendamentos."
+        DataError.SLOT_SAME -> "Escolha um horário diferente do agendamento atual."
+        DataError.ROUTINE_CHANGED -> "Sua rotina foi alterada. Recarregue e confira os dados antes de salvar."
+        DataError.ROUTINE_DATE_PAST -> "Escolha uma data inicial a partir de hoje."
         DataError.UNKNOWN, null -> fallback
     }
 }

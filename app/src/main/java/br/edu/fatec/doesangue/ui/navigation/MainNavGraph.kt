@@ -59,6 +59,7 @@ import br.edu.fatec.doesangue.ui.screens.scheduling.EditRoutineScreen
 fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
     schedulingViewModelFactory: ViewModelProvider.Factory,
+    routineViewModelFactory: ViewModelProvider.Factory,
     profileViewModelFactory: ViewModelProvider.Factory,
     editProfileViewModelFactory: ViewModelProvider.Factory,
     changePasswordViewModelFactory: ViewModelProvider.Factory,
@@ -166,7 +167,12 @@ fun NavGraphBuilder.mainNavGraph(
             }
             val appointmentsUiState by
             appointmentsViewModel.uiState.collectAsStateWithLifecycle()
+            val routineModel: br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel = viewModel(factory=routineViewModelFactory)
+            val routineState by routineModel.state.collectAsStateWithLifecycle()
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { if (routineState.loaded) routineModel.load() }
             DonationAppointmentsScreen(
+                routineContent={br.edu.fatec.doesangue.ui.screens.routines.RoutineSummaryCard(routineState,routineModel::load,
+                    {navController.navigate(AppRoute.EditRoutine)})},
                 uiState = appointmentsUiState,
                 onRetry = appointmentsViewModel::loadAppointments,
                 onOpenDetails = { appointmentId ->
@@ -198,6 +204,7 @@ fun NavGraphBuilder.mainNavGraph(
             val route = entry.toRoute<AppRoute.AppointmentDetailById>()
 
             val detailViewModel: AppointmentDetailViewModel = viewModel(
+                key = "appointment-${route.appointmentId}",
                 factory = appointmentDetailViewModelFactory(
                     route.appointmentId,
                 ),
@@ -205,8 +212,14 @@ fun NavGraphBuilder.mainNavGraph(
 
             val detailUiState by
             detailViewModel.uiState.collectAsStateWithLifecycle()
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                if(entry.savedStateHandle.get<Boolean>("detailOpened") == true) detailViewModel.loadAppointment()
+                entry.savedStateHandle["detailOpened"] = true
+            }
 
             AppointmentDetailByIdScreen(
+                onReschedule={onNavigateMain(AppRoute.ScheduleReschedule(route.appointmentId))},
+                onOpenReplacement={onNavigateMain(AppRoute.AppointmentDetailById(it))},
                 uiState = detailUiState,
                 onRetry = detailViewModel::loadAppointment,
                 onCancel = detailViewModel::cancelAppointment,
@@ -239,11 +252,10 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable<AppRoute.EditRoutine> {
-            EditRoutineScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-            )
+            val model: br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel = viewModel(factory=routineViewModelFactory)
+            val state by model.state.collectAsStateWithLifecycle()
+            br.edu.fatec.doesangue.ui.screens.routines.ReminderRoutineScreen(state,model::updateDate,model::updateInterval,
+                model::save,model::setActive,model::delete,model::load,{navController.navigateBackOrHome()})
         }
 
         composable<AppRoute.CancelAppointment> {
@@ -535,6 +547,7 @@ fun NavGraphBuilder.mainNavGraph(
         schedulingNavGraph(
             navController = navController,
             schedulingViewModelFactory = schedulingViewModelFactory,
+                routineViewModelFactory = routineViewModelFactory,
             onNavigateMain = onNavigateMain,
             onFinishScheduling = onFinishScheduling,
         )

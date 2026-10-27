@@ -53,7 +53,7 @@ class SessionMonitorFlowTest {
                 return Result.success(Unit)
             }
         }
-        val container = AppContainer(authRepositoryOverride = auth,
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(), authRepositoryOverride = auth,
             donorProfileRepositoryOverride = profiles, centerRepositoryOverride = FakeDonationCenterRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(), appointmentRepositoryOverride = appointments,
             campaignRepositoryOverride = FakeCampaignRepository(), bloodStockRepositoryOverride = FakeBloodStockRepository(),

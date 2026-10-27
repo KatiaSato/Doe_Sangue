@@ -18,6 +18,8 @@ data class SchedulingDraft(
     val startsAtIso: String? = null,
     val step: SchedulingStep = SchedulingStep.CENTER,
     val requestKey: String? = null,
+    val rescheduleOrigin: RescheduleOrigin? = null,
+    val routine: RoutineChoice? = null,
 ) {
     fun validated(): SchedulingDraft = apply {
         require(ownerId.isNotBlank() && ownerId.length <= 160)
@@ -31,7 +33,24 @@ data class SchedulingDraft(
         slotId?.let { require(it.isNotBlank() && it.length <= 160 && date != null) }
         startsAtIso?.let { require(Instant.parse(it).atZone(zone).toLocalDate() == date) }
         requestKey?.let { require(slotId != null && UUID.fromString(it).toString() == it) }
+        rescheduleOrigin?.validated()
+        routine?.validated()
+        require(rescheduleOrigin == null || routine == null)
     }
 }
 
 class InvalidSchedulingDraft : Exception()
+
+data class RescheduleOrigin(val appointmentId: String, val timeSlotId: String, val centerName: String,
+    val startsAt: Instant, val timeZoneId: String) {
+    fun validated() = apply {
+        require(appointmentId.toLongOrNull()?.let { it > 0 } == true)
+        require(timeSlotId.toLongOrNull()?.let { it > 0 } == true)
+        require(centerName.isNotBlank() && centerName.length <= 512)
+        ZoneId.of(timeZoneId)
+    }
+    companion object {
+        fun from(summary: AppointmentSummary) = RescheduleOrigin(summary.appointment.id,
+            summary.appointment.timeSlotId,summary.centerName.take(512),summary.startsAt,summary.timeZoneId).validated()
+    }
+}

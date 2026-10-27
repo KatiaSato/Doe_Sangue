@@ -22,7 +22,7 @@ class SupabaseBloodStockReadTest {
             "Consulta remota exige execução explícita no desenvolvimento.",
             InstrumentationRegistry.getArguments().getString("enableSupabaseReadTests") == "true",
         )
-        val result = AppContainer().bloodStockRepository.getBloodStocks()
+        val result = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(), ).bloodStockRepository.getBloodStocks()
         result.exceptionOrNull()?.let { failure ->
             // Não propagar a exceção SDK inteira: ela pode conter headers de autenticação.
             val detail = when (failure) {

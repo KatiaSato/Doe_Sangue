@@ -59,7 +59,7 @@ class PersistentDraftFlowTest {
         val centers = if (emptyCatalog) object : DonationCenterRepository {
             override suspend fun getCenters() = Result.success(emptyList<DonationCenter>())
         } else FakeDonationCenterRepository()
-        val container = AppContainer(authRepositoryOverride = auth, centerRepositoryOverride = centers,
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(), authRepositoryOverride = auth, centerRepositoryOverride = centers,
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(), appointmentRepositoryOverride = appointments,
             donorProfileRepositoryOverride = FakeDonorProfileRepository(), campaignRepositoryOverride = FakeCampaignRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(), donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),

@@ -35,6 +35,7 @@ fun DoeSangueApp(
         onRetryConfirmation = emailConfirmationViewModel::retryLink,
         onDismissConfirmation = emailConfirmationViewModel::dismissLink,
         schedulingViewModelFactory = appContainer.schedulingViewModelFactory,
+        routineViewModelFactory = appContainer.routineViewModelFactory,
         loginViewModelFactory = appContainer.loginViewModelFactory,
         passwordRecoveryViewModelFactory =
             appContainer.passwordRecoveryViewModelFactory,

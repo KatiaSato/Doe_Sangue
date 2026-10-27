@@ -36,6 +36,7 @@ fun NavGraphBuilder.schedulingNavGraph(
     navController: NavHostController,
 
     schedulingViewModelFactory: ViewModelProvider.Factory,
+    routineViewModelFactory: ViewModelProvider.Factory,
     // função que recebe uma rota e executa uma ação, sem devolver um resultado útil
     onNavigateMain: (AppRoute) -> Unit,
     // função sem parâmetros
@@ -44,6 +45,28 @@ fun NavGraphBuilder.schedulingNavGraph(
     navigation<AppGraph.Scheduling>(
         startDestination = AppRoute.ScheduleCenter,
     ) {
+        composable<AppRoute.ScheduleReschedule> { entry ->
+            val route = entry.toRoute<AppRoute.ScheduleReschedule>()
+            val parent = remember(entry) { navController.getBackStackEntry<AppGraph.Scheduling>() }
+            val model: SchedulingViewModel = viewModel(viewModelStoreOwner=parent,factory=schedulingViewModelFactory)
+            val state by model.uiState.collectAsStateWithLifecycle()
+            SchedulingDraftGate(model,navController,entry,SchedulingStep.CENTER,onFinishScheduling) {
+                LaunchedEffect(route.appointmentId) { model.prepareReschedule(route.appointmentId) }
+                LaunchedEffect(state.rescheduleOrigin?.appointmentId) {
+                    if (state.rescheduleOrigin?.appointmentId == route.appointmentId) navController.navigate(AppRoute.ScheduleCenter) {
+                        popUpTo<AppRoute.ScheduleReschedule> { inclusive=true }; launchSingleTop=true
+                    }
+                }
+                br.edu.fatec.doesangue.ui.components.DsScreen(title="Remarcar agendamento",onBack={navController.navigateBackOrHome()}) {
+                    if (state.rescheduleLoading) androidx.compose.material3.Text("Consultando agendamento…")
+                    state.rescheduleError?.let { message ->
+                        androidx.compose.material3.Text(message)
+                        br.edu.fatec.doesangue.ui.components.SecondaryButton("Atualizar agendamento",{model.prepareReschedule(route.appointmentId)})
+                    }
+                }
+            }
+        }
+
         composable<AppRoute.ScheduleFromCenter> { entry ->
             val route = entry.toRoute<AppRoute.ScheduleFromCenter>()
 
@@ -151,7 +174,7 @@ fun NavGraphBuilder.schedulingNavGraph(
                         navController.popBackStack()
                     },
                     onContinue = {
-                        navController.navigate(AppRoute.ScheduleRecurrence)
+                        navController.navigate(if (uiState.rescheduleOrigin != null) AppRoute.ScheduleConfirm else AppRoute.ScheduleRecurrence)
                     },
                 )
             }
@@ -162,14 +185,26 @@ fun NavGraphBuilder.schedulingNavGraph(
             val schedulingViewModel: SchedulingViewModel = viewModel(
                 viewModelStoreOwner = schedulingEntry, factory = schedulingViewModelFactory,
             )
+            val schedulingState by schedulingViewModel.uiState.collectAsStateWithLifecycle()
+            val routineModel: br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel = viewModel(
+                viewModelStoreOwner=schedulingEntry,factory=routineViewModelFactory)
+            val routineState by routineModel.state.collectAsStateWithLifecycle()
+            LaunchedEffect(routineState.loaded,schedulingState.routine) {
+                schedulingState.routine?.let { if (routineState.loaded) routineModel.prefill(it) }
+            }
             SchedulingDraftGate(schedulingViewModel, navController, entry, SchedulingStep.RECURRENCE, onFinishScheduling) {
                 ScheduleRecurrenceScreen(
+                    routineState=routineState,hasSelectedRoutine=schedulingState.routine != null,
+                    onDate=routineModel::updateDate,onInterval=routineModel::updateInterval,onRetry=routineModel::load,
+                    onChooseRoutine={enabled ->
+                        val choice = if (enabled) routineModel.choice(schedulingState.selectedCenter?.timeZoneId ?: "America/Sao_Paulo") ?: return@ScheduleRecurrenceScreen else null
+                        schedulingViewModel.selectRoutine(choice)
+                        navController.navigate(AppRoute.ScheduleConfirm)
+                    },
                     onBack = {
                         navController.popBackStack()
                     },
-                    onContinue = {
-                        navController.navigate(AppRoute.ScheduleConfirm)
-                    },
+
                 )
             }
         }

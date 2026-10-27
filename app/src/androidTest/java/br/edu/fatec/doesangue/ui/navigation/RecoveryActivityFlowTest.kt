@@ -89,7 +89,7 @@ class RecoveryActivityFlowTest {
                 return signOutAnswer.also { if (it.isSuccess) session = null }
             }
         }
-        RecoveryTestApplication.container = AppContainer(
+        RecoveryTestApplication.container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             authRepositoryOverride = repository,
             centerRepositoryOverride = FakeDonationCenterRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),

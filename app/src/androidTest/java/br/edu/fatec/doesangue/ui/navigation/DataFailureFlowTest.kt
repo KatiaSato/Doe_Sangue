@@ -62,7 +62,7 @@ class DataFailureFlowTest {
                 return cancellationError?.let { Result.failure(it) }?:Result.success(summary.appointment.copy(status=AppointmentStatus.CANCELLED))
             }
         }
-        val container=AppContainer(centerRepositoryOverride=centers,timeSlotRepositoryOverride=slots,
+        val container=AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(), centerRepositoryOverride=centers,timeSlotRepositoryOverride=slots,
             appointmentRepositoryOverride=appointments,authRepositoryOverride=auth,donorProfileRepositoryOverride=profiles,
             campaignRepositoryOverride=FakeCampaignRepository(),bloodStockRepositoryOverride=FakeBloodStockRepository(),
             donationHistoryRepositoryOverride=FakeDonationHistoryRepository())

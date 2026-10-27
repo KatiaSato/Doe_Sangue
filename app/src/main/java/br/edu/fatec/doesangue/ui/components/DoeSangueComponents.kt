@@ -182,8 +182,9 @@ fun VisualField(
 
 @Composable
 fun StepProgress(current: Int, labels: List<String>? = null) {
+    val stepCount = labels?.size ?: 4
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-        (1..4).forEach { step ->
+        (1..stepCount).forEach { step ->
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Surface(
                     modifier = Modifier.size(24.dp),
@@ -211,7 +212,7 @@ fun StepProgress(current: Int, labels: List<String>? = null) {
                     )
                 }
             }
-            if (step < 4) {
+            if (step < stepCount) {
                 Box(
                     Modifier
                         .padding(top = 11.dp)

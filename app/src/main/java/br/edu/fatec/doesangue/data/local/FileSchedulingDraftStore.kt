@@ -36,7 +36,7 @@ class FileSchedulingDraftStore(private val directory: File) : SchedulingDraftSto
             val bytes = input.readBytesLimited()
             try {
                 val dto = json.decodeFromString<DraftDto>(bytes.toString(Charsets.UTF_8))
-                require(dto.version == 1 && dto.ownerId == ownerId)
+                require(dto.version in 1..2 && dto.ownerId == ownerId)
                 dto.toDomain().validated()
             } catch (_: Exception) { throw InvalidSchedulingDraft() }
         }
@@ -71,19 +71,28 @@ class FileSchedulingDraftStore(private val directory: File) : SchedulingDraftSto
         file.delete()
         if (file.baseFile.exists() || File(file.baseFile.path + ".bak").exists()) throw IOException("Draft removal failed")
     }
+    @Serializable private data class OriginDto(val id: String,val slot: String,val center: String,val start: String,val zone: String) {
+        fun domain() = RescheduleOrigin(id,slot,center,java.time.Instant.parse(start),zone).validated()
+    }
+    @Serializable private data class ChoiceDto(val start: String,val interval: Int,val zone: String,val version: Long) {
+        fun domain() = RoutineChoice(java.time.LocalDate.parse(start),interval,zone,version).validated()
+    }
     companion object { private val processMutex = Mutex() }
     @Serializable private data class DraftDto(
         val version: Int, val ownerId: String, val centerId: String,
         val centerName: String, val timeZoneId: String, val dateIso: String? = null,
         val slotId: String? = null, val startsAtIso: String? = null,
         val step: String = SchedulingStep.CENTER.name, val requestKey: String? = null,
+        val origin: OriginDto? = null, val routine: ChoiceDto? = null,
     ) {
-        fun toDomain() = SchedulingDraft(ownerId, centerId, centerName, timeZoneId, dateIso, slotId, startsAtIso, SchedulingStep.valueOf(step), requestKey)
+        fun toDomain() = SchedulingDraft(ownerId, centerId, centerName, timeZoneId, dateIso, slotId, startsAtIso, SchedulingStep.valueOf(step), requestKey, origin?.domain(), routine?.domain())
         companion object {
             fun from(draft: SchedulingDraft) = with(draft) {
-                DraftDto(version = 1, ownerId = ownerId, centerId = centerId, centerName = centerName,
+                DraftDto(version = 2, ownerId = ownerId, centerId = centerId, centerName = centerName,
                     timeZoneId = timeZoneId, dateIso = dateIso, slotId = slotId,
-                    startsAtIso = startsAtIso, step = step.name, requestKey = requestKey)
+                    startsAtIso = startsAtIso, step = step.name, requestKey = requestKey,
+                    origin = rescheduleOrigin?.let { OriginDto(it.appointmentId,it.timeSlotId,it.centerName,it.startsAt.toString(),it.timeZoneId) },
+                    routine = routine?.let { ChoiceDto(it.startsOn.toString(),it.intervalDays,it.timeZoneId,it.expectedVersion) })
             }
         }
     }

@@ -50,6 +50,10 @@ internal fun Throwable.toAppointmentFailure(): DataFailure {
             "P0001" to "doesangue.cancellation_closed.v1" -> DataError.CANCELLATION_CLOSED
             "P0001" to "doesangue.invalid_request.v1", "22023" to "doesangue.invalid_request.v1" -> DataError.INVALID_DATA
             "P0001" to "doesangue.isolation_unsupported.v1", "25000" to "doesangue.isolation_unsupported.v1" -> DataError.SERVICE_UNAVAILABLE
+            "P0001" to "doesangue.rescheduling_closed.v1" -> DataError.RESCHEDULING_CLOSED
+            "P0001" to "doesangue.slot_same.v1" -> DataError.SLOT_SAME
+            "P0001" to "doesangue.routine_changed.v1" -> DataError.ROUTINE_CHANGED
+            "P0001" to "doesangue.routine_date_past.v1" -> DataError.ROUTINE_DATE_PAST
             else -> null
         }
         if (reason != null) return DataFailure(reason)

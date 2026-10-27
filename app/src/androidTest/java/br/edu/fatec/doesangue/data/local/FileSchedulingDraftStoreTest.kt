@@ -24,6 +24,20 @@ class FileSchedulingDraftStoreTest {
         assertFalse(text.contains("access_token")); assertFalse(text.contains("password")); assertFalse(text.contains("email"))
         assertFalse(directory.listFiles()!!.single().name.contains(draft.ownerId))
     }
+    @Test fun legacyVersionOneRemainsReadableAndVersionTwoPersistsOperationFingerprint() = runBlocking<Unit> {
+        store().save(draft).getOrThrow()
+        val file=directory.listFiles()!!.single()
+        val payload=kotlinx.serialization.json.Json.parseToJsonElement(file.readText()) as kotlinx.serialization.json.JsonObject
+        val legacy=kotlinx.serialization.json.JsonObject(payload.filterKeys { it !in setOf("origin","routine") } +
+            ("version" to kotlinx.serialization.json.JsonPrimitive(1)))
+        file.writeText(legacy.toString())
+        assertEquals(draft,store().read(draft.ownerId).getOrThrow())
+        val origin=RescheduleOrigin("23","4","Unidade Sintética",java.time.Instant.parse("2026-11-19T11:00:00Z"),"America/Sao_Paulo")
+        val reschedule=draft.copy(rescheduleOrigin=origin)
+        store().save(reschedule).getOrThrow();assertEquals(reschedule,store().read(draft.ownerId).getOrThrow())
+        val routine=draft.copy(routine=RoutineChoice(java.time.LocalDate.of(2026,11,20),17,"America/Sao_Paulo",8))
+        store().save(routine).getOrThrow();assertEquals(routine,store().read(draft.ownerId).getOrThrow())
+    }
     @Test fun accountsAreIsolatedAndClearingOneDoesNotRemoveAnother() = runBlocking<Unit> {
         val store = store(); store.save(draft).getOrThrow()
         val other = draft.copy(ownerId = "synthetic-b", requestKey = null)
@@ -35,7 +49,7 @@ class FileSchedulingDraftStoreTest {
         val store = store(); store.save(draft).getOrThrow()
         val file = directory.listFiles()!!.single()
         val valid = file.readText()
-        for (text in listOf("{", valid.replace("\"version\":1", "\"version\":9"),
+        for (text in listOf("{", valid.replace("\"version\":2", "\"version\":9"),
             valid.replace("synthetic-a", "synthetic-b"), "x".repeat(17_000))) {
             file.writeText(text)
             assertTrue(store.read(draft.ownerId).exceptionOrNull() is InvalidSchedulingDraft)

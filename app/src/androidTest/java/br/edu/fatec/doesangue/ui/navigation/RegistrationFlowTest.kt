@@ -33,7 +33,7 @@ class RegistrationFlowTest {
     private lateinit var model: RegistrationViewModel
 
     private fun openApp() {
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(),
             donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             authRepositoryOverride = auth, donorProfileRepositoryOverride = FakeDonorProfileRepository(),

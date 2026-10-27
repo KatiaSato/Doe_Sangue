@@ -27,17 +27,18 @@ internal fun SchedulingDraftGate(model: SchedulingViewModel, nav: NavHostControl
         if (nav.currentBackStackEntry?.id != entry.id) return@LaunchedEffect
         val destination = entry.destination
         val same = when (target) {
-            SchedulingStep.CENTER -> destination.hasRoute<AppRoute.ScheduleCenter>() ||
-                destination.hasRoute<AppRoute.ScheduleFromCenter>()
+            SchedulingStep.CENTER -> destination.hasRoute<AppRoute.ScheduleCenter>() || (recovery.preserveEntryIntent &&
+                (destination.hasRoute<AppRoute.ScheduleFromCenter>() || destination.hasRoute<AppRoute.ScheduleReschedule>()))
             SchedulingStep.DATE -> destination.hasRoute<AppRoute.ScheduleDate>()
             SchedulingStep.RECURRENCE -> destination.hasRoute<AppRoute.ScheduleRecurrence>()
             SchedulingStep.CONFIRM -> destination.hasRoute<AppRoute.ScheduleConfirm>()
         }
         if (!same) {
             // Reconstrói as etapas anteriores para Voltar permitir revisar as escolhas recuperadas.
-            val routes = listOf(AppRoute.ScheduleCenter, AppRoute.ScheduleDate,
-                AppRoute.ScheduleRecurrence, AppRoute.ScheduleConfirm)
-            routes.take(target.ordinal + 1).forEachIndexed { index, route ->
+            val routes = listOf(AppRoute.ScheduleCenter to SchedulingStep.CENTER,AppRoute.ScheduleDate to SchedulingStep.DATE,
+                AppRoute.ScheduleRecurrence to SchedulingStep.RECURRENCE,AppRoute.ScheduleConfirm to SchedulingStep.CONFIRM)
+                .filter { (_,stage) -> stage.ordinal <= target.ordinal && !(ui.rescheduleOrigin != null && stage == SchedulingStep.RECURRENCE) }
+            routes.forEachIndexed { index, (route,_) ->
                 nav.navigate(route) {
                     if (index == 0) popUpTo<AppGraph.Scheduling> { inclusive = false }
                     launchSingleTop = true

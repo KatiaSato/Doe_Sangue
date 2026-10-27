@@ -32,7 +32,7 @@ class ProfileFlowTest {
     private lateinit var model: ProfileViewModel
 
     private fun openProfile() {
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(),
             donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
@@ -52,6 +52,7 @@ class ProfileFlowTest {
                     recoveryLinkState = idleRecoveryLinkState,
                     navController = nav,
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
+                    routineViewModelFactory = container.routineViewModelFactory,
                     loginViewModelFactory = container.loginViewModelFactory,
                     profileViewModelFactory = profileFactory,
                     appointmentsViewModelFactory = container.appointmentsViewModelFactory,

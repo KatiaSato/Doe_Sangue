@@ -37,7 +37,7 @@ class AppointmentCreationFlowTest {
     private val date = LocalDate.of(2026, 11, 20)
 
     private fun openScheduling() {
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(),
             donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
@@ -64,6 +64,7 @@ class AppointmentCreationFlowTest {
                     recoveryLinkState = idleRecoveryLinkState,
                     navController = nav,
                     schedulingViewModelFactory = factory,
+                    routineViewModelFactory = container.routineViewModelFactory,
                     loginViewModelFactory = container.loginViewModelFactory,
                     profileViewModelFactory = container.profileViewModelFactory,
                     appointmentsViewModelFactory = container.appointmentsViewModelFactory,

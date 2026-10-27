@@ -42,7 +42,7 @@ class PasswordRecoveryFlowTest {
                 return answer()
             }
         }
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             authRepositoryOverride = repository,
             centerRepositoryOverride = FakeDonationCenterRepository(),
             timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),

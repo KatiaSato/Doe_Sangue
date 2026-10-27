@@ -47,7 +47,7 @@ class ProfileEditFlowTest {
         val auth = object : br.edu.fatec.doesangue.domain.repository.AuthRepository by FakeAuthRepository() {
             override suspend fun restoreSession() = Result.success(AuthenticatedUser("test-user-1"))
         }
-        val container = AppContainer(authRepositoryOverride = auth, donorProfileRepositoryOverride = repository,
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(), authRepositoryOverride = auth, donorProfileRepositoryOverride = repository,
             centerRepositoryOverride = FakeDonationCenterRepository(), timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             appointmentRepositoryOverride = FakeAppointmentRepository(), campaignRepositoryOverride = FakeCampaignRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(), donationHistoryRepositoryOverride = FakeDonationHistoryRepository())

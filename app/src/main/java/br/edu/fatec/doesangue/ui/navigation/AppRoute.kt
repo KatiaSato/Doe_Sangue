@@ -68,6 +68,9 @@ sealed interface AppRoute {
     data object ScheduleDate : AppRoute
 
     @Serializable
+    data class ScheduleReschedule(val appointmentId: String) : AppRoute
+
+    @Serializable
     data object ScheduleRecurrence : AppRoute
 
     @Serializable

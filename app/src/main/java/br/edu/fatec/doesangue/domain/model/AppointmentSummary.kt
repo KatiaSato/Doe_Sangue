@@ -8,4 +8,7 @@ data class AppointmentSummary(
     val centerName: String,
     val startsAt: Instant,
     val timeZoneId: String,
+    val centerId: String? = null,
+    val rescheduledToId: String? = null,
+    val rescheduledFromId: String? = null,
 )

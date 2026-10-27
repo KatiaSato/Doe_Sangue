@@ -54,7 +54,7 @@ class LogoutFlowTest {
             override suspend fun createCurrentProfile(displayName: String): Result<DonorProfile> =
                 Result.failure(UnsupportedOperationException("Este teste não cria perfis."))
         }
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(),
             donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
@@ -74,6 +74,7 @@ class LogoutFlowTest {
                     recoveryLinkState = idleRecoveryLinkState,
                     navController = nav,
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
+                    routineViewModelFactory = container.routineViewModelFactory,
                     loginViewModelFactory = container.loginViewModelFactory,
                     profileViewModelFactory = container.profileViewModelFactory,
                     appointmentsViewModelFactory = container.appointmentsViewModelFactory,

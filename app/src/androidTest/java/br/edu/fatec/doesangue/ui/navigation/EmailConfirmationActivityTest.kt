@@ -68,7 +68,7 @@ class EmailConfirmationActivityTest {
             }
             override suspend fun signOut(): Result<Unit> { signOuts++; session = null; return Result.success(Unit) }
         }
-        RecoveryTestApplication.container = AppContainer(authRepositoryOverride = repo,
+        RecoveryTestApplication.container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(), authRepositoryOverride = repo,
             centerRepositoryOverride = FakeDonationCenterRepository(), timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             donorProfileRepositoryOverride = FakeDonorProfileRepository(), appointmentRepositoryOverride = FakeAppointmentRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(), bloodStockRepositoryOverride = FakeBloodStockRepository(),

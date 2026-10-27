@@ -29,6 +29,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.navigation.compose.currentBackStackEntryAsState
 import br.edu.fatec.doesangue.presentation.auth.SessionMonitorUiState
 import br.edu.fatec.doesangue.ui.screens.auth.SessionWaitScreen
+import androidx.navigation.toRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -65,6 +66,7 @@ fun AppNavHost(
     onRetryConfirmation: () -> Unit = {},
     onDismissConfirmation: () -> Unit = {},
     schedulingViewModelFactory: ViewModelProvider.Factory,
+    routineViewModelFactory: ViewModelProvider.Factory,
     loginViewModelFactory: ViewModelProvider.Factory,
     passwordRecoveryViewModelFactory: ViewModelProvider.Factory,
     resetPasswordViewModelFactory: (Long) -> ViewModelProvider.Factory,
@@ -194,6 +196,12 @@ fun AppNavHost(
                 }
             }
 
+            is AppRoute.AppointmentDetailById -> {
+                val previous = navController.currentBackStackEntry
+                val sameRecord = previous?.destination?.hasRoute<AppRoute.AppointmentDetailById>() == true &&
+                    previous.toRoute<AppRoute.AppointmentDetailById>().appointmentId == route.appointmentId
+                navController.navigate(route) { launchSingleTop = sameRecord }
+            }
             else -> {
                 // Destinos internos mantêm a origem para permitir Voltar.
                 navController.navigate(route) {
@@ -313,6 +321,7 @@ fun AppNavHost(
             mainNavGraph(
                 navController = navController,
                 schedulingViewModelFactory = schedulingViewModelFactory,
+                routineViewModelFactory = routineViewModelFactory,
                 profileViewModelFactory = profileViewModelFactory,
                 editProfileViewModelFactory = editProfileViewModelFactory,
                 changePasswordViewModelFactory = changePasswordViewModelFactory,

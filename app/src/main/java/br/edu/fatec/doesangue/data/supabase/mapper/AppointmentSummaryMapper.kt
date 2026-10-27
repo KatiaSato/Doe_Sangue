@@ -10,5 +10,8 @@ fun AppointmentSummaryDto.toDomain(): AppointmentSummary {
         centerName = centerName,
         startsAt = OffsetDateTime.parse(startsAt).toInstant(),
         timeZoneId = timeZoneId,
+        centerId = centerId?.toString(),
+        rescheduledToId = rescheduledToId?.toString(),
+        rescheduledFromId = rescheduledFromId?.toString(),
     )
 }

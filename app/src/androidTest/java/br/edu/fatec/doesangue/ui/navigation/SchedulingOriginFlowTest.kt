@@ -59,7 +59,7 @@ class SchedulingOriginFlowTest {
                 return Result.failure(AssertionError("Este roteiro não confirma reservas"))
             }
         }
-        val container = AppContainer(centerRepositoryOverride = centers,
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(), centerRepositoryOverride = centers,
             campaignRepositoryOverride = campaigns, authRepositoryOverride = auth,
             appointmentRepositoryOverride = appointments, timeSlotRepositoryOverride = FakeDonationTimeSlotRepository(),
             donorProfileRepositoryOverride = FakeDonorProfileRepository(),

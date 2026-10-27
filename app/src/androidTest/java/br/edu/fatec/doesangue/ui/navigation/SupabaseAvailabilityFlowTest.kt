@@ -48,7 +48,7 @@ class SupabaseAvailabilityFlowTest {
             val auth=object: AuthRepository by FakeAuthRepository() {
                 override suspend fun restoreSession()=Result.success(AuthenticatedUser("usuario-sintetico"))
             }
-            val container=AppContainer(
+            val container=AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
                 centerRepositoryOverride=SupabaseDonationCenterRepository(SupabaseDonationCenterDataSource(client)),
                 timeSlotRepositoryOverride=SupabaseDonationTimeSlotRepository(SupabaseDonationTimeSlotDataSource(client)),
                 authRepositoryOverride=auth, donorProfileRepositoryOverride=FakeDonorProfileRepository(),

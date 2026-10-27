@@ -1,5 +1,14 @@
 # Supabase — banco acadêmico e dados sintéticos
 
+## F13/F14 — banco de remarcação e rotina, 26/10/2026
+
+As migrações `20261026000300_criar_remarcacao_agendamento.sql` e `20261026000400_criar_rotina_lembretes.sql` foram aplicadas **uma única vez**, após autorização específica, no projeto acadêmico fbrycvxelubxxafjstbo. Não reaplicar nem repetir o roteiro remoto aprovado. `tests/remarcacao_rotina_lembretes.sql` aprovado com ROLLBACK; nove conferências finais true. Baseline: **2 unidades/6 horários/3 perfis/3 agendamentos**, todos preservados, incluindo23; não remover o terceiro registro. Funções antigas criar/cancelar/consultar mantiveram corpo, configuração e ACL; tabelas novas vazias após os testes, RLS/ACL e auxiliares restritos. Sequências podem avançar mesmo com ROLLBACK.
+
+Remarcação cria substituta+cancela original+registra vínculo atomicamente. Mantém horário/chave de criação originais, bloqueia horários em ordem de ID e recupera replay antes de conferir prazo/oferta. Nova consulta `consultar_meus_agendamentos_v2` acrescenta unidade/vínculos privados; a antiga permanece disponível. Rotina pessoal é uma preferência, sem reservas ou avisos automáticos: data/intervalo/fuso, versão monotônica, editar/pausar/excluir. Criar com rotina guarda fingerprint imutável; replay não recria preferência excluída nem desfaz edição posterior. Nenhuma alteração em Auth/perfis/estoque/histórico.
+
+Runner local `tests/local/validar_remarcacao_rotina.mjs <diretório PGlite>`:17 migrações, ACL/RLS/metadados/dados anteriores, roteiro e rejeição dos isolamentos incompatíveis aprovados. Ferramenta PGlite externa ao Android; relatório ignorado app/build/reports/sql/remarcacao-rotina.json. Execução sequencial/SET ROLE não comprova duas conexões concorrentes nem JWT/API de doador. Detalhes e andamento Android em [docs/44](../docs/44-remarcacao-agendamento.md) e [docs/45](../docs/45-rotina-lembretes.md).
+
+
 ## Erros identificáveis de criação/cancelamento — F19, 26/10/2026
 
 `migrations/20261026000200_identificar_erros_agendamento.sql` é a15ª migração, aplicada uma vez no projeto acadêmico fbrycvxelubxxafjstbo após autorização específica. **Não reaplicar.** CREATE OR REPLACE preserva as duas funções e acrescenta somente DETAIL estável doesangue.*.v1 nos19 RAISE; SQLSTATE, mensagens, regras/bloqueios/idempotência/grants/RLS permanecem. Não cria tabela, seed ou permissão. Android classifica campo/código exatos e mantém fallback seguro para respostas antigas/desconhecidas; nunca compara frase/HTTP para inventar causa.

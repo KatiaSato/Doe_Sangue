@@ -73,3 +73,5 @@ Com um emulador ou dispositivo de teste conectado, execute:
 ```
 
 Os testes em `app/src/androidTest` exercitam a navegação e o estado salvo do Compose, com `FakeDonationCenterRepository` injetado explicitamente e sem consulta ao Supabase. Em 06/10/2026, 12 testes passaram no Pixel 5/API 32. `test` executa somente os testes locais em `app/src/test`; não substitui a suíte instrumentada. Consulte [telas e navegação](docs/10-telas-e-navegacao.md), [ADR-003](docs/decisoes/ADR-003-navegacao-compose.md) e [validação](docs/12-validacao.md).
+
+Remarcação própria e rotina pessoal de lembretes: [F13](docs/44-remarcacao-agendamento.md) e [F14](docs/45-rotina-lembretes.md). Banco aplicado/testado e validação técnica concluída (82 JVM/126 Android); aceite visual confirmado por relato em26/10 após o ajuste do calendário; commit/push do conjunto completo autorizados em26/10/2026. Notificações permanecem para a etapa acompanhada.

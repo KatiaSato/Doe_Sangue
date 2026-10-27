@@ -60,11 +60,31 @@ class SupabaseAppointmentDataSource(
         return appointments.single().toDomain()
     }
 
+    suspend fun reschedule(ownerId: String, appointmentId: String, timeSlotId: String, key: String): Appointment {
+        val source = appointmentId.toLongOrNull()?.takeIf { it > 0 } ?: throw DataFailure(DataError.INVALID_DATA)
+        val slot = timeSlotId.toLongOrNull()?.takeIf { it > 0 } ?: throw DataFailure(DataError.INVALID_DATA)
+        val rows = client.ownedDataRpc(ownerId,"remarcar_agendamento",buildJsonObject {
+            put("p_agendamento_id",source);put("p_horario_id",slot);put("p_chave_idempotencia",key)
+        }).decodeList<AppointmentDto>()
+        return rows.single().toDomain().also { check(it.donorId == ownerId && it.timeSlotId == timeSlotId) }
+    }
+
+    suspend fun createWithRoutine(ownerId: String, timeSlotId: String, key: String, routine: br.edu.fatec.doesangue.domain.model.RoutineChoice): Appointment {
+        routine.validated()
+        val slot = timeSlotId.toLongOrNull()?.takeIf { it > 0 } ?: throw DataFailure(DataError.INVALID_DATA)
+        val rows = client.ownedDataRpc(ownerId,"criar_agendamento_com_rotina",buildJsonObject {
+            put("p_horario_id",slot);put("p_chave_idempotencia",key)
+            put("p_inicio",routine.startsOn.toString());put("p_intervalo",routine.intervalDays)
+            put("p_fuso",routine.timeZoneId);put("p_versao",routine.expectedVersion)
+        }).decodeList<AppointmentDto>()
+        return rows.single().toDomain().also { check(it.donorId == ownerId && it.timeSlotId == timeSlotId) }
+    }
+
     suspend fun getMyAppointments(): List<AppointmentSummary> {
         client.requireDataUser()
 
         return client.postgrest
-            .rpc("consultar_meus_agendamentos", buildJsonObject {})
+            .rpc("consultar_meus_agendamentos_v2", buildJsonObject {})
             .decodeList<AppointmentSummaryDto>()
             .map { it.toDomain() }
     }

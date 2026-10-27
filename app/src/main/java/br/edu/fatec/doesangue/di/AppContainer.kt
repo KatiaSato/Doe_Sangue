@@ -67,8 +67,15 @@ class AppContainer(
     private val campaignRepositoryOverride: CampaignRepository? = null,
     private val bloodStockRepositoryOverride: BloodStockRepository? = null,
     private val donationHistoryRepositoryOverride: DonationHistoryRepository? = null,
+    private val routineRepositoryOverride: br.edu.fatec.doesangue.domain.repository.ReminderRoutineRepository? = null,
     private val schedulingDraftStore: br.edu.fatec.doesangue.domain.repository.SchedulingDraftStore? = null,
 ) {
+    val routineRepository: br.edu.fatec.doesangue.domain.repository.ReminderRoutineRepository by lazy {
+        routineRepositoryOverride ?: br.edu.fatec.doesangue.data.repository.SupabaseReminderRoutineRepository(br.edu.fatec.doesangue.data.supabase.SupabaseReminderRoutineDataSource(supabaseClient))
+    }
+    val routineViewModelFactory = viewModelFactory {
+        initializer { br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel(routineRepository,authRepository) }
+    }
     val sessionMonitorViewModelFactory = viewModelFactory {
         initializer { SessionMonitorViewModel(authRepository) }
     }

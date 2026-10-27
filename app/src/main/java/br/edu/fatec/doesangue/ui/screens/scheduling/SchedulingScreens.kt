@@ -54,11 +54,12 @@ import br.edu.fatec.doesangue.ui.theme.InkSecondary
 import br.edu.fatec.doesangue.domain.model.DonationCenter
 import br.edu.fatec.doesangue.presentation.scheduling.SchedulingUiState
 
-private val scheduleLabels = listOf("Unidade", "Data e horário", "Recorrência", "Confirmar")
+private val scheduleLabels = listOf("Unidade", "Data e horário", "Rotina", "Confirmar")
 
 @Composable
-private fun ScheduleHeader(current: Int) {
-    StepProgress(current, scheduleLabels)
+private fun ScheduleHeader(current: Int, rescheduling: Boolean = false) {
+    StepProgress(if (rescheduling && current == 4) 3 else current,
+        if (rescheduling) listOf("Unidade","Data e horário","Confirmar") else scheduleLabels)
     Spacer(Modifier.height(28.dp))
 }
 
@@ -72,12 +73,12 @@ fun ScheduleCenterScreen(
     onNavigate: (AppRoute) -> Unit,
 ) {
     DsScreen(
-        title = "Agendar doação",
+        title = if (uiState.rescheduleOrigin != null) "Remarcar agendamento" else "Agendar doação",
         onBack = onBack,
         bottomRoute = AppRoute.ScheduleCenter,
         onNavigate = onNavigate
     ) {
-        ScheduleHeader(1)
+        ScheduleHeader(1, uiState.rescheduleOrigin != null)
         Text("Escolha uma unidade", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
         // Guarda a mensagem em uma variável local para verificar e usar.
@@ -164,7 +165,7 @@ fun ScheduleDateScreen(
         )
     }
     DsScreen(title = "Agendar doação", onBack = onBack) {
-        ScheduleHeader(2)
+        ScheduleHeader(2, uiState.rescheduleOrigin != null)
         Text(
             text = uiState.selectedCenter?.name ?: "Nenhuma unidade selecionada",
             style = MaterialTheme.typography.bodyMedium,
@@ -227,6 +228,7 @@ fun ScheduleDateScreen(
                                 .toLocalTime()
 
                             FilterChip(
+                                enabled = uiState.rescheduleOrigin?.timeSlotId != slot.id,
                                 selected = uiState.selectedTimeSlotId == slot.id,
                                 onClick = { onSelectTimeSlot(slot.id) },
                                 label = {
@@ -265,22 +267,26 @@ fun ScheduleDateScreen(
 }
 
 @Composable
-fun ScheduleRecurrenceScreen(onBack: () -> Unit, onContinue: () -> Unit) {
+fun ScheduleRecurrenceScreen(onBack: () -> Unit,
+    routineState: br.edu.fatec.doesangue.presentation.routines.ReminderRoutineUiState,
+    hasSelectedRoutine: Boolean,onDate: (String)->Unit,onInterval: (String)->Unit,onRetry: ()->Unit,
+    onChooseRoutine: (Boolean)->Unit) {
+    var enabled by rememberSaveable { mutableStateOf(hasSelectedRoutine) }
     DsScreen(title = "Agendar doação", onBack = onBack) {
         ScheduleHeader(3)
-        Text("Recorrência", style = MaterialTheme.typography.titleLarge)
+        Text("Rotina de lembretes", style=MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
-        SelectionCard("Somente este agendamento", "Sem repetição automática", selected = true)
-        Spacer(Modifier.height(18.dp))
-        InfoCard {
-            Text(
-                "A recorrência ainda não está disponível. Consulte o hemocentro sobre o intervalo adequado entre doações. Agendar não confirma aptidão clínica.",
-                style = MaterialTheme.typography.bodyMedium, color = InkSecondary
-            )
-        }
-        Spacer(Modifier.height(28.dp))
-        PrimaryButton("Continuar", onContinue)
-        Spacer(Modifier.height(16.dp))
+        SelectionCard("Somente este agendamento", "Sem repetição automática", selected=!enabled,onClick={enabled=false})
+        Spacer(Modifier.height(12.dp))
+        SelectionCard("Configurar rotina", "Escolher data e intervalo pessoais",selected=enabled,onClick={enabled=true})
+        Spacer(Modifier.height(14.dp))
+        if (enabled) {
+            br.edu.fatec.doesangue.ui.screens.routines.RoutineFields(routineState,onDate,onInterval)
+            routineState.message?.let { Text(it,style=MaterialTheme.typography.bodySmall) }
+            if (routineState.error != null) SecondaryButton("Atualizar rotina",onRetry)
+        } else Text("Esta escolha não apaga uma rotina que você já tenha configurado.",style=MaterialTheme.typography.bodySmall)
+        Spacer(Modifier.height(20.dp))
+        PrimaryButton("Continuar",{onChooseRoutine(enabled)},enabled=!enabled || (routineState.loaded && !routineState.loading))
     }
 }
 
@@ -303,10 +309,19 @@ fun ScheduleConfirmScreen(
     }
 
     DsScreen(
-        title = "Confirmar agendamento",
+        title = if (uiState.rescheduleOrigin != null) "Confirmar remarcação" else "Confirmar agendamento",
         onBack = if (canNavigate) onBack else null,     //Isso controla tanto a seta da tela quanto o Voltar do Android
     ) {
-        ScheduleHeader(4)
+        ScheduleHeader(4, uiState.rescheduleOrigin != null)
+        uiState.rescheduleOrigin?.let { origin ->
+            InfoCard {
+                Text("Agendamento atual ${origin.appointmentId}",style=MaterialTheme.typography.titleMedium)
+                Text(origin.centerName)
+                Text(origin.startsAt.atZone(ZoneId.of(origin.timeZoneId)).format(DateTimeFormatter.ofPattern("dd/MM/yyyy • HH:mm")))
+                Text("A troca só será concluída se o novo horário estiver disponível.",style=MaterialTheme.typography.bodySmall)
+            }
+            Spacer(Modifier.height(12.dp))
+        }
         Text("Revise os dados", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
         InfoCard {
@@ -326,7 +341,8 @@ fun ScheduleConfirmScreen(
                     ?.format(DateTimeFormatter.ofPattern("HH:mm"))
                     ?: "Nenhum horário selecionado",
             )
-            ReviewRow("Recorrência", "Sem repetição automática")
+            ReviewRow("Rotina", if (uiState.rescheduleOrigin != null) "Preferência atual preservada" else uiState.routine?.let { "A cada ${it.intervalDays} dias" } ?: "Sem repetição automática")
+            uiState.routine?.let { ReviewRow("Início da rotina",it.startsOn.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))) }
         }
         Spacer(Modifier.height(22.dp))
         Text(
@@ -364,7 +380,7 @@ fun ScheduleConfirmScreen(
             text = if (creation.isLoading) {
                 "Confirmando..."
             } else {
-                "Confirmar agendamento"
+                if (uiState.rescheduleOrigin != null) "Confirmar remarcação" else "Confirmar agendamento"
             },
             onClick = onConfirm,
             enabled = !creation.isLoading &&
@@ -423,7 +439,7 @@ fun ScheduleSuccessScreen(
         Spacer(Modifier.height(110.dp))
         CenteredMessage(
             "✓",
-            "Agendamento confirmado!",
+            if (uiState.rescheduleOrigin != null) "Agendamento remarcado!" else "Agendamento confirmado!",
             "Seu agendamento é para\n$date às $time"
         )
         Spacer(Modifier.height(34.dp))
@@ -438,7 +454,7 @@ fun ScheduleSuccessScreen(
                 color = InkSecondary,
             )
             Text(
-                "Sem repetição automática",
+                if (uiState.rescheduleOrigin != null) "Rotina anterior preservada" else if (uiState.routine != null) "Preferência deste pedido: a cada ${uiState.routine.intervalDays} dias. Consulte sua rotina atual em Minhas doações." else "Sem repetição automática",
                 style = MaterialTheme.typography.bodyMedium,
                 color = BloodRed
             )

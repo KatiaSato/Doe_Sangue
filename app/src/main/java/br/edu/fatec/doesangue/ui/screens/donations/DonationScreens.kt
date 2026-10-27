@@ -75,6 +75,7 @@ fun DonationAppointmentsScreen(
     onBack: () -> Unit,
     onHistory: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
+    routineContent: @Composable () -> Unit = {},
 ) {
     DsScreen(title = "Minhas doações", onBack = onBack, bottomRoute = AppRoute.DonationsAppointments, onNavigate = onNavigate) {
         DonationTabs(history = false, onHistory = onHistory, onAppointments = {})
@@ -106,7 +107,7 @@ fun DonationAppointmentsScreen(
                         )
                         val statusLabel = when (summary.appointment.status) {
                             AppointmentStatus.SCHEDULED -> "Agendado"
-                            AppointmentStatus.CANCELLED -> "Cancelado"
+                            AppointmentStatus.CANCELLED -> if(summary.rescheduledToId != null) "Remarcado" else "Cancelado"
                         }
 
                         InfoCard {
@@ -130,11 +131,7 @@ fun DonationAppointmentsScreen(
             }
         }
         Spacer(Modifier.height(28.dp))
-        SectionHeader("Próximos lembretes")
-        InfoCard {
-            Text("Nenhum lembrete de recorrência configurado.", style = MaterialTheme.typography.bodyMedium)
-            Text("Consulte o hemocentro sobre quando poderá doar novamente.", style = MaterialTheme.typography.bodySmall, color = InkSecondary)
-        }
+        routineContent()
     }
 }
 

@@ -58,7 +58,7 @@ class AppNavigationTest {
 
         restoration.setContent {
             val appContainer = remember {
-                AppContainer(
+                AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(),
             donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             campaignRepositoryOverride = FakeCampaignRepository(),
@@ -77,6 +77,7 @@ class AppNavigationTest {
                     navController = navController,
                     schedulingViewModelFactory =
                         appContainer.schedulingViewModelFactory,
+                    routineViewModelFactory = appContainer.routineViewModelFactory,
                     loginViewModelFactory = appContainer.loginViewModelFactory,
                     profileViewModelFactory = appContainer.profileViewModelFactory,
                     appointmentsViewModelFactory = appContainer.appointmentsViewModelFactory,

@@ -96,3 +96,9 @@ Testar leitura e escrita próprias, negação sobre outro usuário, negação de
 ## Pendente
 
 DER definitivo, dicionário completo, status, matriz de permissões das próximas tabelas, unidade das medidas, distribuição dos 200 registros, estratégia reexecutável para contas sintéticas, e-mail/forma de acesso do professor, entrega de e-mails de convite e conciliação do histórico de migrações antes de usar a CLI no ambiente criado manualmente.
+
+## F13/F14 — modelagem aplicada em26/10/2026
+
+O domínio passa a12 tabelas: as nove anteriores mais agendamento_remarcacao (origem, substituta, doador e horário), rotina_lembrete (doador único e agendamento de origem opcional) e agendamento_rotina_pedido (fingerprint por doador/chave, reserva, horário e rotina opcional). Há dez novas FKs nesse recorte; requisito mínimo de tabelas/FKs continua atendido. A massa acadêmica de200 registros e distribuição final continuam pendentes, sem novos seeds nesta implementação.
+
+O pedido de rotina é histórico de uma operação, separado da preferência atual. Excluir a preferência conserva parâmetros de repetição; a FK da rotina fica nula. A remarcação conserva os registros antigos e eventos, mantendo identidade de pedidos anteriores. Todas as tabelas novas têm RLS e nenhum acesso direto de clientes; operações privadas autenticadas, search_path vazio e auxiliares inacessíveis. Duas migrações aplicadas uma vez após autorização, roteiro ROLLBACK e nove conferências finais aprovados; não reaplicar. Baseline de2 unidades/6 horários/3 perfis/3 agendamentos preservado. Detalhes em docs/44 e45.

@@ -32,7 +32,7 @@ class CampaignFilterFlowTest {
     private lateinit var model: CampaignsViewModel
 
     private fun openCampaigns() {
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             bloodStockRepositoryOverride = FakeBloodStockRepository(),
             donationHistoryRepositoryOverride = FakeDonationHistoryRepository(),
             authRepositoryOverride = FakeAuthRepository(),

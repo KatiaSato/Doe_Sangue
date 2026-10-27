@@ -27,6 +27,7 @@ internal fun FeatureTestHost(
         sessionState = sessionState,
         navController = nav,
         schedulingViewModelFactory = container.schedulingViewModelFactory,
+                    routineViewModelFactory = container.routineViewModelFactory,
         loginViewModelFactory = container.loginViewModelFactory,
         profileViewModelFactory = container.profileViewModelFactory,
         appointmentsViewModelFactory = container.appointmentsViewModelFactory,

@@ -53,7 +53,7 @@ class ChangePasswordFlowTest {
                 return Result.success(Unit)
             }
         }
-        val container = AppContainer(
+        val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
             authRepositoryOverride = auth,
             donorProfileRepositoryOverride = FakeDonorProfileRepository(),
             centerRepositoryOverride = FakeDonationCenterRepository(),
