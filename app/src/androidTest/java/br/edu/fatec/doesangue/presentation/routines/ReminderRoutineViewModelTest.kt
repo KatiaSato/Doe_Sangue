@@ -36,6 +36,33 @@ class ReminderRoutineViewModelTest {
         return model
     }
     @After fun close()=main {stores.forEach {it.clear()}}
+    @Test fun shortExplicitOrNumericDatesSaveTheirRecognizedDate() {
+        val model=model();await {model.state.value.loaded}
+        for (text in listOf("1/11/2027", "11/1/2027", "1282027", "182027")) {
+            main {model.updateDate(text);model.updateInterval("14");model.save()}
+            await {!model.state.value.saving && model.state.value.routine != null}
+            assertNull(model.state.value.dateError)
+            assertEquals(br.edu.fatec.doesangue.domain.validation.RoutineDateInput.candidates(text).single(), model.state.value.routine!!.startsOn)
+        }
+    }
+    @Test fun ambiguityCannotWriteEvenWhenOnlyOneInterpretationIsFuture() {
+        val model=model();await {model.state.value.loaded};val initial=repository.calls
+        for (text in listOf("1112026", "1122026")) {
+            main {model.updateDate(text);model.updateInterval("14");model.save()}
+            assertEquals("Esta data tem duas interpretações. Escolha uma das opções.",model.state.value.dateError)
+            assertEquals(text,model.state.value.dateText)
+            assertEquals(initial,repository.calls)
+        }
+        main {model.updateDate("1/12/2026");model.save()}
+        await {model.state.value.routine != null}
+        assertEquals(LocalDate.of(2026,12,1),model.state.value.routine!!.startsOn)
+    }
+    @Test fun explicitPastDateStillCannotBeUsedForANewRoutine() {
+        val model=model();await {model.state.value.loaded};val initial=repository.calls
+        main {model.updateDate("1/11/2026");model.updateInterval("14");model.save()}
+        assertEquals("Escolha uma data inicial a partir de hoje.",model.state.value.dateError)
+        assertEquals(initial,repository.calls)
+    }
     @Test fun savePauseEditResumeDeletePreserveFieldsAndAccountScope() {
         val model=model();await {model.state.value.loaded}
         main {model.updateDate("20/11/2026");model.updateInterval("14");model.save()}

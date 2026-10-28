@@ -154,15 +154,15 @@ class SessionMonitorFlowTest {
         compose.runOnIdle { assertNull(nav.previousBackStackEntry); assertEquals(0, logoutCalls) }
     }
     @Test fun successfulRequestedLogoutUsesWelcomeWithoutExpiredSessionDialog() {
-        open(); awaitRoute<AppRoute.Home>(); compose.runOnIdle { nav.navigate(AppRoute.Settings) }
+        open(); awaitRoute<AppRoute.Home>(); compose.runOnIdle { nav.navigate(AppRoute.Profile) }
         tap("Sair da conta"); awaitRoute<AppRoute.Welcome>()
         compose.onNodeWithText("Entre novamente").assertDoesNotExist()
         compose.runOnIdle { assertEquals(1, logoutCalls); assertNull(nav.previousBackStackEntry) }
     }
-    @Test fun failedLogoutStaysInSettingsAndCanRetry() {
+    @Test fun failedLogoutStaysInProfileAndCanRetry() {
         logoutFails = true
-        open(); awaitRoute<AppRoute.Home>(); compose.runOnIdle { nav.navigate(AppRoute.Settings) }
-        tap("Sair da conta"); awaitRoute<AppRoute.Settings>()
+        open(); awaitRoute<AppRoute.Home>(); compose.runOnIdle { nav.navigate(AppRoute.Profile) }
+        tap("Sair da conta"); awaitRoute<AppRoute.Profile>()
         compose.onNodeWithText("Entre novamente").assertDoesNotExist()
         compose.runOnIdle { logoutFails = false }
         tap("Sair da conta"); awaitRoute<AppRoute.Welcome>()

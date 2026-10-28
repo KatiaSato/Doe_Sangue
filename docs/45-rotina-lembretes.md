@@ -65,3 +65,57 @@ A usuária informou “Agora esta bom” após conferir o ajuste do calendário.
 ## Fechamento Git — 26/10/2026
 
 Após o aceite, a usuária autorizou commit e push de F13/F14, incluindo o ajuste do calendário, testes e documentação. Preservar os arquivos ignorados. Validações anteriores mantidas, sem repetir SQL, testes ou sementes por este fechamento. Envio normal para origin/main, sem force-push; histórico anterior de Git pendente é conservado como registro.
+
+## Correção da data manual da rotina — proposta em27/10/2026
+
+A usuária relatou o problema na rotina. A máscara fixa transforma sete dígitos em uma data errada/incompleta. Manter o texto digitado e aceitar dia/mês sem zero; para seis a oito dígitos sem barras, enumerar somente interpretações estritamente válidas. Uma candidata é reconhecida; duas exigem escolha explícita. `1112026` significa 01/11/2026 OU 11/01/2026: nunca escolher por conta própria nem usar a regra de futuro para desambiguar. Reutilizar a validação estrita existente do calendário, sem alterar o calendário ou nascimento.
+
+```mermaid
+flowchart TD
+    A[Texto da data na rotina] --> B[Interpretações estritamente válidas]
+    B --> C{Quantas datas?}
+    C -->|Zero| D[Explicar formato ou data inválida]
+    C -->|Uma| E[Mostrar data reconhecida]
+    C -->|Duas| F[Mostrar opções para escolha explícita]
+    F --> E
+    E --> G[ViewModel confere prazo e intervalo existentes]
+    G --> H[Salvar rotina ou continuar agendamento]
+```
+
+Correção compartilhada por Minha rotina e Configurar rotina no agendamento. Sem alterações de banco, perfis, reservas ou entrega de notificações. Testes e resultados pendentes.
+
+### Ampliação pedida pela usuária em27/10 — calendário na rotina
+
+Após a proposta de correção manual, a usuária pediu também o componente de calendário. Acrescentar calendário Material3 na mesma RoutineFields, mantendo entrada flexível. A rotina não depende de vagas/ofertas: selecionar uma data apenas preenche o formulário, sem salvar nem reservar. Permitir hoje/futuro e, ao editar, conservar a data original passada já admitida pelo ViewModel; cancelar mantém texto/intervalo. Conversão do DatePicker sempre em UTC para preservar o dia civil.
+
+```mermaid
+flowchart LR
+    A[Escolher no calendário] --> B[Calendário local Material3]
+    B -->|Cancelar| C[Preservar formulário]
+    B -->|Usar data| D[Preencher DD/MM/AAAA]
+    D --> E[Mesma validação da rotina]
+    E --> F[Salvar ou continuar por ação explícita]
+```
+
+### Resultado técnico — 27/10/2026
+
+Implementados RoutineDateInput (reutiliza SchedulingDateInput estrito), entrada preservada sem máscara fixa, reconhecimento canônico e duas opções explícitas nas ambiguidades. ReminderRoutineViewModel.choice é a mesma validação usada ao salvar e ao continuar o agendamento; não usa prazo/futuro para escolher uma interpretação por conta própria. Datas impossíveis, ano fora da faixa1900..9999 e início passado novo continuam bloqueados; data original passada de rotina existente pode ser conservada.
+
+RoutineDatePickerDialog usa Material3, sem modo textual rígido embutido. RoutineFields compartilha o botão Escolher no calendário entre as duas telas. Seleção preenche DD/MM/AAAA; cancelar preserva texto/intervalo. UTC na conversão evita deslocar dia; calendário não consulta vagas e não salva nem cria reserva automaticamente.
+
+Validação aprovada:
+
+- 89 JVM, incluindo4 novos casos de parser: sem zero,6/7/8 dígitos, ambiguidades, datas inexistentes, entrada incompleta e ano bissexto. Zero falhas/erros/ignorados.
+- 24 Android distintos OK em62,741s no Moto g04/Android14:9 ReminderRoutineViewModelTest (3 novos),11 RescheduleRoutineFlowTest (3 novos) e4 RoutineDatePickerTest novos. Cobrem interpretação explícita, bloqueio de gravação ambígua mesmo com uma candidata futura, prazo, calendário hoje/futuro/data original passada, cancelar, preenchimento sem gravação e rotina opcional no agendamento; regressão de salvar/pausar/editar/retomar/excluir, idempotência e remarcação.
+- APKs/Lint finais aprovados em38s, zero erros/33 avisos. Instalados com -r preservando dados. A primeira tentativa de instalação, antes de acrescentar calendário, encontrou dispositivo offline e não iniciou testes; usuária reconectou e a rodada completa posterior passou.
+- Capturas sintéticas do aviso/duas opções e do calendário legíveis, revisadas em captures/2026-10-27-data-rotina. Logs em app/build/reports/routine-date. Testes inteiramente fictícios/em memória, sem rede, e-mails, Auth ou reservas reais.
+
+Nenhum SQL/migração/seed/remoto executado. Preservadas alterações locais anteriores de perfil/login, perfis, todos os agendamentos e applicationId. Aceite manual deste ajuste pendente; nenhum commit/push novo autorizado. Google continua como próxima implementação guiada após estes ajustes.
+
+### Aceite manual — 28/10/2026
+
+A usuária informou “conferi e agora está correto”. Ajuste de entrada manual e calendário da rotina encerrado com aceite por relato, sem atribuir cenários específicos adicionais ou operações de gravação não descritas.89 JVM/24 Android e verificações anteriores preservados; nenhuma repetição de testes/SQL/remoto por este aceite. Nenhum commit/push novo autorizado. Próxima etapa Google permanece guiada.
+
+### Fechamento Git autorizado — 28/10/2026
+
+Após confirmar o ajuste, a usuária autorizou commit e envio ao GitHub junto da reorganização de perfil/login. Preservar dados/ignorados e evidências, sem repetir testes ou SQL. Os registros anteriores de Git pendente são históricos.

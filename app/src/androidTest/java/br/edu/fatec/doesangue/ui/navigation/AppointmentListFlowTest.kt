@@ -244,7 +244,6 @@ class AppointmentListFlowTest {
         compose.onNodeWithText("Agendamento 701").assertExists()
         val firstModel = model
         tapTab("Perfil")
-        tap("Configurações")
         tap("Sair da conta")
         compose.runOnIdle {
             assertNull(auth.user)

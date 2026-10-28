@@ -285,7 +285,6 @@ class AppointmentDetailFlowTest {
         openDetails()
         compose.onNodeWithText("Agendamento 701").assertExists()
         tapTab("Perfil")
-        tap("Configurações")
         tap("Sair da conta")
         compose.runOnIdle {
             assertNull(auth.user)

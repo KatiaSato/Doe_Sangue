@@ -119,8 +119,6 @@ class SessionRestoreFlowTest {
         compose.onAllNodesWithText("Perfil").onLast().performClick()
         compose.waitForIdle()
         compose.onNodeWithText("Doador de teste").assertExists()
-        compose.onNodeWithText("Configurações").performScrollTo().performClick()
-        compose.waitForIdle()
         compose.onNodeWithText("Sair da conta").performScrollTo().performClick()
         compose.waitForIdle()
         assertWelcomeWithoutSplashHistory()

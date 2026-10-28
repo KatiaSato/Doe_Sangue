@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -52,6 +56,7 @@ import br.edu.fatec.doesangue.ui.components.StepProgress
 import br.edu.fatec.doesangue.ui.components.TextAction
 import br.edu.fatec.doesangue.ui.components.VisualField
 import br.edu.fatec.doesangue.ui.theme.BloodRed
+import br.edu.fatec.doesangue.ui.theme.BloodRedSoft
 import br.edu.fatec.doesangue.ui.theme.InkSecondary
 
 @Composable
@@ -67,14 +72,26 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
 
     DsScreen {
-        Spacer(Modifier.height(54.dp))
-        ScreenHeading("Bem-vindo!", "Que bom ter você por aqui.")
-        Image(
-            painter = painterResource(R.drawable.figma_raw_2),
-            contentDescription = "Bolsa de sangue",
-            modifier = Modifier.fillMaxWidth().height(190.dp),
-            contentScale = ContentScale.Fit,
-        )
+        Spacer(Modifier.height(28.dp))
+        Surface(color = BloodRedSoft, shape = RoundedCornerShape(24.dp)) {
+            Row(Modifier.fillMaxWidth().padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("DOE SANGUE", color = BloodRed, style = MaterialTheme.typography.labelSmall)
+                    Text("Bem-vindo!", color = BloodRed, style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold)
+                    Text("Que bom ter você por aqui.", style = MaterialTheme.typography.bodyMedium)
+                }
+                Image(
+                    painter = painterResource(R.drawable.figma_raw_2),
+                    contentDescription = null,
+                    modifier = Modifier.width(84.dp).height(120.dp),
+                    contentScale = ContentScale.Fit,
+                )
+            }
+        }
+        Spacer(Modifier.height(24.dp))
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -137,19 +154,23 @@ fun LoginScreen(
             enabled = !uiState.isLoading &&
                     uiState.authenticatedUser == null,
         )
-        Spacer(Modifier.height(12.dp))
-        Text("ou continue com", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = InkSecondary, style = MaterialTheme.typography.bodySmall)
-        Spacer(Modifier.height(10.dp))
-        Row(Modifier.fillMaxWidth()) {
-            SecondaryButton("G  Google", {}, Modifier.weight(1f))
-            Spacer(Modifier.width(16.dp))
-            SecondaryButton("●  Facebook", {}, Modifier.weight(1f))
+        Spacer(Modifier.height(24.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            HorizontalDivider(Modifier.weight(1f))
+            Text("ou", color = InkSecondary, style = MaterialTheme.typography.bodySmall)
+            HorizontalDivider(Modifier.weight(1f))
         }
-        Spacer(Modifier.height(12.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        Spacer(Modifier.height(16.dp))
+        SecondaryButton("Continuar com Google", {}, enabled = false)
+        Text("Em breve", Modifier.fillMaxWidth().padding(top = 6.dp),
+            textAlign = TextAlign.Center, color = InkSecondary, style = MaterialTheme.typography.bodySmall)
+        Spacer(Modifier.height(24.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
             Text("Não tem uma conta?", style = MaterialTheme.typography.bodyMedium, color = InkSecondary)
             TextAction("Cadastre-se", onRegister)
         }
+        Spacer(Modifier.height(24.dp))
     }
 }
 

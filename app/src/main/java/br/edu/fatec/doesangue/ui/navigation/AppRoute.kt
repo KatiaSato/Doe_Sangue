@@ -145,9 +145,6 @@ sealed interface AppRoute {
     data object Faq : AppRoute
 
     @Serializable
-    data object Contact : AppRoute
-
-    @Serializable
     data object About : AppRoute
 
     @Serializable

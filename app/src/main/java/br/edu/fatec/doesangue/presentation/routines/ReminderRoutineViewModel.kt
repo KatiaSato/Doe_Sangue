@@ -6,6 +6,7 @@ import br.edu.fatec.doesangue.domain.model.*
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 import br.edu.fatec.doesangue.domain.repository.ReminderRoutineRepository
 import br.edu.fatec.doesangue.domain.validation.ProfileValidator
+import br.edu.fatec.doesangue.domain.validation.RoutineDateInput
 import br.edu.fatec.doesangue.presentation.common.toDataMessage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -80,11 +81,13 @@ class ReminderRoutineViewModel(private val repository: ReminderRoutineRepository
     fun choice(timeZoneId: String = _state.value.timeZoneId): RoutineChoice? {
         val current = _state.value
         if (!current.loaded || current.loading || current.saving || owner == null) return null
-        val date = ProfileValidator.parseBirthDate(current.dateText)
+        val candidates = RoutineDateInput.candidates(current.dateText)
+        val date = candidates.singleOrNull()
         val interval = current.intervalText.toIntOrNull()
         val today = LocalDate.now(clock.withZone(ZoneId.of(timeZoneId)))
         val dateError = when {
-            date == null || date.year !in 1900..9999 -> "Informe uma data válida no formato DD/MM/AAAA."
+            candidates.size > 1 -> "Esta data tem duas interpretações. Escolha uma das opções."
+            date == null || date.year !in 1900..9999 -> "Informe uma data válida com dia, mês e ano."
             date < today && date != current.routine?.startsOn -> "Escolha uma data inicial a partir de hoje."
             else -> null
         }

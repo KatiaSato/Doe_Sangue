@@ -36,7 +36,7 @@ class LogoutFlowTest {
     private lateinit var model: LogoutViewModel
     private val auth = ControlledAuthRepository()
 
-    private fun openSettings() {
+    private fun openProfileForLogout() {
         val profiles = object : DonorProfileRepository {
         override suspend fun updateCurrentProfile(
         displayName: String,
@@ -101,7 +101,6 @@ class LogoutFlowTest {
         login("doador.a@example.com")
         openProfile()
         compose.onNodeWithText("Doador Demo A").assertExists()
-        tap("Configurações")
     }
 
     private fun login(email: String) {
@@ -132,13 +131,12 @@ class LogoutFlowTest {
 
     @Test
     fun successRemovesMainHistoryAndAllowsAnotherLoginAndLogout() {
-        openSettings()
+        openProfileForLogout()
         tap("Sair da conta")
         assertSignedOut()
         login("doador.a@example.com")
         openProfile()
         compose.onNodeWithText("Doador Demo A").assertExists()
-        tap("Configurações")
         tap("Sair da conta")
         assertSignedOut()
         compose.runOnIdle { assertEquals(2, auth.signOutCalls) }
@@ -147,13 +145,13 @@ class LogoutFlowTest {
     @Test
     fun failureKeepsSessionAndAllowsRetryWithoutTechnicalMessage() {
         auth.signOutAnswer = { Result.failure(IllegalStateException("detalhe-interno-sintetico")) }
-        openSettings()
+        openProfileForLogout()
         tap("Sair da conta")
         compose.onNodeWithText("Não foi possível sair. Tente novamente.").assertExists()
         compose.onNodeWithText("detalhe-interno-sintetico").assertDoesNotExist()
         compose.onNodeWithText("Sair da conta").assertIsEnabled()
         compose.runOnIdle {
-            assertTrue(nav.currentDestination?.hasRoute<AppRoute.Settings>() == true)
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.Profile>() == true)
             assertEquals("test-user-a", auth.user?.id)
             auth.signOutAnswer = { Result.success(Unit) }
         }
@@ -166,7 +164,7 @@ class LogoutFlowTest {
     fun pendingLogoutDisablesButtonAndIgnoresRepeatedRequests() {
         val response = CompletableDeferred<Result<Unit>>()
         auth.signOutAnswer = { response.await() }
-        openSettings()
+        openProfileForLogout()
         tap("Sair da conta")
         compose.onNodeWithText("Saindo...").assertIsNotEnabled()
         compose.runOnIdle {
@@ -181,7 +179,7 @@ class LogoutFlowTest {
 
     @Test
     fun secondAccountDoesNotDisplayPreviousAccountsProfile() {
-        openSettings()
+        openProfileForLogout()
         tap("Sair da conta")
         assertSignedOut()
         login("doador.b@example.com")
@@ -195,11 +193,12 @@ class LogoutFlowTest {
     fun pendingLogoutCannotLeaveAuthenticatedScreensVisibleAfterCompletion() {
         val response = CompletableDeferred<Result<Unit>>()
         auth.signOutAnswer = { response.await() }
-        openSettings()
+        openProfileForLogout()
         tap("Sair da conta")
         // As ações visíveis não devem abandonar a tela durante a saída.
-        compose.onNodeWithText("Sobre o app").assertIsNotEnabled()
-        tap("Sobre o app")
+        compose.onNodeWithText("Alterar tipo sanguíneo").assertIsNotEnabled()
+        compose.onNodeWithText("Configurações").assertIsNotEnabled()
+        tap("Configurações")
         compose.onNodeWithText("‹").assertDoesNotExist()
         compose.onNodeWithText("Início").performClick()
         compose.onNodeWithText("Agendar").performClick()
@@ -207,11 +206,31 @@ class LogoutFlowTest {
         pressBack()
         compose.waitForIdle()
         compose.runOnIdle {
-            assertTrue(nav.currentDestination?.hasRoute<AppRoute.Settings>() == true)
+            assertTrue(nav.currentDestination?.hasRoute<AppRoute.Profile>() == true)
             assertEquals("test-user-a", auth.user?.id)
         }
         compose.runOnIdle { response.complete(Result.success(Unit)) }
         compose.waitForIdle()
+        assertSignedOut()
+    }
+
+    @Test
+    fun settingsHasNoContactOrLogoutAndProfilePlacesExitBelowSettings() {
+        openProfileForLogout()
+        val exit = compose.onNodeWithText("Sair da conta").performScrollTo().fetchSemanticsNode().boundsInRoot
+        // Compare again with both nodes in the same viewport.
+        val currentSettings = compose.onNodeWithText("Configurações").fetchSemanticsNode().boundsInRoot
+        assertTrue(exit.top > currentSettings.bottom)
+        captureSyntheticProfileLogin(compose, "profile")
+        tap("Configurações")
+        compose.onNodeWithText("Editar perfil").assertExists()
+        compose.onNodeWithText("Fale conosco").assertDoesNotExist()
+        compose.onNodeWithText("Sair da conta").assertDoesNotExist()
+        captureSyntheticProfileLogin(compose, "settings")
+        pressBack()
+        compose.waitForIdle()
+        compose.runOnIdle { assertTrue(nav.currentDestination?.hasRoute<AppRoute.Profile>() == true) }
+        tap("Sair da conta")
         assertSignedOut()
     }
 

@@ -44,7 +44,6 @@ import br.edu.fatec.doesangue.ui.screens.donations.AppointmentDetailByIdScreen
 import br.edu.fatec.doesangue.ui.screens.donations.DonationAppointmentsScreen
 import br.edu.fatec.doesangue.ui.screens.donations.DonationHistoryScreen
 import br.edu.fatec.doesangue.ui.screens.profile.AboutScreen
-import br.edu.fatec.doesangue.ui.screens.profile.ContactScreen
 import br.edu.fatec.doesangue.ui.screens.profile.EditProfileScreen
 import br.edu.fatec.doesangue.ui.screens.profile.FaqScreen
 import br.edu.fatec.doesangue.ui.screens.profile.NotificationsScreen
@@ -408,13 +407,19 @@ fun NavGraphBuilder.mainNavGraph(
 
         // Perfil e configurações
         composable<AppRoute.Profile> { entry ->
+            val logoutViewModel: LogoutViewModel = viewModel(factory = logoutViewModelFactory)
+            val logoutUiState by logoutViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(logoutUiState.isSignedOut) {
+                if (logoutUiState.isSignedOut) onSignedOut()
+            }
             val profileViewModel: ProfileViewModel = viewModel(
                 factory = profileViewModelFactory,
             )
 
             val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
             LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-                if (entry.savedStateHandle.get<Boolean>("profileOpened") == true &&
+                if (!logoutViewModel.uiState.value.isLoading && !logoutViewModel.uiState.value.isSignedOut &&
+                    entry.savedStateHandle.get<Boolean>("profileOpened") == true &&
                     (profileViewModel.uiState.value as? br.edu.fatec.doesangue.presentation.profile.ProfileUiState.Loaded)?.isEditingBloodType != true) {
                     profileViewModel.loadProfile()
                 }
@@ -422,6 +427,8 @@ fun NavGraphBuilder.mainNavGraph(
             }
             ProfileScreen(
                 uiState = uiState,
+                logoutUiState = logoutUiState,
+                onSignOut = logoutViewModel::signOut,
                 onRetry = profileViewModel::loadProfile,
                 onDisplayNameChange = profileViewModel::updateDisplayName,
                 onCreateProfile = profileViewModel::createProfile,
@@ -447,20 +454,7 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable<AppRoute.Settings> {
-            val logoutViewModel: LogoutViewModel = viewModel(
-                factory = logoutViewModelFactory,
-            )
-
-            val logoutUiState by logoutViewModel.uiState.collectAsStateWithLifecycle()
-
-            LaunchedEffect(logoutUiState.isSignedOut) {
-                if (logoutUiState.isSignedOut) {
-                    onSignedOut()
-                }
-            }
             SettingsScreen(
-                logoutUiState = logoutUiState,
-                onSignOut = logoutViewModel::signOut,
                 onBack = {
                     navController.popBackStack()
                 },
@@ -475,9 +469,6 @@ fun NavGraphBuilder.mainNavGraph(
                 },
                 onFaq = {
                     navController.navigate(AppRoute.Faq)
-                },
-                onContact = {
-                    navController.navigate(AppRoute.Contact)
                 },
                 onAbout = {
                     navController.navigate(AppRoute.About)
@@ -522,12 +513,6 @@ fun NavGraphBuilder.mainNavGraph(
 
         composable<AppRoute.Faq> {
             FaqScreen(
-                onBack = { navController.popBackStack() },
-            )
-        }
-
-        composable<AppRoute.Contact> {
-            ContactScreen(
                 onBack = { navController.popBackStack() },
             )
         }

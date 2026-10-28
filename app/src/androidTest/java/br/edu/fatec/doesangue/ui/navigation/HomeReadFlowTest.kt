@@ -257,7 +257,7 @@ class HomeReadFlowTest {
         compose.onNodeWithText("Doação fictícia • Registro h-1").assertExists()
         compose.onAllNodesWithText("Perfil").onLast().performClick()
         compose.waitForIdle()
-        tap("Configurações"); tap("Sair da conta"); tap("Já tenho uma conta")
+        tap("Sair da conta"); tap("Já tenho uma conta")
         compose.onNodeWithText("E-mail").performTextInput("c@example.com")
         compose.onNodeWithText("Senha").performTextInput("senha-ficticia")
         tap("Entrar")

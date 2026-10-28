@@ -84,6 +84,18 @@ class LoginFlowTest {
     }
 
     @Test
+    fun googleIsTheOnlySocialOptionAndIsClearlyPendingIntegration() {
+        openLogin()
+        captureSyntheticProfileLogin(compose, "login")
+        compose.onNodeWithText("Facebook", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("Continuar com Google").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithText("Em breve").assertExists()
+        compose.onNodeWithText("E-mail").assertExists()
+        compose.onNodeWithText("Senha").assertExists()
+        compose.onNodeWithText("Cadastre-se").performScrollTo().assertExists()
+    }
+
+    @Test
     fun missingEmailOrPasswordDoesNotCallRepository() {
         openLogin()
         submit()

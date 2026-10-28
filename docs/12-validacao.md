@@ -1,5 +1,13 @@
 # Validação
 
+**Fechamento autorizado em28/10/2026:** usuária pediu commit e envio ao GitHub dos ajustes locais de perfil/login e data/calendário da rotina. Evidências anteriores mantidas sem repetir testes/SQL; autorização não atribui novos cenários manuais. Preparar diagrama F05 somente após envio, em tutoria. Registros abaixo de Git pendente deste conjunto são históricos.
+
+**Aceite da data/calendário da rotina em28/10/2026:** usuária informou “conferi e agora está correto”. Ajuste aceito por relato;89 JVM/24 Android anteriores permanecem como evidências, sem repetir testes ou operações remotas. Não atribuir cenários manuais adicionais. Nenhum novo commit/push autorizado. Ver docs45. A pendência de aceite da rotina abaixo é histórica.
+
+**Data/calendário da rotina em27/10:** corrigida digitação sem zero à esquerda e acrescentado calendário por solicitação direta.1112026 oferece01/11/2026 e11/01/2026, sem gravar até a escolha; regras de prazo preservadas. Mesma interface/validação em Minha rotina e na opção do agendamento.89 JVM e24 Android distintos aprovados em62,741s; APKs/Lint finais38s,zero erros/33 avisos. Capturas sintéticas revisadas, nenhum remoto/Auth/rede/reserva real; instalado -r. Docs45 contém diagramas e evidências. Aceite manual e Git novos pendentes; alterações de perfil/login anteriores preservadas.
+
+**Perfil/login em27/10:** F06/F17 retiradas do escopo a pedido da usuária; saída movida para Meu perfil e login reorganizado, Google somente como opção futura desabilitada.85 JVM e46 Android distintos aprovados (rodadas43/22 e2 capturas, repetições não somadas); APKs/Lint finais aprovados, zero erros/33 avisos. Testes somente fictícios/sem rede/Auth/e-mail/reservas reais; capturas sintéticas revisadas. Detalhes e limites em [docs/46](46-reorganizacao-perfil-login.md). Aceite visual pendente, sem novo commit/push ou remoto autorizado; próxima F05 em tutoria.
+
 **Fechamento em26/10/2026:** após o aceite, commit/push do conjunto F13/F14/calendário autorizados. Evidências já registradas permanecem válidas, sem repetir testes ou SQL por fechamento.
 
 **Aceite registrado em26/10/2026:** após a conferência de F13/F14 e a correção da entrada manual do calendário, a usuária respondeu “Agora esta bom”. Etapas encerradas no recorte aprovado, com aceite por relato; não atribuir cenários adicionais, tráfego/JWT, reservas ou testes manuais específicos não descritos. Testes e banco já aprovados permanecem como evidências; não repetir por mero aceite. Commit/push F13/F14 e do ajuste ainda dependem de autorização específica. Próximas etapas Google/Fale conosco/notificações em implementação acompanhada, sem iniciar backlog automaticamente.

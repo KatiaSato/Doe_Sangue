@@ -120,7 +120,57 @@ class RescheduleRoutineFlowTest {
         tap("Rever escolhas");tap("Retomar");route<AppRoute.ScheduleDate>()
         compose.runOnIdle {assertEquals("23",model().uiState.value.rescheduleOrigin!!.appointmentId)}
     }
-    @Test fun routineEditorMasksNumericDateAndSupportsSavePauseEditResumeAndDelete() {
+    @Test fun routineEditorExplainsAmbiguityAndSavesOnlyTheChosenDate() {
+        open();compose.runOnIdle {nav.navigate(AppRoute.EditRoutine)};route<AppRoute.EditRoutine>()
+        compose.waitUntil(10_000) {compose.onAllNodesWithText("Data inicial").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithText("Data inicial").performTextInput("1112026")
+        compose.onNodeWithText("Intervalo em dias").performTextInput("21")
+        compose.onNodeWithText("Usar 01/11/2026").assertExists()
+        compose.onNodeWithText("Usar 11/01/2026").assertExists()
+        tap("Salvar rotina")
+        compose.onNodeWithText("Esta data tem duas interpretações. Escolha uma das opções.").assertExists()
+        assertTrue(routines.routines.isEmpty())
+        compose.onNodeWithText("Data inicial").performTextReplacement("1112027")
+        capture("data-ambigua")
+        tap("Usar 01/11/2027")
+        compose.onNodeWithText("Data inicial").assertTextContains("01/11/2027")
+        compose.onNodeWithText("Intervalo em dias").assertTextContains("21")
+        tap("Salvar rotina")
+        assertEquals(LocalDate.of(2027,11,1),routines.routines.getValue(user.id).startsOn)
+        compose.onNodeWithText("Data inicial").performTextReplacement("12/8/2027")
+        compose.onNodeWithText("Data reconhecida: 12/08/2027").assertExists()
+        tap("Salvar rotina")
+        assertEquals(LocalDate.of(2027,8,12),routines.routines.getValue(user.id).startsOn)
+        assertTrue(calls.isEmpty())
+    }
+    @Test fun optionalRoutineRequiresExplicitDateChoiceBeforeContinuing() {
+        open();tap("Agendar");route<AppRoute.ScheduleCenter>();fillSlot();route<AppRoute.ScheduleRecurrence>()
+        tap("Configurar rotina")
+        compose.onNodeWithText("Data inicial").performTextInput("1112027")
+        compose.onNodeWithText("Intervalo em dias").performTextInput("17")
+        tap("Continuar");route<AppRoute.ScheduleRecurrence>()
+        assertTrue(calls.isEmpty());assertTrue(routines.routines.isEmpty())
+        tap("Usar 11/01/2027");tap("Escolher no calendário");tap("Usar data")
+        tap("Continuar");route<AppRoute.ScheduleConfirm>()
+        compose.runOnIdle {assertEquals(LocalDate.of(2027,1,11),model().uiState.value.routine!!.startsOn)}
+        assertTrue(calls.isEmpty());assertTrue(routines.routines.isEmpty())
+    }
+    @Test fun calendarFillsRoutineWithoutSavingAndCancelPreservesManualFields() {
+        open();compose.runOnIdle {nav.navigate(AppRoute.EditRoutine)};route<AppRoute.EditRoutine>()
+        compose.waitUntil(10_000) {compose.onAllNodesWithText("Data inicial").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithText("Data inicial").performTextInput("12/8/2027")
+        compose.onNodeWithText("Intervalo em dias").performTextInput("21")
+        tap("Escolher no calendário");tap("Cancelar")
+        compose.onNodeWithText("Data inicial").assertTextContains("12/8/2027")
+        compose.onNodeWithText("Intervalo em dias").assertTextContains("21")
+        assertTrue(routines.routines.isEmpty())
+        tap("Escolher no calendário");capture("calendario-rotina");tap("Usar data")
+        compose.onNodeWithText("Data inicial").assertTextContains("12/08/2027")
+        assertTrue(routines.routines.isEmpty());assertTrue(calls.isEmpty())
+        tap("Salvar rotina")
+        assertEquals(LocalDate.of(2027,8,12),routines.routines.getValue(user.id).startsOn)
+    }
+    @Test fun routineEditorAcceptsNumericDateAndSupportsSavePauseEditResumeAndDelete() {
         open();compose.runOnIdle {nav.navigate(AppRoute.EditRoutine)};route<AppRoute.EditRoutine>()
         compose.waitUntil(10_000) {compose.onAllNodesWithText("Data inicial").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithText("Data inicial").performTextInput(date.format(DateTimeFormatter.ofPattern("ddMMyyyy")))

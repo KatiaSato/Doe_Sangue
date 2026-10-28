@@ -51,6 +51,7 @@ fun ProfileContent(
     onSaveBloodType: () -> Unit,
     onStartBloodTypeEdit: () -> Unit,
     onCancelBloodTypeEdit: () -> Unit,
+    enabled: Boolean = true,
 ) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         when (uiState) {
@@ -88,18 +89,18 @@ fun ProfileContent(
                 }
                 if (uiState.isEditingBloodType) {
                     BloodTypePicker(uiState.selectedBloodType, onBloodTypeChange,
-                        enabled = !uiState.isSavingBloodType)
+                        enabled = enabled && !uiState.isSavingBloodType)
                     Text("Informação autodeclarada; não determina aptidão.",
                         style = MaterialTheme.typography.bodySmall)
                     uiState.bloodTypeError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                     PrimaryButton(
                         if (uiState.isSavingBloodType) "Salvando tipo…" else "Salvar tipo sanguíneo",
                         onSaveBloodType,
-                        enabled = !uiState.isSavingBloodType && uiState.selectedBloodType != uiState.profile.bloodType,
+                        enabled = enabled && !uiState.isSavingBloodType && uiState.selectedBloodType != uiState.profile.bloodType,
                     )
-                    SecondaryButton("Cancelar", onCancelBloodTypeEdit, enabled = !uiState.isSavingBloodType)
+                    SecondaryButton("Cancelar", onCancelBloodTypeEdit, enabled = enabled && !uiState.isSavingBloodType)
                 } else {
-                    ProfileMenuRow("Alterar tipo sanguíneo", R.drawable.home_ic_drop, onStartBloodTypeEdit)
+                    ProfileMenuRow("Alterar tipo sanguíneo", R.drawable.home_ic_drop, onStartBloodTypeEdit, enabled = enabled)
                 }
             }
 
@@ -111,7 +112,7 @@ fun ProfileContent(
                     onValueChange = onDisplayNameChange,
                     label = { Text("Nome de exibição") },
                     singleLine = true,
-                    enabled = !uiState.isSaving,
+                    enabled = enabled && !uiState.isSaving,
                     isError = uiState.errorMessage != null,
                 )
 
@@ -125,7 +126,7 @@ fun ProfileContent(
                 PrimaryButton(
                     text = if (uiState.isSaving) "Salvando..." else "Criar perfil",
                     onClick = onCreateProfile,
-                    enabled = !uiState.isSaving,
+                    enabled = enabled && !uiState.isSaving,
                 )
             }
 
@@ -134,6 +135,7 @@ fun ProfileContent(
                 PrimaryButton(
                     text = "Tentar novamente",
                     onClick = onRetry,
+                    enabled = enabled,
                 )
             }
         }

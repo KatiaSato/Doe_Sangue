@@ -68,6 +68,8 @@ import br.edu.fatec.doesangue.R
 @Composable
 fun ProfileScreen(
     uiState: ProfileUiState,
+    logoutUiState: LogoutUiState,
+    onSignOut: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
     onDonations: () -> Unit,
@@ -81,17 +83,21 @@ fun ProfileScreen(
     onStartBloodTypeEdit: () -> Unit,
     onCancelBloodTypeEdit: () -> Unit,
 ) {
-    val saving = (uiState as? ProfileUiState.Loaded)?.isSavingBloodType == true
+    val saving = (uiState as? ProfileUiState.Loaded)?.isSavingBloodType == true ||
+        (uiState as? ProfileUiState.Missing)?.isSaving == true
+    val exiting = logoutUiState.isLoading || logoutUiState.isSignedOut
+    val canNavigate = !saving && !exiting
     // A aba pode ser a única tela da pilha. O Voltar do Android usa a mesma saída da seta.
-    BackHandler { if (!saving) onBack() }
+    BackHandler { if (canNavigate) onBack() }
     DsScreen(
         title = "Meu perfil",
-        onBack = if (saving) null else onBack,
+        onBack = if (canNavigate) onBack else null,
         bottomRoute = AppRoute.Profile,
-        onNavigate = { if (!saving) onNavigate(it) },
+        onNavigate = { if (canNavigate) onNavigate(it) },
     ) {
         ProfileContent(
             uiState = uiState,
+            enabled = !exiting,
             onRetry = onRetry,
             onDisplayNameChange = onDisplayNameChange,
             onCreateProfile = onCreateProfile,
@@ -101,9 +107,19 @@ fun ProfileScreen(
             onCancelBloodTypeEdit = onCancelBloodTypeEdit,
         )
 
-        ProfileMenuRow("Minhas doações", R.drawable.home_ic_heart, onDonations, enabled = !saving)
-        ProfileMenuRow("Meu agendamento", R.drawable.home_ic_calendar, onAppointment, enabled = !saving)
-        ProfileMenuRow("Configurações", R.drawable.profile_ic_settings, onSettings, enabled = !saving)
+        ProfileMenuRow("Minhas doações", R.drawable.home_ic_heart, onDonations, enabled = canNavigate)
+        ProfileMenuRow("Meu agendamento", R.drawable.home_ic_calendar, onAppointment, enabled = canNavigate)
+        ProfileMenuRow("Configurações", R.drawable.profile_ic_settings, onSettings, enabled = canNavigate)
+        Spacer(Modifier.height(20.dp))
+        logoutUiState.errorMessage?.let { message ->
+            Text(message, color = MaterialTheme.colorScheme.error)
+            Spacer(Modifier.height(8.dp))
+        }
+        SecondaryButton(
+            text = if (logoutUiState.isLoading) "Saindo..." else "Sair da conta",
+            onClick = { if (canNavigate) onSignOut() },
+            enabled = canNavigate,
+        )
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -121,57 +137,29 @@ private fun ProfileInfo(icon: String, label: String, value: String) {
 
 @Composable
 fun SettingsScreen(
-    logoutUiState: LogoutUiState,
-    onSignOut: () -> Unit,
     onBack: () -> Unit,
     onEditProfile: () -> Unit,
     onSecurity: () -> Unit,
     onNotifications: () -> Unit,
     onFaq: () -> Unit,
-    onContact: () -> Unit,
     onAbout: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
 ) {
 
-    val canNavigate =
-        !logoutUiState.isLoading && !logoutUiState.isSignedOut
-    BackHandler(enabled = !canNavigate) {
-        // Aguarda o logout terminar antes de permitir voltar.
-    }
-
     DsScreen(
         title = "Configurações",
-        onBack = if (canNavigate) onBack else null,
+        onBack = onBack,
         bottomRoute = AppRoute.Profile,
-        onNavigate = { route ->
-            if (canNavigate) {
-                onNavigate(route)
-            }
-        },
+        onNavigate = onNavigate,
     ) {
         SectionHeader("Conta")
-        SettingsRow("Editar perfil", onEditProfile, enabled = canNavigate)
-        SettingsRow("Segurança", onSecurity, enabled = canNavigate)
-        SettingsRow("Notificações", onNotifications, enabled = canNavigate)
+        SettingsRow("Editar perfil", onEditProfile)
+        SettingsRow("Segurança", onSecurity)
+        SettingsRow("Notificações", onNotifications)
         Spacer(Modifier.height(28.dp))
         SectionHeader("Ajuda")
-        SettingsRow("Dúvidas frequentes", onFaq, enabled = canNavigate)
-        SettingsRow("Fale conosco", onContact, enabled = canNavigate)
-        SettingsRow("Sobre o app", onAbout, enabled = canNavigate)
-        Spacer(Modifier.height(60.dp))
-        logoutUiState.errorMessage?.let { message ->
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.error,
-            )
-            Spacer(Modifier.height(8.dp))
-        }
-
-        SecondaryButton(
-            text = if (logoutUiState.isLoading) "Saindo..." else "Sair da conta",
-            onClick = onSignOut,
-            enabled = !logoutUiState.isLoading && !logoutUiState.isSignedOut,
-        )
+        SettingsRow("Dúvidas frequentes", onFaq)
+        SettingsRow("Sobre o app", onAbout)
     }
 }
 
@@ -433,20 +421,6 @@ fun FaqScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun ContactScreen(onBack: () -> Unit) {
-    DsScreen(title = "Fale conosco", onBack = onBack) {
-        Spacer(Modifier.height(24.dp))
-        CenteredMessage("♡", "Como podemos ajudar?", "Envie sua dúvida, sugestão ou relato.")
-        Spacer(Modifier.height(32.dp))
-        VisualField("Assunto", "Selecione um assunto")
-        Spacer(Modifier.height(16.dp))
-        VisualField("Mensagem", "Escreva sua mensagem...", tall = true)
-        Spacer(Modifier.height(34.dp))
-        PrimaryButton("Enviar mensagem", {})
-    }
-}
-
-@Composable
 fun AboutScreen(onBack: () -> Unit, onPrivacy: () -> Unit) {
     DsScreen(title = "Sobre o app", onBack = onBack) {
         Spacer(Modifier.height(100.dp))
@@ -484,10 +458,10 @@ fun PrivacyTermsScreen(onBack: () -> Unit) {
                 "são vinculados à conta. Estoques e registros de doação desta versão são demonstrações publicadas manualmente; agendar não confirma coleta.",
             "Acesso aos dados" to "As consultas privadas identificam a conta pela sessão. As regras do servidor limitam o acesso do doador aos próprios " +
                 "registros e impedem que ele publique estoques ou confirme doações. A administração do projeto possui acesso pelo Supabase.",
-            "Sessão neste dispositivo" to "A sessão permite reabrir o aplicativo conectado. Use Configurações → Sair da conta ao terminar em um dispositivo compartilhado. " +
+            "Sessão neste dispositivo" to "A sessão permite reabrir o aplicativo conectado. Use Meu perfil → Sair da conta ao terminar em um dispositivo compartilhado. " +
                 "Sair encerra a sessão local; não exclui a conta nem os registros no servidor.",
             "Limites desta versão" to "A exclusão de conta pelo aplicativo, um canal de solicitações de privacidade e prazos de retenção ainda não foram definidos " +
-                "para uma operação pública. Fale conosco permanece demonstrativo. Esta página informa o funcionamento do protótipo acadêmico e deverá ser revista antes de uso público.",
+                "para uma operação pública. Esta página informa o funcionamento do protótipo acadêmico e deverá ser revista antes de uso público.",
         ).forEach { (title, body) ->
             InfoCard {
                 Text(title, style = MaterialTheme.typography.titleMedium)

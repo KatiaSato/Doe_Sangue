@@ -156,6 +156,8 @@ class ProfileFlowTest {
         compose.onNodeWithText("Nome de exibição").performTextInput("Doador Demo A")
         createProfile()
         compose.onNodeWithText("Salvando...").assertIsNotEnabled()
+        compose.onNodeWithText("Sair da conta").assertIsNotEnabled()
+        compose.onNodeWithText("Configurações").assertIsNotEnabled()
         compose.onNodeWithText("Nome de exibição").assertIsNotEnabled()
         compose.runOnIdle {
             model.createProfile()
@@ -222,6 +224,7 @@ class ProfileFlowTest {
         compose.waitForIdle()
         compose.onNodeWithText("Salvando tipo…").assertIsNotEnabled()
         compose.onNodeWithText("A+").assertIsNotEnabled()
+        compose.onNodeWithText("Sair da conta").assertIsNotEnabled()
         androidx.test.espresso.Espresso.pressBack()
         compose.waitForIdle()
         compose.onNodeWithText("Salvando tipo…").assertIsNotEnabled()

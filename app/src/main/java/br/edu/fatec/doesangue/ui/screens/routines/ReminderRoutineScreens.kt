@@ -11,9 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import br.edu.fatec.doesangue.presentation.routines.ReminderRoutineUiState
 import br.edu.fatec.doesangue.ui.components.*
-import br.edu.fatec.doesangue.ui.screens.profile.BirthDateMask
-import br.edu.fatec.doesangue.ui.screens.profile.birthDateDigits
-import br.edu.fatec.doesangue.ui.screens.profile.formatBirthDateInput
+import br.edu.fatec.doesangue.domain.validation.RoutineDateInput
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -41,13 +39,41 @@ fun RoutineSummaryCard(state: ReminderRoutineUiState,onRetry: () -> Unit,onEdit:
 
 @Composable
 fun RoutineFields(state: ReminderRoutineUiState,onDate: (String)->Unit,onInterval: (String)->Unit) {
+    val focus = androidx.compose.ui.platform.LocalFocusManager.current
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    var calendarOpen by rememberSaveable { mutableStateOf(false) }
     if (state.loading) Text("Carregando rotina…")
     if (state.loaded) {
-        OutlinedTextField(value=birthDateDigits(state.dateText),onValueChange={onDate(formatBirthDateInput(it))},
-            label={Text("Data inicial")},placeholder={Text("DD/MM/AAAA")},visualTransformation=BirthDateMask,
+        val candidates = remember(state.dateText) { RoutineDateInput.candidates(state.dateText) }
+        if (calendarOpen && !state.saving) {
+            RoutineDatePickerDialog(
+                selectedDate = candidates.singleOrNull(),
+                today = LocalDate.now(ZoneId.of(state.timeZoneId)),
+                retainedDate = state.routine?.startsOn,
+                onConfirm = { onDate(it.format(displayDate)) },
+                onDismiss = { calendarOpen = false },
+            )
+        }
+        val dateHint = when {
+            candidates.size > 1 -> "Esta data tem duas interpretações. Escolha uma das opções."
+            candidates.size == 1 -> "Data reconhecida: ${candidates.single().format(displayDate)}"
+            else -> "Digite dia, mês e ano, com ou sem barras. Ex.: 1/11/2026 ou 01112026."
+        }
+        OutlinedTextField(value=state.dateText,onValueChange=onDate,
+            label={Text("Data inicial")},placeholder={Text("DD/MM/AAAA")},
             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),singleLine=true,
-            enabled=!state.saving,isError=state.dateError!=null,
-            supportingText={state.dateError?.let {Text(it)}},modifier=Modifier.fillMaxWidth())
+            enabled=!state.saving,isError=state.dateError!=null || candidates.size > 1,
+            supportingText={Text(state.dateError ?: dateHint)},modifier=Modifier.fillMaxWidth())
+        TextButton(onClick = {
+            keyboard?.hide(); focus.clearFocus(); calendarOpen = true
+        }, enabled = !state.saving) { Text("Escolher no calendário") }
+        if (candidates.size > 1) {
+            candidates.forEach { date ->
+                TextButton(onClick = { onDate(date.format(displayDate)) }, enabled = !state.saving) {
+                    Text("Usar ${date.format(displayDate)}")
+                }
+            }
+        }
         OutlinedTextField(value=state.intervalText,onValueChange=onInterval,label={Text("Intervalo em dias")},
             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),singleLine=true,
             enabled=!state.saving,isError=state.intervalError!=null,
