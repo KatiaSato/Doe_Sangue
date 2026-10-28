@@ -63,6 +63,14 @@ Nenhum painel administrativo é presumido como obrigatório: publicação manual
 
 Também definir política de campanhas vencidas/futuras antes de acrescentar filtragem temporal: consulta atual respeita publicação manual e não filtra automaticamente pela data. Isso é decisão adicional de produto, não correção silenciosa da regra aprovada.
 
+**Massa B01 antecipada em28/10 a pedido da usuária:**276 registros acrescentados,318 no domínio; conta Auth criada por ela, perfil Professor Demo e cenários privados prontos no banco. Conferência local/remota aprovada; em28/10 a usuária confirmou funcionamento no app por relato e autorizou commit/push. Não repetir seed; B01 de quantidade/distribuição está atendido neste recorte, sem declarar concluída toda a entrega. Ver docs48.
+
+## Prioridade de entrega — avaliação prévia do professor
+
+Definida pela usuária em28/10/2026: concluir últimas funcionalidades escolhidas → preparar/validar pelo menos200 registros sintéticos → gerar APK de avaliação e combinar acesso/roteiro → receber retorno do professor → refinar o app. A aprovação acadêmica é externa e ainda não ocorreu. Testes e correções de funcionamento necessários entram na preparação da versão.
+
+A massa fica no Supabase; o APK acessa o ambiente demonstrativo pela internet. Acesso do professor e período de teste devem ser combinados; datas/ofertas precisam estar válidas nesse período. Este marco é anterior ao refinamento e não substitui a entrega/apresentação final. Não iniciar seeds remotos, contas, convites ou distribuição sem tratar o passo concreto.
+
 ## Ajustes finais já conhecidos — depois de escolher o escopo
 
 - A01: concluído neste recorte em 22/10: Perfil mostra tipo salvo, opções só após ação de edição, cancelar descarta rascunho e sucesso fecha opções. Visual reorganizado com iniciais/dados/ações em lista e retorno pelo Voltar do Android corrigido. Testes aprovados e aceite visual/manual confirmado pela usuária junto de F10. Ajustes finos adicionais adiados, ainda a especificar. Ver docs/35.
@@ -73,7 +81,7 @@ Também definir política de campanhas vencidas/futuras antes de acrescentar fil
 
 ## Fechamento acadêmico e do banco — não confundir com acabamento visual
 
-- B01: conferir a massa global após o seed de estoque/histórico (33 previstos: 14 anteriores + 19 novos confirmados neste recorte) e ampliar para pelo menos 200 sintéticos coerentes/distribuídos. Se a previsão global for confirmada, faltarão 167. Fechar contagens/FKs/repetição; contas Auth são separadas, sem dados sem propósito só para atingir número.
+- B01: recontar a massa atual antes de preparar a versão de avaliação prévia e ampliar para pelo menos200 registros sintéticos coerentes/distribuídos. Não reutilizar estimativas antigas de33 registros/167 faltantes como contagem atual. Fechar contagens/FKs/repetição; contas Auth são separadas, sem dados sem propósito só para atingir número. Aplicação remota somente no ambiente e passo autorizados.
 - B02: fechar ERD/cardinalidades, dicionário de dados, matriz de permissões e evidências de PK/FK/CHECK/UNIQUE/índices/RLS e consultas com JOIN/filtro/busca/ordenação. Os mínimos estruturais já foram atingidos; F03 concluído como filtro local não substitui as evidências de consulta/busca SQL acadêmica.
 - B03: conciliar histórico de migrações aplicadas manualmente e documentar reprodução em ambiente autorizado. Atualizar requisitos/roadmap/README/roteiro com estados atuais, mantendo checkpoints históricos identificados. Não executar db reset/push ou reaplicar migrações neste desenvolvimento.
 - B04: preparar dados/horários válidos para a apresentação de 25/11/2026, preservando a reserva original 23; acesso do professor, APK demonstrável e requisitos de acesso ao GitHub a combinar. Campos de login sintéticos no seed não equivalem a contas aptas a autenticar.

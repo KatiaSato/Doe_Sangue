@@ -172,3 +172,17 @@ Ordem de referência para reprodução autorizada; itens 1–5 já concluídos n
 Nenhum script cria conta Auth, grava senha ou modifica a reserva 23. O seed exige os perfis sintéticos A/C existentes e unidades Demo A/B com configuração conhecida; falha sem substituir dados divergentes. Não usar reset/db push para conciliar histórico manual.
 
 Validação local reproduzível usa PostgreSQL em memória via [PGlite](https://pglite.dev/docs/), sem dependência no Android. Instalar a ferramenta em diretório temporário separado, com `pnpm add --dir <diretório> --ignore-scripts --save-exact @electric-sql/pglite@0.5.10`; executar `node supabase/tests/local/validar_estoque_historico.mjs <diretório>`. O script carrega migrações em banco descartável, cria interfaces mínimas de Auth e fixtures sintéticas, repete seed/testes e grava relatório em `app/build/reports/sql/estoque-historico.json`. Isso não valida login, JWT, HTTP, configuração ou estado do Supabase remoto. Nenhuma ferramenta ou pacote novo faz parte das dependências do aplicativo.
+
+## Massa de avaliação do professor — 28/10/2026
+
+Seeds aditivos `seed_avaliacao_publica.sql` e `seed_avaliacao_professor.sql` aplicados uma vez no projeto acadêmico após solicitação direta. **318 registros de domínio** (276 novos,42 anteriores preservados); conta Auth criada pela usuária e perfil Professor Demo com6 doações/7 agendamentos/4 eventos/1 remarcação/1 rotina. Nenhuma migração, grant ou policy foi alterada. Não reaplicar automaticamente.
+
+Antes de qualquer aplicação em OUTRO ambiente, validar localmente com:
+
+```powershell
+node supabase/tests/local/validar_massa_avaliacao.mjs <diretorio-com-pglite>
+```
+
+O seed privado exige conta Auth criada por fluxo legítimo e `SET LOCAL doesangue.professor_id = '<ID_AUTH>';` logo após seu BEGIN, no mesmo lote. Manter a configuração do ID fora dos arquivos versionados; nunca colocar e-mail/senha no script. A guarda de repetição preserva a rotina inclusive se o usuário a excluir depois. `tests/avaliacao_professor_conferencia.sql` usa o mesmo parâmetro e somente leitura/ROLLBACK. Não inserir contas reais por SQL em auth.users.
+
+Datas fixas desta massa: ofertas de29/10 a09/12/2026, campanhas até16/12/2026. Uma versão futura precisa ser planejada para outro período, sem sobrescrever registros usados pelo professor. Distribuição, cenário, resultados e limites em [docs/48](../docs/48-massa-avaliacao-professor.md).
