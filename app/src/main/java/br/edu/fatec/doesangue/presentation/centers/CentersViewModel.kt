@@ -11,8 +11,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.text.Normalizer
-import java.util.Locale
+import br.edu.fatec.doesangue.presentation.common.matchesNameOrCity
 
 class CentersViewModel(
     private val repository: DonationCenterRepository,
@@ -80,27 +79,10 @@ class CentersViewModel(
         )
     }
 
-    // A normalização permite que PAULINIA encontre Paulínia, por exemplo.
-    // O || aceita correspondência no nome ou na cidade;
-    // uma busca vazia devolve a lista recebida.
-    private fun normalizeSearchText(text: String): String {
-        return Normalizer.normalize(text, Normalizer.Form.NFD)
-            .replace(Regex("\\p{M}+"), "")
-            .lowercase(Locale.ROOT)
-            .trim()
-    }
-
     private fun filterCenters(
         centers: List<DonationCenter>,
         query: String,
     ): List<DonationCenter> {
-        val normalizedQuery = normalizeSearchText(query)
-
-        if (normalizedQuery.isEmpty()) return centers
-
-        return centers.filter { center ->
-            normalizeSearchText(center.name).contains(normalizedQuery) ||
-                    normalizeSearchText(center.city).contains(normalizedQuery)
-        }
+        return centers.filter { matchesNameOrCity(query, it.name, it.city) }
     }
 }

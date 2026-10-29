@@ -55,7 +55,7 @@ fun DsBottomBar(current: AppRoute, onNavigate: (AppRoute) -> Unit) {
                 .padding(horizontal = horizontalPadding, vertical = 8.dp)) {
                 items.forEach { (icon, label, route) ->
                     val selected = current == route ||
-                        (route == AppRoute.DonationsHistory && current == AppRoute.DonationsAppointments)
+                        (route == AppRoute.DonationsHistory && current in listOf(AppRoute.DonationsAppointments, AppRoute.DonationsReminders))
                     val color = if (selected) BloodRedStrong else InkSecondary
                     Column(
                         Modifier.weight(1f).background(if (selected) NavigationSelectedBackground else Color.Transparent, NavigationItemShape)

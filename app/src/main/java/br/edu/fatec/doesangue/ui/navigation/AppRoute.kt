@@ -49,6 +49,9 @@ sealed interface AppRoute {
     data object BloodStock : AppRoute
 
     @Serializable
+    data class BloodStockFiltered(val level: String) : AppRoute
+
+    @Serializable
     data object Restrictions : AppRoute
 
     @Serializable
@@ -85,6 +88,9 @@ sealed interface AppRoute {
 
     @Serializable
     data object DonationsAppointments : AppRoute
+
+    @Serializable
+    data object DonationsReminders : AppRoute
 
     @Serializable
     data object AppointmentDetail : AppRoute

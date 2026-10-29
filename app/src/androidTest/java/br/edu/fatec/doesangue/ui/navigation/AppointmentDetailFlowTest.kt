@@ -125,7 +125,7 @@ class AppointmentDetailFlowTest {
     }
 
     private fun openDetails(index: Int = 0) {
-        compose.onAllNodesWithText("Ver detalhes")[index].performScrollTo().performClick()
+        compose.onAllNodes(hasText("Agendamento ", substring = true) and hasClickAction())[index].performScrollTo().performClick()
         compose.waitForIdle()
     }
 

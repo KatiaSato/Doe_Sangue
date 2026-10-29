@@ -150,7 +150,7 @@ class HomeReadFlowTest {
         compose.runOnIdle { repeat(3) { home.load() }; assertEquals(2, stockCalls) }
         compose.runOnIdle { pending.complete(Result.success(stocks())) }
         compose.waitForIdle()
-        compose.onNode(hasText("O-") and hasText("Crítico")).assertExists()
+        compose.onNode(hasText("Crítico") and hasClickAction()).assertExists()
     }
 
     @Test fun publishedStockExposesSourceAndLocalUpdate() {
@@ -158,8 +158,8 @@ class HomeReadFlowTest {
         tap("Ver todos")
         compose.runOnIdle { assertTrue(nav.currentDestination?.hasRoute<AppRoute.BloodStock>() == true) }
         compose.onNodeWithText("O- • Crítico").performScrollTo().assertIsDisplayed()
-        compose.onAllNodesWithText("Atualizado em 15/10/2026 09:00").assertCountEquals(4)
-        compose.onAllNodesWithText("Dado fictício • Fonte: Fonte sintética").assertCountEquals(4)
+        compose.onNodeWithText("A+, A-, O+, O- · atualizado em 15/10/2026 • 09:00").assertExists()
+        compose.onAllNodesWithText("Fonte: Fonte sintética").assertCountEquals(1)
         screenshot("estoque")
     }
 

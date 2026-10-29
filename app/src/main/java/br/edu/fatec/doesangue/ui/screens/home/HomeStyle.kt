@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.fatec.doesangue.ui.theme.Poppins
 
-// Tokens da proposta aprovada, limitados à Home; não alteram o tema das outras telas.
+// Tokens da proposta aprovada, reutilizados pelos refinamentos sem alterar o tema global.
 internal object HomeStyle {
     val Soft = Color(0xFFFFF1F1)
     val Success = Color(0xFF25733A)

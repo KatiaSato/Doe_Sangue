@@ -53,6 +53,8 @@ import br.edu.fatec.doesangue.ui.theme.Ink
 import br.edu.fatec.doesangue.ui.theme.InkSecondary
 import br.edu.fatec.doesangue.domain.model.DonationCenter
 import br.edu.fatec.doesangue.presentation.scheduling.SchedulingUiState
+import br.edu.fatec.doesangue.presentation.common.matchesNameOrCity
+import br.edu.fatec.doesangue.ui.components.CatalogSearchField
 
 private val scheduleLabels = listOf("Unidade", "Data e horário", "Rotina", "Confirmar")
 
@@ -72,6 +74,8 @@ fun ScheduleCenterScreen(
     onContinue: () -> Unit,
     onNavigate: (AppRoute) -> Unit,
 ) {
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    val visibleCenters = uiState.centers.filter { matchesNameOrCity(searchQuery, it.name, it.city) }
     DsScreen(
         title = if (uiState.rescheduleOrigin != null) "Remarcar agendamento" else "Agendar doação",
         onBack = onBack,
@@ -81,6 +85,12 @@ fun ScheduleCenterScreen(
         ScheduleHeader(1, uiState.rescheduleOrigin != null)
         Text("Escolha uma unidade", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(14.dp))
+        CatalogSearchField(searchQuery) { searchQuery = it }
+        Spacer(Modifier.height(12.dp))
+        if (uiState.selectedCenter != null && visibleCenters.none { it.id == uiState.selectedCenter.id }) {
+            Text("Unidade selecionada: ${uiState.selectedCenter.name}. Limpe a busca para vê-la na lista.",
+                style = MaterialTheme.typography.bodySmall)
+        }
         // Guarda a mensagem em uma variável local para verificar e usar.
         val errorMessage = uiState.errorMessage
 
@@ -112,7 +122,8 @@ fun ScheduleCenterScreen(
             }
 
             else -> {
-                uiState.centers.forEach { center ->
+                if (visibleCenters.isEmpty()) Text("Nenhuma unidade encontrada para esta busca.")
+                visibleCenters.forEach { center ->
                     SelectionCard(
                         title = center.name,
                         subtitle = "${center.address}\n${center.city}",

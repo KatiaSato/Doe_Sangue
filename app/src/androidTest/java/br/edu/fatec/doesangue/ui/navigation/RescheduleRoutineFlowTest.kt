@@ -199,6 +199,7 @@ class RescheduleRoutineFlowTest {
         tap("Continuar");tap("Confirmar agendamento");route<AppRoute.ScheduleSuccess>()
         assertEquals(listOf("create"),calls.map {it.first});assertEquals(8L,routines.routines.getValue(user.id).version)
         tap("Ir para o início");compose.runOnIdle {nav.navigate(AppRoute.DonationsAppointments)}
+        tap("Lembretes");route<AppRoute.DonationsReminders>()
         tap("Editar rotina");route<AppRoute.EditRoutine>()
     }
     @Test fun resumingMissingUnitPreservesSavedSourceInsteadOfStartingIncomingReschedule()=runBlocking<Unit> {

@@ -392,7 +392,7 @@ fun FaqScreen(onBack: () -> Unit) {
                 "Não. O agendamento organiza o atendimento; a aptidão é avaliada na triagem. " +
                 "Neste projeto acadêmico, unidades e horários são fictícios e não representam reservas em hemocentros reais.",
             "Como cancelar um agendamento?" to
-                "Abra Doações, selecione Agendamentos e toque em Ver detalhes no registro desejado. " +
+                "Abra Doações, selecione Agendamentos e toque no cartão do registro desejado. " +
                 "Depois, escolha Cancelar agendamento e confirme. O cancelamento é permitido somente antes do horário de início.",
             "Onde vejo meus agendamentos e minhas doações?" to
                 "Consulte seus registros em Doações → Agendamentos. Um agendamento não comprova uma doação realizada. " +

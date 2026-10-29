@@ -44,7 +44,7 @@ fun HomeScreen(state: HomeUiState, onRetry: () -> Unit, onNavigate: (AppRoute) -
                     is ReadUiState.Error -> HomeError(stocks.message, onRetry)
                     is ReadUiState.Loaded -> {
                         if (stocks.data.isEmpty()) HomeSupportingText("Nenhum nível de estoque publicado.")
-                        else HomeStockPreview(stocks.data)
+                        else HomeStockPreview(stocks.data) { onNavigate(AppRoute.BloodStockFiltered(it.databaseValue)) }
                     }
                 }
             }

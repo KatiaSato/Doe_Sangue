@@ -89,7 +89,7 @@ class AppContainer(
         initializer { HomeViewModel(donorProfileRepository, appointmentRepository, campaignRepository, bloodStockRepository) }
     }
     val bloodStockViewModelFactory = viewModelFactory {
-        initializer { BloodStockViewModel(bloodStockRepository) }
+        initializer { BloodStockViewModel(bloodStockRepository, donationCenterRepository) }
     }
     val donationHistoryViewModelFactory = viewModelFactory {
         initializer { DonationHistoryViewModel(donationHistoryRepository) }
@@ -216,6 +216,7 @@ class AppContainer(
         initializer {
             AppointmentsViewModel(
                 repository = appointmentRepository,
+                centersRepository = donationCenterRepository,
             )
         }
     }

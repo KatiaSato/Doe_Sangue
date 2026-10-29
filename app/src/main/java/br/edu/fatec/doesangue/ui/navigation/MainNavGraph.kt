@@ -43,6 +43,9 @@ import br.edu.fatec.doesangue.ui.screens.centers.CentersScreen
 import br.edu.fatec.doesangue.ui.screens.donations.AppointmentDetailByIdScreen
 import br.edu.fatec.doesangue.ui.screens.donations.DonationAppointmentsScreen
 import br.edu.fatec.doesangue.ui.screens.donations.DonationHistoryScreen
+import br.edu.fatec.doesangue.ui.screens.donations.DonationTab
+import br.edu.fatec.doesangue.ui.screens.routines.ReminderOverviewScreen
+import br.edu.fatec.doesangue.domain.model.StockLevel
 import br.edu.fatec.doesangue.ui.screens.profile.AboutScreen
 import br.edu.fatec.doesangue.ui.screens.profile.EditProfileScreen
 import br.edu.fatec.doesangue.ui.screens.profile.FaqScreen
@@ -100,8 +103,20 @@ fun NavGraphBuilder.mainNavGraph(
         composable<AppRoute.BloodStock> {
             val model: BloodStockViewModel = viewModel(factory = bloodStockViewModelFactory)
             val state by model.uiState.collectAsStateWithLifecycle()
+            val centers by model.centers.collectAsStateWithLifecycle()
             BloodStockScreen(state, model::load,
-                onBack = { navController.navigateBackOrHome() }, onNavigate = onNavigateMain)
+                onBack = { navController.navigateBackOrHome() }, onNavigate = onNavigateMain,
+                centersState = centers, onRetryCities = model::loadCities)
+        }
+        composable<AppRoute.BloodStockFiltered> { entry ->
+            val model: BloodStockViewModel = viewModel(factory = bloodStockViewModelFactory)
+            val state by model.uiState.collectAsStateWithLifecycle()
+            val centers by model.centers.collectAsStateWithLifecycle()
+            val level = entry.toRoute<AppRoute.BloodStockFiltered>().level
+            BloodStockScreen(state, model::load,
+                onBack = { navController.navigateBackOrHome() }, onNavigate = onNavigateMain,
+                initialLevel = StockLevel.entries.find { it.databaseValue == level },
+                centersState = centers, onRetryCities = model::loadCities)
         }
 
         composable<AppRoute.Restrictions> {
@@ -146,6 +161,11 @@ fun NavGraphBuilder.mainNavGraph(
                     }
                 },
                 onNavigate = onNavigateMain,
+                onReminders = {
+                    navController.navigate(AppRoute.DonationsReminders) {
+                        popUpTo(entry.destination.id) { inclusive = true }; launchSingleTop = true
+                    }
+                },
             )
         }
 
@@ -166,12 +186,7 @@ fun NavGraphBuilder.mainNavGraph(
             }
             val appointmentsUiState by
             appointmentsViewModel.uiState.collectAsStateWithLifecycle()
-            val routineModel: br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel = viewModel(factory=routineViewModelFactory)
-            val routineState by routineModel.state.collectAsStateWithLifecycle()
-            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { if (routineState.loaded) routineModel.load() }
             DonationAppointmentsScreen(
-                routineContent={br.edu.fatec.doesangue.ui.screens.routines.RoutineSummaryCard(routineState,routineModel::load,
-                    {navController.navigate(AppRoute.EditRoutine)})},
                 uiState = appointmentsUiState,
                 onRetry = appointmentsViewModel::loadAppointments,
                 onOpenDetails = { appointmentId ->
@@ -191,7 +206,34 @@ fun NavGraphBuilder.mainNavGraph(
                     }
                 },
                 onNavigate = onNavigateMain,
+                onReminders = {
+                    navController.navigate(AppRoute.DonationsReminders) {
+                        popUpTo(entry.destination.id) { inclusive = true }; launchSingleTop = true
+                    }
+                },
+                onRetryCities = appointmentsViewModel::loadCities,
             )
+        }
+
+        composable<AppRoute.DonationsReminders> { entry ->
+            val model: br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel = viewModel(factory = routineViewModelFactory)
+            val state by model.state.collectAsStateWithLifecycle()
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                if (entry.savedStateHandle.get<Boolean>("remindersOpened") == true) model.load()
+                entry.savedStateHandle["remindersOpened"] = true
+            }
+            ReminderOverviewScreen(state, model::load, { navController.navigate(AppRoute.EditRoutine) },
+                model::setActive, model::delete, { navController.navigateBackOrHome() },
+                onTab = { tab ->
+                    val route = when (tab) {
+                        DonationTab.HISTORY -> AppRoute.DonationsHistory
+                        DonationTab.APPOINTMENTS -> AppRoute.DonationsAppointments
+                        DonationTab.REMINDERS -> AppRoute.DonationsReminders
+                    }
+                    if (tab != DonationTab.REMINDERS) navController.navigate(route) {
+                        popUpTo(entry.destination.id) { inclusive = true }; launchSingleTop = true
+                    }
+                }, onNavigate = onNavigateMain)
         }
 
         composable<AppRoute.AppointmentDetailById> { entry ->
