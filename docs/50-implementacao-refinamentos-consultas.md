@@ -1,5 +1,25 @@
 # Refinamentos de consultas — implementação autorizada em 29/10/2026
 
+## Correção — seleção da unidade, 30/10/2026
+
+Usuária relata que tocar na unidade parece não fazer nada. A leitura do código mostra que o cartão seleciona a unidade sem avançar automaticamente; o botão Continuar ficava depois de toda a lista, fora da vista com o catálogo ampliado. Isso comprova um obstáculo de apresentação, ainda sem reprodução do relato no aparelho. Nenhuma relação estabelecida com datas vencidas, rede ou banco.
+
+Fluxo do ajuste, antes do código: **toque no cartão → callback existente → ViewModel seleciona unidade → resumo e Continuar fixos acima da navegação inferior → próximo passo Data e horário**. A lista continua rolável; não haverá avanço automático ou alteração de reserva/rascunho/regras.
+
+| Arquivo existente | Responsabilidade no ajuste |
+| --- | --- |
+| `ui/screens/scheduling/SchedulingScreens.kt` | Usar o rodapé já suportado por DsScreen para manter seleção e Continuar visíveis, preservando a barra inferior |
+| `ui/navigation/RefinementScreensTest.kt` em androidTest | Conferir seleção real com catálogo longo, botão sem rolagem, filtros e bloqueio em erro/carregamento |
+| `ui/navigation/SchedulingOriginFlowTest.kt` em androidTest | Conferir o grafo e ViewModel existentes com 14 unidades; avanço e retorno preservam a seleção |
+
+Implementado somente no rodapé de ScheduleCenterScreen, reutilizando DsScreen/DsBottomBar. Critérios de habilitação preservados: consulta concluída, sem erro e seleção pertencente ao catálogo; a busca não apaga a seleção. Capturas sintéticas de lista longa e fonte1,5 revisadas e legíveis. Testes novos verificam seleção da primeira/última unidade, botão sem rolagem e bloqueios em carregamento/erro/seleção ausente. O teste de grafo verifica unidade → data e retorno com a mesma seleção.
+
+**Validação:** APKs/Lint aprovados em3m3, zero erros/34 avisos; última recompilação de testes/Lint em1m38.28 Android distintos aprovados no Pixel_5 temporário/Android12/API32:3 de seleção/busca (2 novos),8 de origem/navegação,6 de criação e11 de remarcação/rotina, todos com fontes/respostas fictícias. A primeira rodada teve27 aprovados e1 timeout após dois comandos Voltar seguidos (261,021s). Acrescentada espera explícita e conferência da etapa intermediária no teste; o caso passou em8,095s sem nova alteração de produção. Não somar a repetição nem declarar que a rodada inicial inteira passou. Nenhuma nova suíte JVM necessária para este ajuste de composição UI.
+
+APK de produção e teste instalados `-r` no Moto g04, preservando dados. A conexão do celular caiu antes de iniciar a instrumentação; testes concluídos no emulador existente em modo read-only/no-snapshot/no-window, encerrado ao final sem salvar a base. Capturas ignoradas em `captures/2026-10-30-selecao-unidade/`; logs e `result-final.json` em `app/build/reports/scheduling-selection/`.
+
+Sem nova camada, SQL, remoto, Auth, e-mail, reserva real ou mudança nas datas/ofertas. Banco, rascunhos, applicationId e configurações preservados. Conferência da usuária no aplicativo ainda pendente; sem commit/push autorizado. F05/F15 continuam como próximas etapas guiadas após esta correção.
+
 **Fechamento Git autorizado em29/10/2026:** após o aceite visual, a usuária pediu versionamento no GitHub. Incluir o conjunto completo de produção, testes, recursos e documentação, com commit/push normais em `origin/main`. Preservar arquivos ignorados e dados; não repetir testes/SQL. As menções abaixo à ausência de autorização Git descrevem os momentos anteriores a este pedido. Próximas etapas serão discutidas depois, sem início automático.
 
 **Aceite visual em29/10/2026:** após a entrega, Katia informou “ficou muito bom”. Recorte encerrado com aprovação visual por relato, sem atribuir cenários manuais adicionais. Evidências e limitações dos testes abaixo mantidas; nenhuma nova execução de testes/SQL e nenhum commit/push autorizado por esse aceite.

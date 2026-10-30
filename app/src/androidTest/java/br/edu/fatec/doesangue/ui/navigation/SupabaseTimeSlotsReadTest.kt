@@ -20,6 +20,30 @@ import java.time.*
 /** Somente leitura pública; fixture positiva exige seed autorizado. Não cria oferta/reserva. */
 @RunWith(AndroidJUnit4::class)
 class SupabaseTimeSlotsReadTest {
+    @Test fun evaluationUnitReturnsPositiveFutureDaysAndSlotsUsingCurrentPublicApi() = runBlocking {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("enableSupabaseReadTests") == "true")
+        val today = LocalDate.now(ZoneId.of("America/Sao_Paulo"))
+        assumeTrue("Massa de avaliação tem ofertas até 09/12/2026; não criar ofertas neste teste.",
+            today <= LocalDate.of(2026,12,9))
+        val client = createSupabaseClient(BuildConfig.SUPABASE_URL,BuildConfig.SUPABASE_PUBLISHABLE_KEY) { install(Postgrest) }
+        try {
+            val center = kotlinx.coroutines.withTimeout(25_000) {
+                SupabaseDonationCenterDataSource(client).getCenters().first { it.name.startsWith("Unidade Escola Demo") }
+            }
+            val repository = SupabaseDonationTimeSlotRepository(SupabaseDonationTimeSlotDataSource(client))
+            val getDates = GetAvailableDonationDatesUseCase(repository)
+            val getSlots = GetDonationTimeSlotsUseCase(repository)
+            val dates = kotlinx.coroutines.withTimeout(25_000) {
+                (0L..2L).flatMap { offset -> getDates(center,YearMonth.from(today).plusMonths(offset)).getOrThrow() }
+                    .sorted()
+            }
+            assertTrue("Oferta positiva da massa não retornada pela consulta pública",dates.isNotEmpty())
+            val slots = kotlinx.coroutines.withTimeout(25_000) { getSlots(center,dates.first()).getOrThrow() }
+            assertTrue(slots.isNotEmpty())
+            assertTrue(slots.all { it.centerId == center.id && it.availableSpots > 0 && it.startsAt > Instant.now() })
+        } finally { client.close() }
+    }
+
     @Test fun currentAvailabilityUsesPublishedUnitAndPositiveFutureSlotsInItsZone() = runBlocking {
         assumeTrue("Consulta remota exige execução explícita no projeto acadêmico.",
             InstrumentationRegistry.getArguments().getString("enableSupabaseReadTests") == "true")

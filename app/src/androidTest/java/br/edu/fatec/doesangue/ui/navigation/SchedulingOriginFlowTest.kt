@@ -188,6 +188,8 @@ class SchedulingOriginFlowTest {
             compose.onNodeWithText(a.name).assertExists()
             compose.runOnIdle { assertSame(preparing, schedulingModel()) }
             pressBack()
+            compose.waitUntil(10_000) { nav.currentDestination?.hasRoute<AppRoute.ScheduleRecurrence>() == true }
+            compose.waitForIdle()
             pressBack()
             waitForDate()
             compose.onNodeWithText("20/11/2026").assertExists()
@@ -260,11 +262,13 @@ class SchedulingOriginFlowTest {
     }
 
     @Test fun generalTabStillStartsAtUnitChoiceAndDateBackKeepsItsSelection() {
+        answer = { Result.success(listOf(a,b) + (3..14).map { a.copy(id="extra-$it",name="Unidade Sintética $it") }) }
         openHome()
         compose.onNodeWithText("Agendar").performClick()
         compose.onNodeWithText("Escolha uma unidade").assertExists()
         compose.onNodeWithText(a.name).performScrollTo().performClick()
-        compose.onNodeWithText("Continuar").performScrollTo().performClick()
+        compose.onNodeWithText("Selecionada: ${a.name}").assertIsDisplayed()
+        compose.onNodeWithText("Continuar").assertIsDisplayed().performClick()
         waitForDate()
         compose.onNodeWithText(a.name).assertExists()
         pressBack()

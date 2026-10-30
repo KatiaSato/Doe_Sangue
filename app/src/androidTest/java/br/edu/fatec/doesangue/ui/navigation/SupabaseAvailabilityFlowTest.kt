@@ -29,12 +29,70 @@ import org.junit.runner.RunWith
 import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import br.edu.fatec.doesangue.domain.usecase.GetAvailableDonationDatesUseCase
+import br.edu.fatec.doesangue.domain.usecase.GetDonationTimeSlotsUseCase
+import org.junit.Assert.*
 
 /** Grafo real com consulta pública real; Auth/perfil/reservas fictícios e nenhuma escrita remota. */
 @RunWith(AndroidJUnit4::class)
 class SupabaseAvailabilityFlowTest {
     @get:Rule val compose=createComposeRule()
     private lateinit var nav: NavHostController
+
+    @Test fun currentPublicEvaluationOfferLoadsThroughRealCalendarWithoutBooking() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("enableSupabaseReadTests")=="true")
+        val zone = ZoneId.of("America/Sao_Paulo")
+        val today = LocalDate.now(zone)
+        assumeTrue("Ofertas da massa terminam em09/12/2026; não recriar neste teste.",today <= LocalDate.of(2026,12,9))
+        val client=createSupabaseClient(BuildConfig.SUPABASE_URL,BuildConfig.SUPABASE_PUBLISHABLE_KEY) { install(Postgrest) }
+        try {
+            val centers = SupabaseDonationCenterRepository(SupabaseDonationCenterDataSource(client))
+            val slots = SupabaseDonationTimeSlotRepository(SupabaseDonationTimeSlotDataSource(client))
+            val center = runBlocking { kotlinx.coroutines.withTimeout(25_000) {
+                centers.getCenters().getOrThrow().first { it.name.startsWith("Unidade Escola Demo") }
+            } }
+            val wantedDate = runBlocking { kotlinx.coroutines.withTimeout(25_000) {
+                (0L..2L).flatMap { GetAvailableDonationDatesUseCase(slots)(center,YearMonth.from(today).plusMonths(it)).getOrThrow() }
+                    .minOrNull() ?: error("Nenhum dia futuro da massa retornado pela API")
+            } }
+            val expectedSlot = runBlocking { kotlinx.coroutines.withTimeout(25_000) {
+                GetDonationTimeSlotsUseCase(slots)(center,wantedDate).getOrThrow().first()
+            } }
+            val expectedTime = expectedSlot.startsAt.atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm"))
+            val auth=object:AuthRepository by FakeAuthRepository() {
+                override suspend fun restoreSession()=Result.success(AuthenticatedUser("usuario-sintetico"))
+            }
+            val container=AppContainer(routineRepositoryOverride=FakeReminderRoutineRepository(),
+                centerRepositoryOverride=centers,timeSlotRepositoryOverride=slots,authRepositoryOverride=auth,
+                donorProfileRepositoryOverride=FakeDonorProfileRepository(),appointmentRepositoryOverride=FakeAppointmentRepository(),
+                campaignRepositoryOverride=FakeCampaignRepository(),bloodStockRepositoryOverride=FakeBloodStockRepository(),
+                donationHistoryRepositoryOverride=FakeDonationHistoryRepository())
+            compose.setContent { nav=rememberNavController(); DoeSangueTheme { FeatureTestHost(container,nav) } }
+            compose.mainClock.advanceTimeBy(2_000)
+            compose.waitUntil(25_000) { nav.currentDestination?.hasRoute<AppRoute.Home>()==true }
+            compose.runOnIdle { nav.navigate(AppRoute.ScheduleFromCenter(center.id)) }
+            compose.waitUntil(25_000) { nav.currentDestination?.hasRoute<AppRoute.ScheduleDate>()==true }
+            compose.onNodeWithText("Selecionar data").performClick()
+            val offset=java.time.temporal.ChronoUnit.MONTHS.between(YearMonth.from(today),YearMonth.from(wantedDate)).toInt()
+            repeat(offset) {
+                compose.onNode(hasContentDescription("next month",substring=true,ignoreCase=true) or
+                    hasContentDescription("próximo mês",substring=true,ignoreCase=true)).performClick()
+            }
+            compose.waitUntil(25_000) {
+                compose.onAllNodesWithText("Selecione um dia com vagas disponíveis.").fetchSemanticsNodes().isNotEmpty()
+            }
+            day(wantedDate.dayOfMonth.toString()).assertIsEnabled().performClick()
+            compose.onNodeWithText("Confirmar data").assertIsEnabled().performClick()
+            compose.waitUntil(25_000) { compose.onAllNodesWithText(expectedTime).fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText(expectedTime).performScrollTo().performClick()
+            compose.onNodeWithText("Continuar").performScrollTo().assertIsEnabled()
+            compose.onNodeWithText("Consultando dias disponíveis…").assertDoesNotExist()
+            screenshot("oferta-publica-atual")
+            // Termina na escolha do horário; não chama criação ou cancelamento de reserva.
+        } finally { runBlocking { client.close() } }
+    }
 
     @Test fun publishedUnitCalendarAndSlotsRenderPublicSeedWithoutCreatingAppointment() {
         val arguments=InstrumentationRegistry.getArguments()

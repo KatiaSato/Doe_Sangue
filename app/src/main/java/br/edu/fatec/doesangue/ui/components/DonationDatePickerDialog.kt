@@ -3,6 +3,8 @@ package br.edu.fatec.doesangue.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -112,7 +114,8 @@ fun DonationDatePickerDialog(
             }
         },
     ) {
-        Column {
+        // Let the grid keep its natural height; the dialog's actions stay outside this scroll.
+        Column(Modifier.verticalScroll(rememberScrollState())) {
             Column(Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp)) {
                 TextButton(onClick = {
                     if (manualMode) {

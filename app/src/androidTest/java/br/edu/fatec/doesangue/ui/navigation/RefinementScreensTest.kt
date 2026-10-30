@@ -122,10 +122,52 @@ class RefinementScreensTest {
         search("cidade azul")
         compose.onNodeWithText(b.name).assertExists()
         compose.onNodeWithText("Unidade selecionada: ${a.name}. Limpe a busca para vê-la na lista.").assertExists()
-        compose.onNodeWithText("Continuar").performScrollTo().performClick()
+        compose.onNodeWithText("Continuar").assertIsDisplayed().performClick()
         assertEquals(a.id,continued)
         compose.onNodeWithText("Limpar").performScrollTo().performClick()
         compose.onNodeWithText(a.name).assertExists()
+    }
+    @Test fun schedulingSelectionAndContinueStayVisibleWithLongCatalogue() {
+        val centers = (1..14).map { a.copy(id=it.toString(), name="Unidade Sintética $it") }
+        var state by mutableStateOf(SchedulingUiState(centers=centers))
+        var continued:String?=null
+        compose.setContent { DoeSangueTheme { ScheduleCenterScreen(state,{state=state.copy(selectedCenter=it)},
+            {},{},{continued=state.selectedCenter?.id},{}) } }
+        compose.onNodeWithText("Continuar").assertIsDisplayed().assertIsNotEnabled()
+        compose.onNodeWithText(centers.first().name).performScrollTo().performClick()
+        compose.onNodeWithText("Selecionada: ${centers.first().name}").assertIsDisplayed()
+        compose.onNodeWithText("Continuar").assertIsDisplayed().assertIsEnabled()
+        compose.onNodeWithText(centers.last().name).performScrollTo().performClick()
+        compose.onNodeWithText("Selecionada: ${centers.last().name}").assertIsDisplayed()
+        compose.onNodeWithText("Continuar").assertIsDisplayed().performClick()
+        assertEquals(centers.last().id,continued)
+        capture("agendar-continuar-fixo")
+    }
+    @Test fun schedulingFooterWithLargeFontStillBlocksInvalidOrUnavailableSelection() {
+        val centers = (1..14).map { a.copy(id=it.toString(), name="Unidade Sintética $it") }
+        var state by mutableStateOf(SchedulingUiState(centers=centers,selectedCenter=centers.first()))
+        var continued=false
+        compose.setContent {
+            val density=LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density,1.5f)) {
+                DoeSangueTheme { ScheduleCenterScreen(state,{state=state.copy(selectedCenter=it)},
+                    {},{},{continued=true},{}) }
+            }
+        }
+        compose.onNodeWithText("Continuar").assertIsDisplayed().assertIsEnabled()
+        compose.runOnIdle {state=state.copy(isLoading=true)}
+        compose.onNodeWithText("Continuar").assertIsDisplayed().assertIsNotEnabled().performClick()
+        assertFalse(continued)
+        compose.runOnIdle {state=state.copy(isLoading=false,errorMessage="Consulta indisponível")}
+        compose.onNodeWithText("Continuar").assertIsNotEnabled()
+        compose.runOnIdle {state=state.copy(errorMessage=null,selectedCenter=b.copy(id="ausente"))}
+        compose.onNodeWithText("Continuar").assertIsNotEnabled()
+        compose.runOnIdle {state=state.copy(selectedCenter=centers.last())}
+        compose.onNodeWithText(centers.last().name).performScrollTo().performClick()
+        compose.onNodeWithText("Selecionada: ${centers.last().name}").assertIsDisplayed()
+        compose.onNodeWithText("Continuar").assertIsDisplayed().performClick()
+        assertTrue(continued)
+        capture("agendar-continuar-fonte-ampliada")
     }
     @Test fun filtersAndRoutineRemainReadableWithLargeFont() {
         val routine=ReminderRoutine("routine","sintetico",LocalDate.of(2030,12,1),30,a.timeZoneId,true,1)

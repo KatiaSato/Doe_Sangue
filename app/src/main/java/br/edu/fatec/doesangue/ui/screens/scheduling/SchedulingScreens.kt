@@ -23,6 +23,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,6 +41,7 @@ import br.edu.fatec.doesangue.domain.model.AppointmentStatus
 import br.edu.fatec.doesangue.ui.components.DonationDatePickerDialog
 import br.edu.fatec.doesangue.ui.components.CenteredMessage
 import br.edu.fatec.doesangue.ui.components.DsScreen
+import br.edu.fatec.doesangue.ui.components.DsBottomBar
 import br.edu.fatec.doesangue.ui.components.InfoCard
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
 import br.edu.fatec.doesangue.ui.components.SecondaryButton
@@ -76,11 +78,29 @@ fun ScheduleCenterScreen(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     val visibleCenters = uiState.centers.filter { matchesNameOrCity(searchQuery, it.name, it.city) }
+    val canContinue = !uiState.isLoading && uiState.errorMessage == null &&
+        uiState.centers.any { it.id == uiState.selectedCenter?.id }
     DsScreen(
         title = if (uiState.rescheduleOrigin != null) "Remarcar agendamento" else "Agendar doação",
         onBack = onBack,
         bottomRoute = AppRoute.ScheduleCenter,
-        onNavigate = onNavigate
+        onNavigate = onNavigate,
+        bottomBarContent = {
+            Surface(color = Color.White, shadowElevation = 4.dp) {
+                Column {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp)) {
+                        Text(
+                            text = uiState.selectedCenter?.let { "Selecionada: ${it.name}" }
+                                ?: "Selecione uma unidade para continuar.",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        PrimaryButton("Continuar", onContinue, enabled = canContinue)
+                    }
+                    DsBottomBar(AppRoute.ScheduleCenter, onNavigate)
+                }
+            }
+        },
     ) {
         ScheduleHeader(1, uiState.rescheduleOrigin != null)
         Text("Escolha uma unidade", style = MaterialTheme.typography.titleLarge)
@@ -134,18 +154,6 @@ fun ScheduleCenterScreen(
                 }
             }
         }
-        Spacer(Modifier.height(16.dp))
-        // Permite avançar quando a consulta terminou sem erro
-// e a unidade selecionada pertence à lista carregada.
-        PrimaryButton(
-            text = "Continuar",
-            onClick = onContinue,
-            enabled = !uiState.isLoading &&
-                    uiState.errorMessage == null &&
-                    uiState.centers.any { center ->
-                        center.id == uiState.selectedCenter?.id
-                    },
-        )
         Spacer(Modifier.height(16.dp))
     }
 }
@@ -315,8 +323,9 @@ fun ScheduleConfirmScreen(
         !creation.isLoading &&
                 creation.appointment?.status != AppointmentStatus.SCHEDULED
 
-    BackHandler(enabled = !canNavigate) {
-        // Aguarda a resposta e o encaminhamento para o resultado.
+    BackHandler(enabled = !canNavigate || uiState.requestLocked) {
+        // Pedido enviado sai como a seta, preservando a chave; não reabre escolhas bloqueadas.
+        if (canNavigate) onBack()
     }
 
     DsScreen(
@@ -406,16 +415,24 @@ fun ScheduleConfirmScreen(
 
 @Composable
 private fun ReviewRow(label: String, value: String) {
-    Row(Modifier
-        .fillMaxWidth()
-        .padding(vertical = 10.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
         Text(
             label,
-            Modifier.weight(1f),
+            Modifier.weight(0.35f),
             style = MaterialTheme.typography.bodyMedium,
             color = InkSecondary
         )
-        Text(value, style = MaterialTheme.typography.labelMedium, color = Ink)
+        Text(
+            value,
+            Modifier.weight(0.65f),
+            style = MaterialTheme.typography.labelMedium,
+            color = Ink,
+            textAlign = TextAlign.End,
+        )
     }
 }
 

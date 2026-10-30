@@ -8,6 +8,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.espresso.Espresso.pressBack
 import br.edu.fatec.doesangue.data.local.FileSchedulingDraftStore
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.domain.model.*
@@ -117,6 +118,18 @@ class PersistentDraftFlowTest {
         store.save(draft()).getOrThrow(); open(); offer(); tap("Voltar ao início"); route<AppRoute.Home>()
         assertNotNull(store.read(user.id).getOrThrow()); offer()
         tap("Retomar"); route<AppRoute.ScheduleConfirm>()
+        assertTrue(keys.isEmpty())
+    }
+    @Test fun androidBackFromPreparedDraftExitsWithoutExposingUneditableCalendar() = runBlocking<Unit> {
+        val pending = draft(true)
+        store.save(pending).getOrThrow()
+        open(); offer(); tap("Retomar"); route<AppRoute.ScheduleConfirm>()
+        compose.waitForIdle()
+        pressBack()
+        compose.waitForIdle()
+        assertTrue("Voltar do Android deve acompanhar a seta e sair preservando o pedido enviado; destino atual: ${nav.currentDestination?.route}",
+            nav.currentDestination?.hasRoute<AppRoute.Home>() == true)
+        assertEquals(pending.requestKey,store.read(user.id).getOrThrow()?.requestKey)
         assertTrue(keys.isEmpty())
     }
     @Test fun corruptFileIsExplainedAndDiscardDoesNotCreateAReservation() = runBlocking<Unit> {

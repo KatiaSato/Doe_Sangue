@@ -1,5 +1,7 @@
 # F05 — login com Google: proposta e fluxo
 
+**Prioridade confirmada em29/10/2026:** usuária escolheu concluir o escopo com login Google e, depois, notificações do aplicativo. Ambos seguem em tutoria. Google Calendar foi adiado como melhoria futura para a apresentação; login Google não inclui autorização de acesso ao calendário. O diagrama e o mapa abaixo permanecem como preparação para os passos acompanhados, sem produção/configuração remota implementadas.
+
 Preparado em 28/10/2026, após envio de `cb75367` para `origin/main`. O conjunto de perfil/login e data/calendário da rotina foi publicado; a árvore estava limpa e sincronizada antes deste documento. Este arquivo inicia o planejamento local da F05, ainda sem implementação ou configuração remota.
 
 ## Proposta para o Android
