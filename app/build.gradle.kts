@@ -30,6 +30,12 @@ android {
 
         testInstrumentationRunner = "br.edu.fatec.doesangue.RecoveryTestRunner"
 
+        val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "").trim()
+        require(googleWebClientId.isEmpty() || googleWebClientId.matches(
+            Regex("[a-zA-Z0-9-]+\\.apps\\.googleusercontent\\.com"),
+        )) { "GOOGLE_WEB_CLIENT_ID deve conter o ID público do cliente OAuth Web." }
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
+
         // Disponibiliza a URL do Supabase ao código do aplicativo.
         buildConfigField(
             "String",
@@ -100,6 +106,10 @@ dependencies {
 
     // Autenticação e gerenciamento da sessão.
     implementation(libs.supabase.auth)
+
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.google.identity.googleid)
 
     // Comunicação pela rede.
     implementation(libs.ktor.client.okhttp)

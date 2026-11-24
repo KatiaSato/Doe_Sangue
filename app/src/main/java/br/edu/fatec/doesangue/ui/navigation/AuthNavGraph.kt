@@ -1,9 +1,11 @@
 package br.edu.fatec.doesangue.ui.navigation
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -13,11 +15,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import br.edu.fatec.doesangue.presentation.auth.LoginViewModel
+import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.presentation.auth.GoogleSignInResult
+import br.edu.fatec.doesangue.ui.auth.GoogleSignInLauncher
 import br.edu.fatec.doesangue.presentation.auth.PasswordRecoveryViewModel
 import br.edu.fatec.doesangue.presentation.auth.RegistrationViewModel
 import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationUiState
 import br.edu.fatec.doesangue.presentation.auth.SessionMonitorUiState
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import br.edu.fatec.doesangue.ui.screens.auth.EmailVerificationScreen
 import br.edu.fatec.doesangue.ui.screens.auth.ForgotPasswordScreen
 import br.edu.fatec.doesangue.ui.screens.auth.LoginScreen
@@ -37,6 +43,8 @@ fun NavGraphBuilder.authNavGraph(
     onResendConfirmation: () -> Unit,
     onEnterMain: () -> Unit,
     sessionState: StateFlow<SessionMonitorUiState>? = null,
+    googleWebClientId: String? = null,
+    onGoogleAuthenticated: (AuthenticatedUser) -> Unit,
 ) {
     navigation<AppGraph.Auth>(startDestination = AppRoute.Welcome) {
         composable<AppRoute.Welcome> { entry ->
@@ -51,11 +59,31 @@ fun NavGraphBuilder.authNavGraph(
             val registration = registrationModel(navController, registrationViewModelFactory, entry)
             val state by login.uiState.collectAsStateWithLifecycle()
             val monitored = sessionState?.collectAsStateWithLifecycle()?.value
+            val activity = LocalActivity.current
+            val scope = rememberCoroutineScope()
+            val googleLauncher = remember(googleWebClientId) {
+                googleWebClientId?.takeIf { it.isNotBlank() }?.let(::GoogleSignInLauncher)
+            }
+            val onGoogleSignIn: (() -> Unit)? = if (activity != null && googleLauncher != null) {
+                {
+                    scope.launch {
+                        val attempt = login.beginGoogleSignIn() ?: return@launch
+                        try {
+                            login.finishGoogleSelection(attempt, googleLauncher.launch(activity))
+                        } finally {
+                            login.finishGoogleSelection(attempt, GoogleSignInResult.Cancelled)
+                        }
+                    }
+                }
+            } else null
             LaunchedEffect(state.authenticatedUser?.id, monitored) {
                 val user = state.authenticatedUser
-                if (user != null && sessionState?.value.permitsLoginUser(user.id)) onEnterMain()
+                if (user != null && sessionState?.value.permitsLoginUser(user.id)) {
+                    if (user.requiresProfileCheck) onGoogleAuthenticated(user) else onEnterMain()
+                }
             }
             LoginScreen(state, login::signIn,
+                onGoogleSignIn = onGoogleSignIn,
                 onForgot = { navController.navigate(AppRoute.ForgotPassword) },
                 onRegister = { registration.reset(); navController.navigate(AppRoute.Register1) },
                 onVerifyEmail = { email ->

@@ -39,6 +39,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkUiState
 import br.edu.fatec.doesangue.presentation.auth.SessionViewModel
+import br.edu.fatec.doesangue.presentation.auth.SessionUiState
+import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
+import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
+import br.edu.fatec.doesangue.presentation.profile.ProfileUiState
+import br.edu.fatec.doesangue.ui.screens.profile.CompleteGoogleProfileScreen
 import br.edu.fatec.doesangue.presentation.auth.ResetPasswordViewModel
 import br.edu.fatec.doesangue.ui.screens.auth.ResetPasswordScreen
 import br.edu.fatec.doesangue.ui.screens.auth.RecoveryStatusScreen
@@ -85,6 +90,8 @@ fun AppNavHost(
     donationHistoryViewModelFactory: ViewModelProvider.Factory,
     centersViewModelFactory: ViewModelProvider.Factory,
     centerDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
+    googleWebClientId: String = "",
+    initialProfileViewModelFactory: (String) -> ViewModelProvider.Factory = { profileViewModelFactory },
 ) {
     val currentRecoveryLinkState by
     recoveryLinkState.collectAsStateWithLifecycle()
@@ -275,7 +282,10 @@ fun AppNavHost(
                         if (recoveryLinkState.value != RecoveryLinkUiState.Idle) {
                             return@SplashScreen
                         }
-                        val destination = if (authenticated) {
+                        val restored = (sessionViewModel.uiState.value as? SessionUiState.Authenticated)?.user
+                        val destination = if (authenticated && restored?.requiresProfileCheck == true) {
+                            AppRoute.CompleteGoogleProfile(restored.id)
+                        } else if (authenticated) {
                             AppGraph.Main
                         } else {
                             AppGraph.Auth
@@ -292,8 +302,78 @@ fun AppNavHost(
                 )
             }
 
+            composable<AppRoute.CompleteGoogleProfile> { profileEntry ->
+                val userId = profileEntry.toRoute<AppRoute.CompleteGoogleProfile>().userId
+                val verified = monitoredSession is SessionMonitorUiState.Available &&
+                    monitoredSession.user.id == userId
+                val logout: LogoutViewModel = viewModel(factory = logoutViewModelFactory)
+                val logoutState by logout.uiState.collectAsStateWithLifecycle()
+
+                BackHandler {}
+                LaunchedEffect(monitoredSession, logoutState.isSignedOut) {
+                    val current = sessionState?.value
+                    if (recoveryLinkState.value == RecoveryLinkUiState.Idle &&
+                        (logoutState.isSignedOut || current is SessionMonitorUiState.Ended ||
+                            current is SessionMonitorUiState.Available && current.user.id != userId)
+                    ) {
+                        navController.navigate(AppGraph.Auth) {
+                            popUpTo(navController.graph.id)
+                            launchSingleTop = true
+                        }
+                    }
+                }
+
+                if (!verified || logoutState.isSignedOut) {
+                    SessionWaitScreen(monitoredSession is SessionMonitorUiState.Reconnecting)
+                } else {
+                    val model: ProfileViewModel = viewModel(
+                        factory = initialProfileViewModelFactory(userId),
+                    )
+                    val profileState by model.uiState.collectAsStateWithLifecycle()
+                    LaunchedEffect(profileState) {
+                        if ((profileState as? ProfileUiState.Loaded)?.profile?.id == userId &&
+                            sessionState?.value.permitsLoginUser(userId) &&
+                            recoveryLinkState.value == RecoveryLinkUiState.Idle &&
+                            !logout.uiState.value.isLoading && !logout.uiState.value.isSignedOut
+                        ) {
+                            privateOwnerId = userId
+                            sessionNotice = null
+                            navController.navigate(AppGraph.Main) {
+                                popUpTo(navController.graph.id)
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                    CompleteGoogleProfileScreen(
+                        state = profileState,
+                        logoutState = logoutState,
+                        onNameChange = model::updateDisplayName,
+                        onSave = { type ->
+                            if (sessionState?.value.permitsLoginUser(userId) &&
+                                recoveryLinkState.value == RecoveryLinkUiState.Idle
+                            ) model.createProfile(type)
+                        },
+                        onRetry = model::loadProfile,
+                        onSignOut = {
+                            if (sessionState?.value.permitsLoginUser(userId) &&
+                                recoveryLinkState.value == RecoveryLinkUiState.Idle
+                            ) logout.signOut()
+                        },
+                    )
+                }
+            }
+
             authNavGraph(
                 sessionState = sessionState,
+                googleWebClientId = googleWebClientId,
+                onGoogleAuthenticated = { user ->
+                    if (recoveryLinkState.value == RecoveryLinkUiState.Idle) {
+                        navController.navigate(AppRoute.CompleteGoogleProfile(user.id)) {
+                            popUpTo<AppGraph.Auth> { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                },
                 navController = navController,
                 loginViewModelFactory = loginViewModelFactory,
                 passwordRecoveryViewModelFactory = passwordRecoveryViewModelFactory,
@@ -386,7 +466,8 @@ fun AppNavHost(
                 val privateArea = navController.currentDestination?.hierarchy?.any {
                     it.hasRoute<AppGraph.Main>() || it.hasRoute<AppGraph.Scheduling>()
                 } == true
-                if (!privateArea) navController.navigate(AppRoute.Login) {
+                val completingProfile = navController.currentDestination?.hasRoute<AppRoute.CompleteGoogleProfile>() == true
+                if (!privateArea && !completingProfile) navController.navigate(AppRoute.Login) {
                     popUpTo(navController.graph.id) { inclusive = false }
                     launchSingleTop = true
                 }

@@ -20,6 +20,7 @@ import br.edu.fatec.doesangue.domain.model.Appointment
 import br.edu.fatec.doesangue.domain.model.AppointmentStatus
 import br.edu.fatec.doesangue.domain.model.AppointmentSummary
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.GoogleSignInCredential
 import br.edu.fatec.doesangue.domain.model.DonorProfile
 import br.edu.fatec.doesangue.domain.repository.AppointmentRepository
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
@@ -62,7 +63,11 @@ class AppointmentDetailFlowTest {
             override suspend fun getCurrentProfile(): Result<DonorProfile?> =
                 Result.success(auth.user?.let { DonorProfile(it.id, "Doador de teste") })
 
-            override suspend fun createCurrentProfile(displayName: String): Result<DonorProfile> =
+            override suspend fun createCurrentProfile(
+                displayName: String,
+                bloodType: BloodType?,
+                expectedUserId: String?,
+            ): Result<DonorProfile> =
                 Result.failure(UnsupportedOperationException("Este teste não cria perfis."))
         }
         val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
@@ -499,6 +504,9 @@ class AppointmentDetailFlowTest {
     }
 
     private class ControlledAuthRepository : AuthRepository {
+        override suspend fun signInWithGoogle(credential: GoogleSignInCredential): Result<AuthenticatedUser> =
+            error("Login com Google inesperado neste teste.")
+
     override fun observeSession(): kotlinx.coroutines.flow.Flow<br.edu.fatec.doesangue.domain.model.SessionPresence> = kotlinx.coroutines.flow.emptyFlow()
 
     override suspend fun resendEmailConfirmation(email: String): Result<Unit> =

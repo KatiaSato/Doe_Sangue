@@ -54,9 +54,11 @@ class SupabaseDonorProfileRepository(
 
     override suspend fun createCurrentProfile(
         displayName: String,
+        bloodType: BloodType?,
+        expectedUserId: String?,
     ): Result<DonorProfile> {
         return try {
-            val profile = dataSource.createCurrentProfile(displayName)
+            val profile = dataSource.createCurrentProfile(displayName, bloodType, expectedUserId)
             Result.success(profile)
         } catch (exception: CancellationException) {
             // Preserva o cancelamento da corrotina.

@@ -1,6 +1,10 @@
 # F05 — login com Google: proposta e fluxo
 
-**Prioridade confirmada em29/10/2026:** usuária escolheu concluir o escopo com login Google e, depois, notificações do aplicativo. Ambos seguem em tutoria. Google Calendar foi adiado como melhoria futura para a apresentação; login Google não inclui autorização de acesso ao calendário. O diagrama e o mapa abaixo permanecem como preparação para os passos acompanhados, sem produção/configuração remota implementadas.
+**Prioridade confirmada em 29/10/2026.** A usuária escolheu concluir o escopo com login Google e, depois, notificações do aplicativo. Ambos seguem em tutoria. Google Calendar foi adiado como melhoria futura para a apresentação.
+
+**Configuração conferida em 23/11/2026.** A usuária criou os clientes OAuth e configurou o provedor Google no Supabase acadêmico. O painel confirmou o provedor habilitado e a verificação de nonce ativa. O ID público Web foi configurado no `local.properties` ignorado pelo Git.
+
+**Validação no aparelho em 23/11/2026.** A usuária confirmou que o login com Google funcionou corretamente no próprio aparelho. O relato confirma o login e deixa em aberto a conferência específica de primeiro perfil, restauração e cancelamento do seletor. Os APKs do app e de testes compilaram e os 96 testes JVM passaram. No Pixel_6 virtual, o Google Play Services estava abaixo da versão mínima exigida pelo Credential Manager. A repetição desse teste no emulador fica pendente.
 
 Preparado em 28/10/2026, após envio de `cb75367` para `origin/main`. O conjunto de perfil/login e data/calendário da rotina foi publicado; a árvore estava limpa e sincronizada antes deste documento. Este arquivo inicia o planejamento local da F05, ainda sem implementação ou configuração remota.
 
@@ -82,6 +86,42 @@ Os caminhos Kotlin existentes acima são relativos a `app/src/main/java/br/edu/f
 
 ## Perfil e contas existentes
 
+### Passo do seletor nativo
+
+O adaptador recebe uma Activity e o ID público do cliente Web. O Google recebe o SHA-256 hexadecimal do nonce, e o resultado de sucesso guarda o token e o nonce original para a futura validação pelo Supabase. Cancelamento e falha são resultados distintos.
+
+| Arquivo novo | Camada e responsabilidade |
+| --- | --- |
+| `ui/auth/GoogleSignInLauncher.kt` | Integração Android com Credential Manager e Google ID |
+| `domain/model/GoogleSignInCredential.kt` | Token e nonce original da mesma tentativa |
+| `presentation/auth/GoogleSignInResult.kt` | Resultado entregue pela seleção nativa |
+
+A validação deste passo é a compilação do APK de debug. A ligação com sessão, perfil e botão será feita nos passos de integração.
+
+### Passo da autenticação no Supabase
+
+`domain/repository/AuthRepository.kt` recebe a credencial do seletor. `data/repository/SupabaseAuthRepository.kt` devolve o usuário autenticado ou uma falha de domínio e propaga o cancelamento da corrotina. `data/supabase/SupabaseAuthDataSource.kt` envia o token e o nonce original pelo SDK Auth. O SDK atualiza a sessão observada pelo app. Os repositórios fictícios em `androidTest/ui/navigation` implementam o novo contrato para que a suíte existente continue compilando.
+
+### Passo da coordenação do login
+
+`presentation/auth/LoginViewModel.kt` reserva uma tentativa ao abrir o seletor, recebe seu resultado e chama o repositório. `LoginUiState.kt` já representa carregamento, erro e usuário autenticado. O estado de carregamento cobre a seleção e a autenticação e impede sobreposição com o login por senha. O tipo `GoogleSignInResult.kt` passa para `presentation/auth/`, onde pode ser usado pelo ViewModel e devolvido pelo adaptador Android. A ligação do botão e a validação do perfil ficam para os passos de integração.
+
+### Passo do botão de login
+
+`ui/screens/auth/AuthScreens.kt` recebe a ação opcional do botão. `ui/navigation/AuthNavGraph.kt` usa a Activity da tela para entregar o resultado do seletor ao ViewModel. A configuração pública do cliente Web será conectada pelo grafo principal junto com o tratamento de perfil e sessão restaurada. Até lá a ação permanece indisponível no app.
+
+### Passo do primeiro acesso e da sessão restaurada
+
+| Arquivos | Responsabilidade |
+| --- | --- |
+| `app/build.gradle.kts`, `local.properties` | Ler o ID público em `GOOGLE_WEB_CLIENT_ID` e disponibilizá-lo ao app |
+| `AuthenticatedUser.kt`, `SupabaseAuthDataSource.kt` | Identificar o login Google e reconhecer a identidade Google na sessão restaurada |
+| `AppNavHost.kt`, `AppRoute.kt`, `AuthNavGraph.kt`, `DoeSangueApp.kt` | Conferir a sessão e conduzir a consulta de perfil antes do Início |
+| `CompleteGoogleProfileScreen.kt`, `ProfileViewModel.kt`, `AppContainer.kt` | Reutilizar consulta e criação do perfil em uma tela de primeiro acesso vinculada à conta |
+| `DonorProfileRepository.kt`, `SupabaseDonorProfileRepository.kt`, `SupabaseDonorProfileDataSource.kt` | Gravar nome e tipo em uma única inserção vinculada à conta, com os mesmos controles de acesso |
+
+Perfil existente abre Início. Perfil ausente pede nome e tipo sanguíneo, incluindo Não sei. Falhas de consulta permitem tentar novamente ou sair. A validação técnica compila APKs do app e de testes. O acesso real é validado em uma conta de teste acompanhada.
+
 A trigger local atual cria o perfil automático somente quando encontra `nome_exibicao` nos metadados do cadastro. Não podemos presumir que um primeiro acesso Google produza esse mesmo perfil. O planejamento inclui tratar perfil ausente e pedir nome/tipo sanguíneo (incluindo Não sei), sem sobrescrever um perfil existente. Telefone/nascimento continuam opcionais.
 
 Antes da implementação, conferir a política do Supabase para identidade Google e conta já cadastrada com o mesmo e-mail. A identidade da sessão será a referência; o aplicativo não fará fusão manual de contas por comparação de e-mail.
@@ -94,7 +134,7 @@ Antes da implementação, conferir a política do Supabase para identidade Googl
 4. Integrar validação de token/nonce, sessão e perfil; ligar o botão quando o fluxo estiver pronto.
 5. Testar com respostas fictícias cancelamento, erro, repetição, resposta atrasada, conta diferente e perfil ausente/existente. Depois realizar o teste real acompanhado, com autorização específica para a conta de teste e sem compartilhar senha ou tokens no chat.
 
-O escopo desta entrega é **somente diagrama/proposta**. Nenhuma dependência, produção, credencial, conta, retorno, provedor ou banco foi alterado. Recuperação de senha, confirmação de e-mail e applicationId permanecem como estão. Não há novo teste funcional executado ou aceite F05 a registrar.
+Os passos técnicos registrados acima incluem as dependências, a seleção de conta, a autenticação e a entrada por perfil. O login real foi confirmado por relato no aparelho da usuária.
 
 ## Referências oficiais consultadas em 28/10/2026
 

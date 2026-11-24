@@ -66,6 +66,7 @@ fun LoginScreen(
     onForgot: () -> Unit,
     onRegister: () -> Unit,
     onVerifyEmail: (String) -> Unit = {},
+    onGoogleSignIn: (() -> Unit)? = null,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -162,9 +163,15 @@ fun LoginScreen(
             HorizontalDivider(Modifier.weight(1f))
         }
         Spacer(Modifier.height(16.dp))
-        SecondaryButton("Continuar com Google", {}, enabled = false)
-        Text("Em breve", Modifier.fillMaxWidth().padding(top = 6.dp),
-            textAlign = TextAlign.Center, color = InkSecondary, style = MaterialTheme.typography.bodySmall)
+        SecondaryButton(
+            "Continuar com Google",
+            onClick = { onGoogleSignIn?.invoke() },
+            enabled = onGoogleSignIn != null && !uiState.isLoading && uiState.authenticatedUser == null,
+        )
+        if (onGoogleSignIn == null) {
+            Text("Em breve", Modifier.fillMaxWidth().padding(top = 6.dp),
+                textAlign = TextAlign.Center, color = InkSecondary, style = MaterialTheme.typography.bodySmall)
+        }
         Spacer(Modifier.height(24.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
             Text("Não tem uma conta?", style = MaterialTheme.typography.bodyMedium, color = InkSecondary)

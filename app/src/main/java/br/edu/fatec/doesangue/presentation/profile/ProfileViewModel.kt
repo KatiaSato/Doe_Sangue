@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 // Consulta o perfil e disponibiliza o estado para a tela.
 class ProfileViewModel(
     private val repository: DonorProfileRepository,
+    private val expectedUserId: String? = null,
 ) : ViewModel() {
 
     private val _uiState =
@@ -78,11 +79,14 @@ class ProfileViewModel(
 
         loadJob = viewModelScope.launch {
             val result = repository.getCurrentProfile()
+            ensureActive()
 
             _uiState.value = result.fold(
                 onSuccess = { profile ->
                     if (profile == null) {
                         ProfileUiState.Missing()
+                    } else if (expectedUserId != null && profile.id != expectedUserId) {
+                        ProfileUiState.Error("A conta conectada mudou. Entre novamente.")
                     } else {
                         ProfileUiState.Loaded(profile)
                     }
@@ -116,7 +120,9 @@ class ProfileViewModel(
         )
     }
 
-    fun createProfile() {
+    fun createProfile() = createProfile(bloodType = null)
+
+    fun createProfile(bloodType: BloodType?) {
         val currentState =
             _uiState.value as? ProfileUiState.Missing ?: return
 
@@ -138,11 +144,16 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
-                val result = repository.createCurrentProfile(name)
+                val result = repository.createCurrentProfile(name, bloodType, expectedUserId)
+                ensureActive()
 
                 _uiState.value = result.fold(
                     onSuccess = { profile ->
-                        ProfileUiState.Loaded(profile)
+                        if (expectedUserId == null || profile.id == expectedUserId) {
+                            ProfileUiState.Loaded(profile)
+                        } else {
+                            ProfileUiState.Error("A conta conectada mudou. Entre novamente.")
+                        }
                     },
                     onFailure = {
                         currentState.copy(

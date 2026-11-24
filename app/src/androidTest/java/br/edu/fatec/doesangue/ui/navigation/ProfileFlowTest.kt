@@ -274,7 +274,11 @@ class ProfileFlowTest {
             return loadAnswer()
         }
 
-        override suspend fun createCurrentProfile(displayName: String): Result<DonorProfile> {
+        override suspend fun createCurrentProfile(
+            displayName: String,
+            bloodType: BloodType?,
+            expectedUserId: String?,
+        ): Result<DonorProfile> {
             creations++
             lastName = displayName
             return createAnswer(displayName).also { result ->

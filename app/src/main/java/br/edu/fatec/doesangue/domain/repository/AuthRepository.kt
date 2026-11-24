@@ -4,6 +4,7 @@ import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import br.edu.fatec.doesangue.domain.model.BloodType
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential
+import br.edu.fatec.doesangue.domain.model.GoogleSignInCredential
 import br.edu.fatec.doesangue.domain.model.SessionPresence
 import kotlinx.coroutines.flow.Flow
 
@@ -34,6 +35,9 @@ interface AuthRepository {
         email: String,
         password: String,
     ): Result<AuthenticatedUser>
+
+    suspend fun signInWithGoogle(credential: GoogleSignInCredential): Result<AuthenticatedUser>
+
 
     suspend fun requestPasswordReset(
         email: String,

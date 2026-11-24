@@ -21,5 +21,7 @@ interface DonorProfileRepository {
 
     suspend fun createCurrentProfile(
         displayName: String,
+        bloodType: BloodType? = null,
+        expectedUserId: String? = null,
     ): Result<DonorProfile>
 }

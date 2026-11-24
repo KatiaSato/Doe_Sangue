@@ -4,6 +4,7 @@ import br.edu.fatec.doesangue.data.supabase.SupabaseAuthDataSource
 import br.edu.fatec.doesangue.data.supabase.mapper.toAuthFailure
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import br.edu.fatec.doesangue.domain.model.BloodType
+import br.edu.fatec.doesangue.domain.model.GoogleSignInCredential
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
@@ -61,6 +62,16 @@ class SupabaseAuthRepository(
             // Devolve a falha para quem solicitou o login.
             Result.failure(exception.toAuthFailure())
         }
+    }
+
+    override suspend fun signInWithGoogle(
+        credential: GoogleSignInCredential,
+    ): Result<AuthenticatedUser> = try {
+        Result.success(dataSource.signInWithGoogle(credential))
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (exception: Exception) {
+        Result.failure(exception.toAuthFailure())
     }
 
     override suspend fun requestPasswordReset(

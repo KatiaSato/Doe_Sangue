@@ -5,6 +5,7 @@ import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import br.edu.fatec.doesangue.domain.model.BloodType
 
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.GoogleSignInCredential
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 
 // Fornece um resultado previsível, sem acessar o Supabase.
@@ -12,6 +13,9 @@ class FakeAuthRepository(
     private val result: Result<AuthenticatedUser> =
         Result.success(AuthenticatedUser(id = "test-user-1")),
 ) : AuthRepository {
+    override suspend fun signInWithGoogle(credential: GoogleSignInCredential): Result<AuthenticatedUser> =
+        error("Login com Google inesperado neste teste.")
+
     override fun observeSession(): kotlinx.coroutines.flow.Flow<br.edu.fatec.doesangue.domain.model.SessionPresence> = kotlinx.coroutines.flow.emptyFlow()
 
     override suspend fun resendEmailConfirmation(email: String): Result<Unit> =

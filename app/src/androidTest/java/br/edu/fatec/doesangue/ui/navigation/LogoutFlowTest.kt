@@ -15,6 +15,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.espresso.Espresso.pressBack
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.GoogleSignInCredential
 import br.edu.fatec.doesangue.domain.model.DonorProfile
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
 import br.edu.fatec.doesangue.domain.repository.DonorProfileRepository
@@ -51,7 +52,11 @@ class LogoutFlowTest {
                 if (auth.user?.id == "test-user-a") DonorProfile("test-user-a", "Doador Demo A") else null,
             )
 
-            override suspend fun createCurrentProfile(displayName: String): Result<DonorProfile> =
+            override suspend fun createCurrentProfile(
+                displayName: String,
+                bloodType: BloodType?,
+                expectedUserId: String?,
+            ): Result<DonorProfile> =
                 Result.failure(UnsupportedOperationException("Este teste não cria perfis."))
         }
         val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
@@ -235,6 +240,9 @@ class LogoutFlowTest {
     }
 
     private class ControlledAuthRepository : AuthRepository {
+        override suspend fun signInWithGoogle(credential: GoogleSignInCredential): Result<AuthenticatedUser> =
+            error("Login com Google inesperado neste teste.")
+
     override fun observeSession(): kotlinx.coroutines.flow.Flow<br.edu.fatec.doesangue.domain.model.SessionPresence> = kotlinx.coroutines.flow.emptyFlow()
 
     override suspend fun resendEmailConfirmation(email: String): Result<Unit> =

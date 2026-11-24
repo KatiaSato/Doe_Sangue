@@ -3,6 +3,7 @@ package br.edu.fatec.doesangue.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import br.edu.fatec.doesangue.di.AppContainer
+import br.edu.fatec.doesangue.BuildConfig
 import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkUiState
 import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,8 @@ fun DoeSangueApp(
     AppNavHost(
         navController = navController,
         sessionState = sessionMonitor.uiState,
+        googleWebClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID,
+        initialProfileViewModelFactory = appContainer::initialProfileViewModelFactory,
         recoveryLinkState = recoveryLinkState,
         onRetryRecovery = onRetryRecovery,
         onFinishRecovery = onFinishRecovery,

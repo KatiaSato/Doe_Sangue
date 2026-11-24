@@ -74,21 +74,28 @@ class SupabaseDonorProfileDataSource(
     Essa função:
     1. Remove espaços nas extremidades do nome e rejeita um nome vazio.
     2. Obtém o ID da conta autenticada.
-    3. Envia somente id e nome_exibicao; o banco preenche criado_em.
+    3. Envia id, nome_exibicao e o tipo sanguíneo quando informado.
     4. Recebe o registro criado e o converte para o domínio.
     O select() dentro de insert pede que o Supabase devolva os dados inseridos, conforme a documentação oficial.
      */
-    suspend fun createCurrentProfile(displayName: String): DonorProfile {
+    suspend fun createCurrentProfile(
+        displayName: String,
+        bloodType: BloodType?,
+        expectedUserId: String?,
+    ): DonorProfile {
         val normalizedName = displayName.trim()
         if (normalizedName.isBlank()) throw ProfileFailure(ProfileError.INVALID_DATA)
 
 
         val user = client.requireDataUser()
+        if (expectedUserId != null && user.id != expectedUserId) {
+            throw ProfileFailure(ProfileError.SESSION_UNAVAILABLE)
+        }
 
-        // Envia somente as colunas permitidas na criação, sem os novos campos do DTO.
         val createdProfile = client.from("perfil_doador").insert(buildJsonObject {
             put("id", user.id)
             put("nome_exibicao", normalizedName)
+            bloodType?.let { put("tipo_sanguineo", it.databaseValue) }
         }) {
                 select()
             }.decodeSingle<DonorProfileDto>()

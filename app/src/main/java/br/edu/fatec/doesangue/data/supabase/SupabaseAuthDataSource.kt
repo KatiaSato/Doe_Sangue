@@ -4,18 +4,24 @@ import br.edu.fatec.doesangue.domain.model.AuthError
 import br.edu.fatec.doesangue.domain.model.AuthFailure
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
 import br.edu.fatec.doesangue.domain.model.BloodType
+import br.edu.fatec.doesangue.domain.model.GoogleSignInCredential
 import br.edu.fatec.doesangue.domain.model.RegistrationResult
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.api.authenticatedSupabaseApi
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.OtpType
 import br.edu.fatec.doesangue.domain.model.EmailConfirmationCredential
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import br.edu.fatec.doesangue.data.supabase.mapper.toSessionPresence
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -110,6 +116,25 @@ class SupabaseAuthDataSource(
         return AuthenticatedUser(id = user.id)
     }
 
+    suspend fun signInWithGoogle(credential: GoogleSignInCredential): AuthenticatedUser {
+        if (credential.idToken.isBlank() || credential.rawNonce.isBlank()) {
+            throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
+        }
+
+        client.auth.awaitInitialization()
+        check(client.auth.currentUserOrNull() == null) { "Já existe uma sessão conectada." }
+        explicitSignOut.value = false
+        client.auth.signInWith(IDToken) {
+            provider = Google
+            idToken = credential.idToken
+            nonce = credential.rawNonce
+        }
+
+        val user = client.auth.currentUserOrNull()?.takeIf { it.id.isNotBlank() }
+            ?: throw AuthFailure(AuthError.SESSION_UNAVAILABLE)
+        return AuthenticatedUser(id = user.id, requiresProfileCheck = true)
+    }
+
     /*
     Essa função faz o pedido pelo SDK.
     O trim() remove espaços nas extremidades do endereço antes do envio.
@@ -190,7 +215,14 @@ class SupabaseAuthDataSource(
                     "A sessão não contém o usuário."
                 }
 
-                AuthenticatedUser(id = user.id)
+                val metadata = user.appMetadata
+                val provider = (metadata?.get("provider") as? JsonPrimitive)?.contentOrNull
+                val providers = metadata?.get("providers") as? JsonArray
+                AuthenticatedUser(
+                    id = user.id,
+                    requiresProfileCheck = provider == "google" ||
+                        providers.orEmpty().any { (it as? JsonPrimitive)?.contentOrNull == "google" },
+                )
             }
 
             is SessionStatus.NotAuthenticated -> null

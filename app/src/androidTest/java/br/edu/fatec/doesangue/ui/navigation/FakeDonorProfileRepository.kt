@@ -39,6 +39,8 @@ class FakeDonorProfileRepository(
 
     override suspend fun createCurrentProfile(
         displayName: String,
+        bloodType: BloodType?,
+        expectedUserId: String?,
     ): Result<DonorProfile> {
         val normalizedName = displayName.trim()
 

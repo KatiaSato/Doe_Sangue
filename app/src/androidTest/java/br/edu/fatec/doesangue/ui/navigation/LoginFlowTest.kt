@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.domain.model.AuthenticatedUser
+import br.edu.fatec.doesangue.domain.model.GoogleSignInCredential
 import br.edu.fatec.doesangue.domain.model.AuthError
 import br.edu.fatec.doesangue.domain.model.AuthFailure
 import br.edu.fatec.doesangue.domain.repository.AuthRepository
@@ -235,6 +236,9 @@ class LoginFlowTest {
     }
 
     private class ControlledAuthRepository : AuthRepository {
+        override suspend fun signInWithGoogle(credential: GoogleSignInCredential): Result<AuthenticatedUser> =
+            error("Login com Google inesperado neste teste.")
+
     override fun observeSession(): kotlinx.coroutines.flow.Flow<br.edu.fatec.doesangue.domain.model.SessionPresence> = kotlinx.coroutines.flow.emptyFlow()
 
     override suspend fun resendEmailConfirmation(email: String): Result<Unit> =

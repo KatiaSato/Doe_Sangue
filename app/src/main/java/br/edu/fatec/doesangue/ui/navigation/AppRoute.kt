@@ -18,6 +18,9 @@ sealed interface AppRoute {
     data object Login : AppRoute
 
     @Serializable
+    data class CompleteGoogleProfile(val userId: String) : AppRoute
+
+    @Serializable
     data object Register1 : AppRoute
 
     @Serializable

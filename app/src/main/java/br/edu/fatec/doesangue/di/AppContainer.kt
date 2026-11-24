@@ -225,6 +225,10 @@ class AppContainer(
         initializer { EditProfileViewModel(donorProfileRepository) }
     }
 
+    fun initialProfileViewModelFactory(userId: String) = viewModelFactory {
+        initializer { ProfileViewModel(donorProfileRepository, expectedUserId = userId) }
+    }
+
     val profileViewModelFactory = viewModelFactory {
         initializer {
             ProfileViewModel(
