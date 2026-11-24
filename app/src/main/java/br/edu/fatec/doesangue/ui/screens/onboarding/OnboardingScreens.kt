@@ -1,27 +1,21 @@
 package br.edu.fatec.doesangue.ui.screens.onboarding
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -31,85 +25,41 @@ import br.edu.fatec.doesangue.presentation.auth.SessionUiState
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
 import br.edu.fatec.doesangue.ui.components.TextAction
 import br.edu.fatec.doesangue.ui.theme.BloodRed
-import br.edu.fatec.doesangue.ui.theme.BloodRedStrong
-import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(
+fun StartupSessionScreen(
     uiState: SessionUiState,
     onRetry: () -> Unit,
     onFinished: (Boolean) -> Unit,
 ) {
     LaunchedEffect(uiState) {
         when (uiState) {
-            is SessionUiState.Authenticated -> {
-                delay(1_800)
-                onFinished(true)
-            }
-
-            SessionUiState.Unauthenticated -> {
-                delay(1_800)
-                onFinished(false)
-            }
+            is SessionUiState.Authenticated -> onFinished(true)
+            SessionUiState.Unauthenticated -> onFinished(false)
 
             SessionUiState.Loading,
             is SessionUiState.Error -> Unit
         }
     }
-    Box(
-        Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(BloodRedStrong, Color(0xFFF0141A)))),
+    Column(
+        Modifier.fillMaxSize().padding(horizontal = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Box(Modifier.fillMaxWidth().height(170.dp).align(Alignment.BottomStart).background(Color(0x22FFFFFF)))
-        Column(
-            Modifier.fillMaxSize().padding(horizontal = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Image(
-                painter = painterResource(R.drawable.figma_raw_1),
-                contentDescription = "Símbolo Doe Sangue",
-                modifier = Modifier.size(190.dp).clip(RoundedCornerShape(34.dp)),
-                contentScale = ContentScale.Crop,
-            )
-            Spacer(
-                Modifier.height(
-                    if (uiState is SessionUiState.Error) 32.dp else 120.dp
-                )
-            )
-            Text("Doe Sangue", style = MaterialTheme.typography.displaySmall, color = Color.White)
-            Text(
-                "Um pequeno ato\nque salva vidas.",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(28.dp))
-            Text("—    ♡    —", style = MaterialTheme.typography.titleLarge, color = Color.White)
-            when (val state = uiState) {
-                SessionUiState.Loading -> {
-                    Spacer(Modifier.height(16.dp))
-                    Text(
-                        text = "Verificando sua sessão...",
-                        color = Color.White,
-                    )
-                }
-
-                is SessionUiState.Error -> {
-                    Spacer(Modifier.height(24.dp))
-                    Text(
-                        text = state.message,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    PrimaryButton(
-                        text = "Tentar novamente",
-                        onClick = onRetry,
-                    )
-                }
-
-                else -> Unit
+        when (val state = uiState) {
+            SessionUiState.Loading -> {
+                CircularProgressIndicator()
+                Spacer(Modifier.height(16.dp))
+                Text("Verificando sua sessão...")
             }
+
+            is SessionUiState.Error -> {
+                Text(state.message, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(12.dp))
+                PrimaryButton("Tentar novamente", onRetry)
+            }
+
+            else -> Unit
         }
     }
 }

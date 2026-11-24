@@ -1,77 +1,52 @@
 # Doe Sangue
 
-Aplicativo acadêmico Android para gestão e incentivo à doação de sangue. O app é voltado ao doador e pretende permitir consulta de unidades e necessidades, agendamento, status, histórico e campanhas.
+Aplicativo acadêmico Android que ajuda doadores a encontrar unidades de coleta, consultar campanhas e estoques e organizar seus agendamentos de doação.
 
-> Estado em 06/10/2026: a escolha de unidade no agendamento consulta o Supabase e mantém a seleção em um ViewModel. A base visual e a navegação Compose estão implementadas. Autenticação, calendário interativo, horários e gravação do agendamento continuam pendentes; as telas de confirmação ainda são demonstrativas. Veja o [registro desta integração](docs/14-integracao-unidades.md).
+**Projeto entregue.** As funcionalidades principais do escopo acadêmico foram concluídas em novembro de 2026. O ambiente demonstrativo usa dados sintéticos.
 
-## Stack confirmada
+## Funcionalidades concluídas
 
-- Android nativo, Kotlin e Jetpack Compose.
-- MVVM com Repository e StateFlow conectado à escolha de unidade.
-- PostgreSQL e PostgREST integrados à consulta de unidades; Supabase Auth pendente.
-- Dados sintéticos para a demonstração acadêmica.
+- **Conta e perfil:** cadastro e login por e-mail e senha, login com Google, confirmação de e-mail, recuperação de senha e edição do perfil do doador.
+- **Consulta:** busca de unidades por nome ou cidade, abertura de mapas, campanhas publicadas e estoques por unidade e tipo sanguíneo.
+- **Agendamentos:** calendário com disponibilidade, escolha de horário, confirmação persistida, retomada de rascunho, remarcação e cancelamento.
+- **Minhas doações:** histórico, agendamentos com filtros por situação e rotina pessoal de lembretes.
+- **Notificações:** preferências por conta neste aparelho, avisos nas datas da rotina e lembrete de agendamentos elegíveis programado para 24 horas antes.
+- **Calendário:** exportação opcional de um agendamento para o editor de calendário do Android. A pessoa escolhe o calendário, inclusive o Google Calendar, e confirma o salvamento. Eventos exportados são ajustados na agenda caso a reserva seja remarcada ou cancelada.
 
-## Configuração proposta
+## Stack
 
-- `applicationId`: `br.edu.fatec.doesangue` (a confirmar).
-- `minSdk 23`, `targetSdk 36`, `compileSdk 36`.
-- JDK 17 como alvo; o Gradle pode executar pelo JDK 21 instalado.
-- AGP 9.3.3, Kotlin 2.3.21 e Gradle 9.5.0.
+- Android nativo, Kotlin, Jetpack Compose e Navigation Compose.
+- MVVM com ViewModels, StateFlow e repositories.
+- Supabase Auth, PostgreSQL, PostgREST, Supabase Kotlin 3.6.0 e Ktor/OkHttp 3.4.3.
+- Credential Manager para login com Google e WorkManager para notificações.
+- `applicationId` `br.edu.fatec.doesangue`, Android mínimo API 23 e SDK 36 para compilação e destino.
+- AGP 9.3.3, Kotlin 2.3.21 e Gradle 9.5.0. O código tem Java 17 como alvo e o Gradle pode executar com JDK 21.
 
 ## Abrir e executar
 
-1. Abra esta pasta no Android Studio.
-2. Aguarde a sincronização do Gradle e confirme o SDK 36.
-3. Escolha um emulador/dispositivo com API 23 ou superior.
-4. Configure a URL e a chave publicável conforme a seção abaixo e execute `app`.
-
-```powershell
-.\gradlew.bat test assembleDebug lint
-```
-
-O Android Studio gera `local.properties` com o caminho do SDK; esse arquivo não deve ser versionado.
-
-## Supabase
-
-A consulta usa Supabase Kotlin 3.6.0, Ktor/OkHttp 3.4.3 e desugaring para manter `minSdk 23`. Preserve `sdk.dir` no `local.properties` da raiz e acrescente os valores do seu projeto de desenvolvimento, sem aspas:
+1. Abra esta pasta no Android Studio e sincronize o Gradle com o SDK 36.
+2. Preserve o valor de `sdk.dir` no `local.properties` da raiz e adicione a URL e a chave publicável do seu projeto Supabase. Para habilitar o botão Google, configure também o ID público do cliente OAuth Web e habilite o provedor no Supabase.
+3. Selecione um aparelho ou emulador com API 23 ou superior e execute o módulo `app`.
 
 ```properties
 SUPABASE_URL=https://SEU_PROJETO.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_SUBSTITUA_PELO_VALOR_DO_PAINEL
+GOOGLE_WEB_CLIENT_ID=SEU_CLIENTE_WEB.apps.googleusercontent.com
 ```
 
-Os valores acima são exemplos. O arquivo é ignorado pelo Git; Gradle lê suas propriedades e gera os campos de `BuildConfig`. Após alterar os valores, recompile o aplicativo. A chave publicável ficará no APK e não é segredo: permissões e RLS protegem os dados. Nunca incluir `sb_secret_`, `service_role`, senha do banco ou tokens de usuário no Android.
-
-Sem configuração, a compilação e os testes com fake são possíveis, mas abrir o agendamento no aplicativo normal falha na validação do cliente. Consulte [SQL, seed e aplicação manual](supabase/README.md) antes de preparar outro ambiente. O aplicativo não executa migrações.
-
-## Escopo visual atual
-
-- Splash, boas-vindas, autenticação e cadastro em quatro etapas.
-- Home versão 2, agendamento, doações, campanhas, unidades, perfil e configurações.
-- Fluxos de detalhe, edição e cancelamento presentes no Figma.
-- Navegação inferior entre Início, Agendar, Doações, Unidades e Perfil.
-- Entrada de Configurações adicionada ao Perfil por decisão explícita de produto.
-
-A consulta, seleção de unidade e repetição da consulta são funcionais. As demais ações de backend permanecem visuais; a tela de sucesso ainda não comprova um agendamento gravado.
-
-## Documentação
-
-Os documentos em `docs/` usam **Confirmado**, **Proposto**, **Implementado** e **Pendente** para distinguir requisitos, escolhas atuais e código pronto.
-
-A observação da sessão durante o uso, os encaminhamentos e seus limites estão em [T01 — sessão durante o uso](docs/42-sessao-durante-uso.md).
-
-A retomada do rascunho e a identificação durável do pedido estão em [T02 — rascunho do agendamento](docs/43-retomada-rascunho-agendamento.md), com estado de validação e limites.
-
-## Navegação e testes — atualização de 23/09/2026
-
-**Implementado:** Navigation Compose 2.9.8, rotas tipadas e grafos Auth/Main/Scheduling. As telas enviam callbacks; as decisões de navegação ficam em `ui/navigation`. As setas das raízes retornam à Home quando não há tela anterior. Histórico independente por aba e persistência do rascunho continuam pendentes.
-
-Com um emulador ou dispositivo de teste conectado, execute:
+O Git ignora o `local.properties`. A URL, a chave publicável e o ID público configurado são incorporados ao APK. O segredo OAuth fica no Supabase. Para preparar um ambiente de demonstração, consulte as instruções de [migrações e dados sintéticos](supabase/README.md).
 
 ```powershell
+.\gradlew.bat testDebugUnitTest assembleDebug lintDebug
 .\gradlew.bat connectedDebugAndroidTest
 ```
 
-Os testes em `app/src/androidTest` exercitam a navegação e o estado salvo do Compose, com `FakeDonationCenterRepository` injetado explicitamente e sem consulta ao Supabase. Em 06/10/2026, 12 testes passaram no Pixel 5/API 32. `test` executa somente os testes locais em `app/src/test`; não substitui a suíte instrumentada. Consulte [telas e navegação](docs/10-telas-e-navegacao.md), [ADR-003](docs/decisoes/ADR-003-navegacao-compose.md) e [validação](docs/12-validacao.md).
+A segunda linha executa os testes instrumentados em um aparelho ou emulador conectado.
 
-Remarcação própria e rotina pessoal de lembretes: [F13](docs/44-remarcacao-agendamento.md) e [F14](docs/45-rotina-lembretes.md). Banco aplicado/testado e validação técnica concluída (82 JVM/126 Android); aceite visual confirmado por relato em26/10 após o ajuste do calendário; commit/push do conjunto completo autorizados em26/10/2026. Notificações permanecem para a etapa acompanhada.
+## Documentação
+
+- [Validação e evidências](docs/12-validacao.md)
+- [Sessão e retomada de rascunho](docs/42-sessao-durante-uso.md) · [Rascunho do agendamento](docs/43-retomada-rascunho-agendamento.md)
+- [Remarcação e rotina](docs/44-remarcacao-agendamento.md) · [Rotina pessoal](docs/45-rotina-lembretes.md)
+- [Login com Google](docs/47-login-google.md)
+- [Notificações da rotina](docs/54-notificacoes-rotina.md) · [Avisos de agendamento e calendário](docs/55-avisos-agendamento-e-calendario.md)

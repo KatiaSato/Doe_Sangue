@@ -77,3 +77,17 @@ APKs/Lint finais aprovados em3m37s, **zero erros/14 avisos**, instalados com -r 
 Falhas intermediárias foram de preparação/seleção dos testes: scroll em diálogo sem área rolável; teste removia seu próprio último destino Login ao conferir popBackStack; título e botão com o mesmo texto exigiam selecionar a ação clicável. Corrigidos somente testes, sem enfraquecer regras de produção.
 
 Nenhuma migração, seed, consulta remota, revogação de sessão real, e-mail, conta, perfil ou reserva reais foi alterada. SDK/HTTP usados nos testes são reais com transporte interceptado e armazenamento em memória; respostas/identidades são fictícias. Instalação com -r preserva os dados do aparelho. Esses testes não demonstram revogação remota/JWT real nem detectam revogação antes de o SDK receber evidência. Commit/push do conjunto completo autorizados posteriormente em26/10; testes/SQL não foram repetidos pelo fechamento.
+## Abertura do aplicativo
+
+Em 24/11/2026, a usuária pediu uma única tela de abertura com a bolsinha e relatou a aparição breve de “Saindo…” antes de ver a conta conectada. O código só usa “Saindo...” no botão do perfil enquanto a operação de logout está em andamento. A restauração comum usa “Verificando sua sessão...” e segue para a área adequada.
+
+| Arquivo | Responsabilidade |
+| --- | --- |
+| `AndroidManifest.xml`, `res/values/themes.xml` e arquivos Gradle | Definir o tema de abertura nativo com a bolsinha e adicionar AndroidX SplashScreen |
+| `MainActivity.kt`, `DoeSangueApp.kt` e `AppNavHost.kt` | Manter a abertura até a navegação inicial ou a apresentação de um erro de sessão |
+| `OnboardingScreens.kt` | Apresentar a verificação neutra e a opção de retry, sem uma segunda tela de marca ou atraso fixo |
+| `SessionRestoreFlowTest.kt` | Conferir que a restauração entra na conta sem chamar logout e manter a cobertura de retry |
+
+O app abre com a splash nativa e restaura a sessão antes de mostrar Início ou boas-vindas. A recuperação tem prioridade quando aplicável. Se a restauração falhar, o app mostra a opção de tentar novamente. Após três segundos, uma restauração ainda em andamento aparece como progresso de sessão.
+
+Os APKs de debug e testes compilaram. Passaram 14 testes no Pixel_6 temporário, cobrindo sessão restaurada, acesso sem sessão, erro e retry, logout explícito, troca de conta e abertura por notificação. A restauração com conta fictícia fez zero chamadas de logout e o perfil apresentou Sair da conta. A aparição breve relatada no aparelho ainda não foi reproduzida.

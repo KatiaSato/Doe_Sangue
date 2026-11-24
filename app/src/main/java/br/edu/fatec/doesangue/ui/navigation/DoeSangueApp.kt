@@ -22,6 +22,7 @@ fun DoeSangueApp(
     emailConfirmationViewModel: EmailConfirmationViewModel,
     requestedNotification: StateFlow<NotificationOpenRequest?>,
     onNotificationHandled: (NotificationOpenRequest) -> Unit,
+    onStartupReady: () -> Unit,
 ) {
     val navController = rememberNavController()
     val sessionMonitor: SessionMonitorViewModel = viewModel(factory = appContainer.sessionMonitorViewModelFactory)
@@ -35,6 +36,7 @@ fun DoeSangueApp(
         },
         requestedNotification = requestedNotification,
         onNotificationHandled = onNotificationHandled,
+        onStartupReady = onStartupReady,
         googleWebClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID,
         initialProfileViewModelFactory = appContainer::initialProfileViewModelFactory,
         recoveryLinkState = recoveryLinkState,

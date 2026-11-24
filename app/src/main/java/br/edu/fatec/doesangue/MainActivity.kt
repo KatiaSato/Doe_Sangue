@@ -1,11 +1,13 @@
 package br.edu.fatec.doesangue
 
 import android.os.Bundle
+import android.os.SystemClock
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkViewModel
 import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkUiState
 import br.edu.fatec.doesangue.ui.navigation.recoveryCodeFromUri
@@ -22,6 +24,7 @@ private const val PENDING_NOTIFICATION_OWNER = "pending_notification_owner"
 private const val PENDING_NOTIFICATION_APPOINTMENT = "pending_notification_appointment"
 
 class MainActivity : ComponentActivity() {
+    private var startupReady = false
     private val pendingNotification = MutableStateFlow<NotificationOpenRequest?>(null)
     private val emailConfirmationViewModel by viewModels<EmailConfirmationViewModel> {
         (application as DoeSangueApplication).appContainer.emailConfirmationViewModelFactory
@@ -32,7 +35,10 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        val splashDeadline = SystemClock.uptimeMillis() + 3_000
+        splash.setKeepOnScreenCondition { !startupReady && SystemClock.uptimeMillis() < splashDeadline }
         val appContainer =
             (application as DoeSangueApplication).appContainer
         pendingNotification.value = savedInstanceState?.getString(PENDING_NOTIFICATION_OWNER)?.let { owner ->
@@ -51,6 +57,7 @@ class MainActivity : ComponentActivity() {
                     appContainer = appContainer,
                     recoveryLinkState = recoveryLinkViewModel.uiState,
                     requestedNotification = pendingNotification,
+                    onStartupReady = { startupReady = true },
                     onNotificationHandled = { request -> pendingNotification.compareAndSet(request, null) },
                     onUpdateRecoveryPassword = recoveryLinkViewModel::updatePassword,
                     onRetryRecovery = recoveryLinkViewModel::retry,

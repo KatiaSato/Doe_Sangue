@@ -2,5 +2,10 @@
     <style name="Theme.DoeSangue" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowLightStatusBar">true</item>
     </style>
+    <style name="Theme.DoeSangue.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.DoeSangue</item>
+    </style>
 </resources>
 

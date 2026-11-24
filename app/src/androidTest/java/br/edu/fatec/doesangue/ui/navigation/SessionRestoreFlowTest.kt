@@ -41,6 +41,7 @@ class SessionRestoreFlowTest {
     private lateinit var nav: NavHostController
     private lateinit var model: SessionViewModel
     private val auth = ControlledAuthRepository()
+    private var startupReady = false
 
     private fun openApp() {
         val container = AppContainer(routineRepositoryOverride = br.edu.fatec.doesangue.ui.navigation.FakeReminderRoutineRepository(),
@@ -62,6 +63,7 @@ class SessionRestoreFlowTest {
                 AppNavHost(
                     recoveryLinkState = idleRecoveryLinkState,
                     navController = nav,
+                    onStartupReady = { startupReady = true },
                     schedulingViewModelFactory = container.schedulingViewModelFactory,
                     routineViewModelFactory = container.routineViewModelFactory,
                     loginViewModelFactory = container.loginViewModelFactory,
@@ -115,16 +117,24 @@ class SessionRestoreFlowTest {
         openApp()
         finishSplashDelay()
         assertHomeWithoutSplashHistory()
-        compose.runOnIdle { assertEquals(1, auth.restoreCalls) }
+        compose.runOnIdle {
+            assertTrue(startupReady)
+            assertEquals(1, auth.restoreCalls)
+            assertEquals(0, auth.signOutCalls)
+        }
 
         compose.onAllNodesWithText("Perfil").onLast().performClick()
         compose.waitForIdle()
         compose.onNodeWithText("Doador de teste").assertExists()
+        compose.onNodeWithText("Saindo...").assertDoesNotExist()
         compose.onNodeWithText("Sair da conta").performScrollTo().performClick()
         compose.waitForIdle()
         assertWelcomeWithoutSplashHistory()
         compose.onNodeWithText("Doador de teste").assertDoesNotExist()
-        compose.runOnIdle { assertNull(auth.user) }
+        compose.runOnIdle {
+            assertNull(auth.user)
+            assertEquals(1, auth.signOutCalls)
+        }
     }
 
     @Test
@@ -145,6 +155,7 @@ class SessionRestoreFlowTest {
         compose.onNodeWithText("Verificando sua sessão...").assertIsDisplayed()
         compose.runOnIdle {
             assertTrue(nav.currentDestination?.hasRoute<AppRoute.Splash>() == true)
+            assertTrue(!startupReady)
             model.restoreSession()
             assertEquals(1, auth.restoreCalls)
             response.complete(Result.success(AuthenticatedUser("test-user-1")))
@@ -215,6 +226,7 @@ class SessionRestoreFlowTest {
             Result.failure(UnsupportedOperationException("Cadastro não configurado neste roteiro."))
 
         var restoreCalls = 0
+        var signOutCalls = 0
         var user: AuthenticatedUser? = null
         var answer: suspend () -> Result<AuthenticatedUser?> = { Result.success(null) }
 
@@ -240,6 +252,7 @@ class SessionRestoreFlowTest {
             Result.failure(UnsupportedOperationException("Este teste não faz login."))
 
         override suspend fun signOut(): Result<Unit> {
+            signOutCalls++
             user = null
             return Result.success(Unit)
         }

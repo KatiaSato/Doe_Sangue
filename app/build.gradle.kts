@@ -76,6 +76,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui)
     // O layout deve compilar com a mesma versão já usada pelo Compose em execução.

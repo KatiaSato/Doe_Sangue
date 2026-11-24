@@ -2,6 +2,7 @@ package br.edu.fatec.doesangue.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -33,7 +34,7 @@ import androidx.navigation.toRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import br.edu.fatec.doesangue.ui.screens.onboarding.SplashScreen
+import br.edu.fatec.doesangue.ui.screens.onboarding.StartupSessionScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -96,6 +97,7 @@ fun AppNavHost(
     onRoutineNotificationsChanged: () -> Unit = {},
     requestedNotification: StateFlow<NotificationOpenRequest?> = noNotification,
     onNotificationHandled: (NotificationOpenRequest) -> Unit = {},
+    onStartupReady: () -> Unit = {},
     initialProfileViewModelFactory: (String) -> ViewModelProvider.Factory = { profileViewModelFactory },
 ) {
     val currentRecoveryLinkState by
@@ -104,6 +106,10 @@ fun AppNavHost(
     val monitoredSession = sessionState?.collectAsStateWithLifecycle()?.value
     val notificationRequest by requestedNotification.collectAsStateWithLifecycle()
     val entry by navController.currentBackStackEntryAsState()
+    val destination = entry?.destination
+    if (destination != null && !destination.hasRoute<AppRoute.Splash>()) {
+        SideEffect(onStartupReady)
+    }
     var privateOwnerId by rememberSaveable { mutableStateOf<String?>(null) }
     var sessionNotice by rememberSaveable { mutableStateOf<String?>(null) }
     fun privateAreaNow() = navController.currentDestination?.hierarchy?.any {
@@ -298,12 +304,13 @@ fun AppNavHost(
 
                 val sessionUiState by
                 sessionViewModel.uiState.collectAsStateWithLifecycle()
-                SplashScreen(
+                if (sessionUiState is SessionUiState.Error) SideEffect(onStartupReady)
+                StartupSessionScreen(
                     uiState = sessionUiState,
                     onRetry = sessionViewModel::restoreSession,
                     onFinished = { authenticated ->
                         if (recoveryLinkState.value != RecoveryLinkUiState.Idle) {
-                            return@SplashScreen
+                            return@StartupSessionScreen
                         }
                         val restored = (sessionViewModel.uiState.value as? SessionUiState.Authenticated)?.user
                         val destination = if (authenticated && restored?.requiresProfileCheck == true) {
