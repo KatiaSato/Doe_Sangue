@@ -17,9 +17,13 @@ import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailViewMod
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentsViewModel
 import br.edu.fatec.doesangue.presentation.auth.ChangePasswordViewModel
 import br.edu.fatec.doesangue.presentation.auth.LogoutViewModel
+import br.edu.fatec.doesangue.presentation.auth.SessionMonitorUiState
+import br.edu.fatec.doesangue.ui.screens.auth.SessionWaitScreen
+import kotlinx.coroutines.flow.StateFlow
 import br.edu.fatec.doesangue.presentation.campaigns.CampaignDetailUiState
 import br.edu.fatec.doesangue.presentation.profile.ProfileViewModel
 import br.edu.fatec.doesangue.presentation.profile.EditProfileViewModel
+import br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionsScreen
 import br.edu.fatec.doesangue.ui.screens.restrictions.RestrictionDetailScreen
 import br.edu.fatec.doesangue.presentation.home.HomeViewModel
@@ -49,7 +53,7 @@ import br.edu.fatec.doesangue.domain.model.StockLevel
 import br.edu.fatec.doesangue.ui.screens.profile.AboutScreen
 import br.edu.fatec.doesangue.ui.screens.profile.EditProfileScreen
 import br.edu.fatec.doesangue.ui.screens.profile.FaqScreen
-import br.edu.fatec.doesangue.ui.screens.profile.NotificationsScreen
+import br.edu.fatec.doesangue.ui.screens.profile.RoutineNotificationsRoute
 import br.edu.fatec.doesangue.ui.screens.profile.ProfileScreen
 import br.edu.fatec.doesangue.ui.screens.profile.SecurityScreen
 import br.edu.fatec.doesangue.ui.screens.profile.SettingsScreen
@@ -78,6 +82,8 @@ fun NavGraphBuilder.mainNavGraph(
     onSignedOut: () -> Unit,
     onNavigateMain: (AppRoute) -> Unit,
     onFinishScheduling: () -> Unit,
+    sessionState: StateFlow<SessionMonitorUiState>?,
+    onRoutineNotificationsChanged: () -> Unit,
 ) {
     navigation<AppGraph.Main>(
         startDestination = AppRoute.Home,
@@ -548,9 +554,26 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable<AppRoute.Notifications> {
-            NotificationsScreen(
-                onBack = { navController.popBackStack() },
-            )
+            val session = sessionState?.collectAsStateWithLifecycle()?.value
+            val userId = (session as? SessionMonitorUiState.Available)?.user?.id
+            if (userId != null) {
+                val routineModel: ReminderRoutineViewModel =
+                    viewModel(key = "notification-routine:$userId", factory = routineViewModelFactory)
+                val routineState by routineModel.state.collectAsStateWithLifecycle()
+                LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                    if (!routineModel.state.value.loading) routineModel.load()
+                }
+                RoutineNotificationsRoute(
+                    userId = userId,
+                    routineState = routineState,
+                    canEdit = { (sessionState.value as? SessionMonitorUiState.Available)?.user?.id == userId },
+                    onPreferenceChanged = onRoutineNotificationsChanged,
+                    onSeeRoutine = { onNavigateMain(AppRoute.DonationsReminders) },
+                    onBack = { navController.popBackStack() },
+                )
+            } else {
+                SessionWaitScreen(session is SessionMonitorUiState.Reconnecting)
+            }
         }
 
         composable<AppRoute.Faq> {

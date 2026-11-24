@@ -81,7 +81,7 @@ fun RoutineFields(state: ReminderRoutineUiState,onDate: (String)->Unit,onInterva
     }
     state.error?.let { Text(it,color=MaterialTheme.colorScheme.error) }
     if (state.routine?.active == false) Text("Sua rotina está pausada. Salvar os dados mantém a pausa.",style=MaterialTheme.typography.bodySmall)
-    Text("Esta rotina não cria agendamentos. O envio de notificações ainda não está disponível.",style=MaterialTheme.typography.bodySmall)
+    Text("Ative os avisos em Configurações → Notificações.",style=MaterialTheme.typography.bodySmall)
     Text("Consulte o hemocentro sobre quando poderá doar novamente.",style=MaterialTheme.typography.bodySmall)
 }
 

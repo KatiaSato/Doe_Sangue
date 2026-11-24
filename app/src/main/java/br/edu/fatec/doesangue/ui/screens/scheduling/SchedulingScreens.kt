@@ -440,6 +440,7 @@ private fun ReviewRow(label: String, value: String) {
 fun ScheduleSuccessScreen(
     uiState: SchedulingUiState,
     onHome: () -> Unit,
+    confirmedStartsAt: java.time.Instant? = null,
 ) {
     val appointment = uiState.appointmentCreation.appointment
 
@@ -464,13 +465,13 @@ fun ScheduleSuccessScreen(
         ?.format(DateTimeFormatter.ofPattern("HH:mm"))
         ?: "Horário não informado"
     DsScreen {
-        Spacer(Modifier.height(110.dp))
+        Spacer(Modifier.height(56.dp))
         CenteredMessage(
             "✓",
             if (uiState.rescheduleOrigin != null) "Agendamento remarcado!" else "Agendamento confirmado!",
             "Seu agendamento é para\n$date às $time"
         )
-        Spacer(Modifier.height(34.dp))
+        Spacer(Modifier.height(24.dp))
         InfoCard {
             Text(
                 text = uiState.selectedCenter?.name ?: "Unidade não informada",
@@ -487,15 +488,26 @@ fun ScheduleSuccessScreen(
                 color = BloodRed
             )
         }
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(12.dp))
         Text(
             text = "Número do agendamento: ${appointment.id}",
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             color = InkSecondary,
         )
-        Spacer(Modifier.height(56.dp))
-        PrimaryButton("Ir para o início", onHome)
+        Spacer(Modifier.height(24.dp))
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            br.edu.fatec.doesangue.ui.calendar.AppointmentCalendarButton(
+                status = appointment.status,
+                startsAt = confirmedStartsAt,
+                unit = uiState.selectedCenter?.name,
+            )
+            PrimaryButton("Ir para o início", onHome)
+        }
+        Spacer(Modifier.height(24.dp))
     }
 }
 

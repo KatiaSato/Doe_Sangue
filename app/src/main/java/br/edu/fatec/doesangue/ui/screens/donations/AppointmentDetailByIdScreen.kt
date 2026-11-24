@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import br.edu.fatec.doesangue.domain.model.AppointmentStatus
 import br.edu.fatec.doesangue.presentation.appointments.AppointmentDetailUiState
+import br.edu.fatec.doesangue.ui.calendar.AppointmentCalendarButton
 import br.edu.fatec.doesangue.ui.components.DsScreen
 import br.edu.fatec.doesangue.ui.components.InfoCard
 import br.edu.fatec.doesangue.ui.components.PrimaryButton
@@ -135,6 +136,12 @@ fun AppointmentDetailByIdScreen(
                 summary.rescheduledFromId?.let { Text("Remarcado a partir do agendamento $it.",style=MaterialTheme.typography.bodySmall) }
                 if (summary.appointment.status == AppointmentStatus.SCHEDULED && summary.startsAt > java.time.Instant.now()) {
                     Spacer(Modifier.height(16.dp))
+                    AppointmentCalendarButton(
+                        status = summary.appointment.status,
+                        startsAt = summary.startsAt,
+                        unit = summary.centerName,
+                        enabled = !state.isCancelling,
+                    )
                     br.edu.fatec.doesangue.ui.components.SecondaryButton("Remarcar agendamento",onReschedule,enabled=!state.isCancelling)
                 }
                 //O botão abre a confirmação e fica desabilitado durante o envio. Após a resposta Cancelado, ele desaparece

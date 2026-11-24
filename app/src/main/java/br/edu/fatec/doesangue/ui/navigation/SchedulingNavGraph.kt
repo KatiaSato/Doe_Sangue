@@ -264,6 +264,7 @@ fun NavGraphBuilder.schedulingNavGraph(
                 ScheduleSuccessScreen(
                     uiState = uiState,
                     onHome = schedulingViewModel::finishDraft,
+                    confirmedStartsAt = schedulingViewModel.confirmedStart(),
                 )
             }
         }

@@ -89,7 +89,7 @@ fun ReminderOverviewScreen(state: ReminderRoutineUiState, onRetry: () -> Unit, o
                 Text("Planejar não é agendar", style = HomeStyle.Label)
                 Text("Sua rotina não cria reservas nem define quando você pode doar. Confirme as orientações com o serviço de saúde.",
                     style = HomeStyle.Supporting, color = InkSecondary)
-                Text("Notificações no celular: em breve.", style = HomeStyle.Caption, color = InkSecondary)
+                Text("Ative os avisos em Configurações → Notificações.", style = HomeStyle.Caption, color = InkSecondary)
             }
         }
     }

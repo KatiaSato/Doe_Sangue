@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import br.edu.fatec.doesangue.di.AppContainer
 import br.edu.fatec.doesangue.BuildConfig
+import br.edu.fatec.doesangue.data.notifications.NotificationOpenRequest
 import br.edu.fatec.doesangue.presentation.auth.RecoveryLinkUiState
 import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,8 @@ fun DoeSangueApp(
     onFinishRecovery: () -> Unit,
     onRecoveryFinished: () -> Unit,
     emailConfirmationViewModel: EmailConfirmationViewModel,
+    requestedNotification: StateFlow<NotificationOpenRequest?>,
+    onNotificationHandled: (NotificationOpenRequest) -> Unit,
 ) {
     val navController = rememberNavController()
     val sessionMonitor: SessionMonitorViewModel = viewModel(factory = appContainer.sessionMonitorViewModelFactory)
@@ -26,6 +29,12 @@ fun DoeSangueApp(
     AppNavHost(
         navController = navController,
         sessionState = sessionMonitor.uiState,
+        onRoutineNotificationsChanged = {
+            appContainer.onRoutineNotificationsChanged()
+            appContainer.onAppointmentNotificationsChanged()
+        },
+        requestedNotification = requestedNotification,
+        onNotificationHandled = onNotificationHandled,
         googleWebClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID,
         initialProfileViewModelFactory = appContainer::initialProfileViewModelFactory,
         recoveryLinkState = recoveryLinkState,

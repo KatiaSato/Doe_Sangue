@@ -69,12 +69,18 @@ class AppContainer(
     private val donationHistoryRepositoryOverride: DonationHistoryRepository? = null,
     private val routineRepositoryOverride: br.edu.fatec.doesangue.domain.repository.ReminderRoutineRepository? = null,
     private val schedulingDraftStore: br.edu.fatec.doesangue.domain.repository.SchedulingDraftStore? = null,
+    internal val onRoutineNotificationsChanged: () -> Unit = {},
+    internal val onAppointmentNotificationsChanged: () -> Unit = {},
 ) {
     val routineRepository: br.edu.fatec.doesangue.domain.repository.ReminderRoutineRepository by lazy {
         routineRepositoryOverride ?: br.edu.fatec.doesangue.data.repository.SupabaseReminderRoutineRepository(br.edu.fatec.doesangue.data.supabase.SupabaseReminderRoutineDataSource(supabaseClient))
     }
     val routineViewModelFactory = viewModelFactory {
-        initializer { br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel(routineRepository,authRepository) }
+        initializer {
+            br.edu.fatec.doesangue.presentation.routines.ReminderRoutineViewModel(
+                routineRepository, authRepository, onRoutineChanged = onRoutineNotificationsChanged,
+            )
+        }
     }
     val sessionMonitorViewModelFactory = viewModelFactory {
         initializer { SessionMonitorViewModel(authRepository) }
@@ -207,6 +213,7 @@ class AppContainer(
                 AppointmentDetailViewModel(
                     repository = appointmentRepository,
                     appointmentId = appointmentId,
+                    onAppointmentChanged = onAppointmentNotificationsChanged,
                 )
             }
         }
@@ -317,6 +324,8 @@ class AppContainer(
                 getAvailableDates = getAvailableDonationDates,
                 draftStore = schedulingDraftStore,
                 authRepository = if (schedulingDraftStore != null) authRepository else null,
+                onRoutineChanged = onRoutineNotificationsChanged,
+                onAppointmentChanged = onAppointmentNotificationsChanged,
             )
         }
     }

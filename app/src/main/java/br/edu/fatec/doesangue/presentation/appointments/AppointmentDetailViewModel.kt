@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 class AppointmentDetailViewModel(
     private val repository: AppointmentRepository,
     private val appointmentId: String,
+    private val onAppointmentChanged: () -> Unit = {},
 ) : ViewModel() {
 
     private val _uiState =
@@ -93,6 +94,7 @@ class AppointmentDetailViewModel(
                         cancelled.id == appointmentId &&
                         cancelled.status == AppointmentStatus.CANCELLED
                     ) {
+                        onAppointmentChanged()
                         current.copy(
                             appointment = current.appointment.copy(
                                 appointment = cancelled,

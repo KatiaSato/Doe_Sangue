@@ -54,8 +54,10 @@ import br.edu.fatec.doesangue.presentation.auth.ConfirmationLinkState
 import br.edu.fatec.doesangue.ui.screens.auth.EmailConfirmationDialog
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavDestination.Companion.hasRoute
+import br.edu.fatec.doesangue.data.notifications.NotificationOpenRequest
 
 private val idleConfirmationState: StateFlow<EmailConfirmationUiState> = MutableStateFlow(EmailConfirmationUiState())
+private val noNotification: StateFlow<NotificationOpenRequest?> = MutableStateFlow(null)
 
 @Composable
 fun AppNavHost(
@@ -91,12 +93,16 @@ fun AppNavHost(
     centersViewModelFactory: ViewModelProvider.Factory,
     centerDetailViewModelFactory: (String) -> ViewModelProvider.Factory,
     googleWebClientId: String = "",
+    onRoutineNotificationsChanged: () -> Unit = {},
+    requestedNotification: StateFlow<NotificationOpenRequest?> = noNotification,
+    onNotificationHandled: (NotificationOpenRequest) -> Unit = {},
     initialProfileViewModelFactory: (String) -> ViewModelProvider.Factory = { profileViewModelFactory },
 ) {
     val currentRecoveryLinkState by
     recoveryLinkState.collectAsStateWithLifecycle()
     val confirmation by emailConfirmationState.collectAsStateWithLifecycle()
     val monitoredSession = sessionState?.collectAsStateWithLifecycle()?.value
+    val notificationRequest by requestedNotification.collectAsStateWithLifecycle()
     val entry by navController.currentBackStackEntryAsState()
     var privateOwnerId by rememberSaveable { mutableStateOf<String?>(null) }
     var sessionNotice by rememberSaveable { mutableStateOf<String?>(null) }
@@ -215,6 +221,23 @@ fun AppNavHost(
                     launchSingleTop = true
                 }
             }
+        }
+    }
+
+    LaunchedEffect(notificationRequest, monitoredSession, privateOwnerId, entry?.id, currentRecoveryLinkState, confirmation.link) {
+        val request = requestedNotification.value ?: return@LaunchedEffect
+        val owner = request.ownerId
+        val session = sessionState?.value
+        if (recoveryLinkState.value != RecoveryLinkUiState.Idle || session is SessionMonitorUiState.Ended ||
+            session is SessionMonitorUiState.Available && session.user.id != owner
+        ) {
+            onNotificationHandled(request)
+        } else if (session is SessionMonitorUiState.Available && privateOwnerId == owner && privateAreaNow() &&
+            emailConfirmationState.value.link == ConfirmationLinkState.Idle
+        ) {
+            val route = request.appointmentId?.let { AppRoute.AppointmentDetailById(it) } ?: AppRoute.DonationsReminders
+            navigateMain(route)
+            onNotificationHandled(request)
         }
     }
 
@@ -400,6 +423,8 @@ fun AppNavHost(
 
             mainNavGraph(
                 navController = navController,
+                sessionState = sessionState,
+                onRoutineNotificationsChanged = onRoutineNotificationsChanged,
                 schedulingViewModelFactory = schedulingViewModelFactory,
                 routineViewModelFactory = routineViewModelFactory,
                 profileViewModelFactory = profileViewModelFactory,

@@ -14,8 +14,15 @@ import br.edu.fatec.doesangue.ui.theme.DoeSangueTheme
 import br.edu.fatec.doesangue.presentation.auth.EmailConfirmationViewModel
 import br.edu.fatec.doesangue.ui.navigation.confirmationCredentialFromUri
 import android.widget.Toast
+import br.edu.fatec.doesangue.data.notifications.NotificationOpenRequest
+import br.edu.fatec.doesangue.data.notifications.notificationOpenRequest
+import kotlinx.coroutines.flow.MutableStateFlow
+
+private const val PENDING_NOTIFICATION_OWNER = "pending_notification_owner"
+private const val PENDING_NOTIFICATION_APPOINTMENT = "pending_notification_appointment"
 
 class MainActivity : ComponentActivity() {
+    private val pendingNotification = MutableStateFlow<NotificationOpenRequest?>(null)
     private val emailConfirmationViewModel by viewModels<EmailConfirmationViewModel> {
         (application as DoeSangueApplication).appContainer.emailConfirmationViewModelFactory
     }
@@ -28,7 +35,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val appContainer =
             (application as DoeSangueApplication).appContainer
-        if (savedInstanceState == null) handleRecoveryIntent(intent)
+        pendingNotification.value = savedInstanceState?.getString(PENDING_NOTIFICATION_OWNER)?.let { owner ->
+            NotificationOpenRequest(owner, savedInstanceState.getString(PENDING_NOTIFICATION_APPOINTMENT))
+        }
+        if (savedInstanceState == null) handleIncomingIntent(intent)
         val app = application as DoeSangueApplication
         if (app.isRecoveryPending() && recoveryLinkViewModel.uiState.value == RecoveryLinkUiState.Idle) {
             recoveryLinkViewModel.validateCode("")
@@ -40,6 +50,8 @@ class MainActivity : ComponentActivity() {
                     emailConfirmationViewModel = emailConfirmationViewModel,
                     appContainer = appContainer,
                     recoveryLinkState = recoveryLinkViewModel.uiState,
+                    requestedNotification = pendingNotification,
+                    onNotificationHandled = { request -> pendingNotification.compareAndSet(request, null) },
                     onUpdateRecoveryPassword = recoveryLinkViewModel::updatePassword,
                     onRetryRecovery = recoveryLinkViewModel::retry,
                     onFinishRecovery = recoveryLinkViewModel::finishRecovery,
@@ -55,7 +67,31 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleRecoveryIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        val request = pendingNotification.value
+        outState.putString(PENDING_NOTIFICATION_OWNER, request?.ownerId)
+        outState.putString(PENDING_NOTIFICATION_APPOINTMENT, request?.appointmentId)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val container = (application as DoeSangueApplication).appContainer
+        container.onRoutineNotificationsChanged()
+        container.onAppointmentNotificationsChanged()
+    }
+
+    private fun handleIncomingIntent(incoming: Intent) {
+        val request = incoming.notificationOpenRequest()
+        if (request == null) {
+            handleRecoveryIntent(incoming)
+            return
+        }
+        setIntent(Intent(incoming).apply { action = null; data = null })
+        pendingNotification.value = request
     }
 
     private fun handleRecoveryIntent(incoming: Intent) {

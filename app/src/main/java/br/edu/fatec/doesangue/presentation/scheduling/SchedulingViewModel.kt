@@ -42,6 +42,8 @@ class SchedulingViewModel(
     private val clock: Clock = Clock.systemUTC(),
     private val draftStore: SchedulingDraftStore? = null,
     private val authRepository: AuthRepository? = null,
+    private val onRoutineChanged: () -> Unit = {},
+    private val onAppointmentChanged: () -> Unit = {},
 ) : ViewModel() {
     /*
     SchedulingUiState() cria o estado inicial: nenhuma unidade selecionada.
@@ -414,6 +416,10 @@ class SchedulingViewModel(
                 check(draftStore == null || (appointment.donorId == owner && appointment.timeSlotId == request.timeSlotId))
                 appointment
             }
+            if (checked.isSuccess && current.routine != null && current.rescheduleOrigin == null) {
+                onRoutineChanged()
+            }
+            if (checked.getOrNull()?.status == AppointmentStatus.SCHEDULED) onAppointmentChanged()
             val rejected = (checked.exceptionOrNull() as? DataFailure)?.reason in DEFINITE_REJECTIONS
             _uiState.update { it.copy(
                 canReviewRejectedRequest = draftStore != null && rejected,
@@ -717,6 +723,16 @@ class SchedulingViewModel(
         return SchedulingDraft(owner, center.id, center.name.take(512), center.timeZoneId,
             state.selectedDate?.toString(), slot?.id, slot?.startsAt?.toString(),
             if (request != null) SchedulingStep.CONFIRM else draftStep, request?.idempotencyKey, state.rescheduleOrigin, state.routine).validated()
+    }
+
+    internal fun confirmedStart(): java.time.Instant? {
+        val state = _uiState.value
+        val appointment = state.appointmentCreation.appointment ?: return null
+        if (appointment.status != AppointmentStatus.SCHEDULED) return null
+        return state.timeSlots.firstOrNull { it.id == appointment.timeSlotId }?.startsAt
+            ?: requestSnapshot?.takeIf {
+                it.slotId == appointment.timeSlotId && it.ownerId == appointment.donorId
+            }?.startsAtIso?.let(java.time.Instant::parse)
     }
 
     fun retrySavingDraft() = persistDraft()

@@ -25,8 +25,12 @@ data class ReminderRoutineUiState(
     val error: String? = null, val message: String? = null, val loaded: Boolean = false,
 )
 
-class ReminderRoutineViewModel(private val repository: ReminderRoutineRepository,
-    private val auth: AuthRepository, private val clock: Clock = Clock.systemUTC()) : ViewModel() {
+class ReminderRoutineViewModel(
+    private val repository: ReminderRoutineRepository,
+    private val auth: AuthRepository,
+    private val clock: Clock = Clock.systemUTC(),
+    private val onRoutineChanged: () -> Unit = {},
+) : ViewModel() {
     private val _state = MutableStateFlow(ReminderRoutineUiState())
     val state = _state.asStateFlow()
     private var owner: String? = null
@@ -109,7 +113,7 @@ class ReminderRoutineViewModel(private val repository: ReminderRoutineRepository
             val result = action(account)
             ensureActive()
             if (owner != account) return@launch
-            result.fold(onSuccess = { show(it,message) },onFailure = { failure ->
+            result.fold(onSuccess = { show(it,message); onRoutineChanged() },onFailure = { failure ->
                 _state.update { it.copy(saving = false,error = failure.toDataMessage("Não foi possível salvar sua rotina. Tente novamente.")) }
             })
         }
@@ -123,7 +127,7 @@ class ReminderRoutineViewModel(private val repository: ReminderRoutineRepository
             val result = repository.delete(account,routine.version)
             ensureActive()
             if (owner != account) return@launch
-            result.fold(onSuccess = { show(null,"Rotina excluída.") },onFailure = { failure ->
+            result.fold(onSuccess = { show(null,"Rotina excluída."); onRoutineChanged() },onFailure = { failure ->
                 _state.update { it.copy(saving = false,error = failure.toDataMessage("Não foi possível excluir sua rotina. Tente novamente.")) }
             })
         }

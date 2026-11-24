@@ -21,8 +21,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -339,32 +337,6 @@ private fun SecurityPasswordField(
         ),
         modifier = Modifier.fillMaxWidth().semantics { contentType = autofillType },
     )
-}
-
-@Composable
-fun NotificationsScreen(onBack: () -> Unit) {
-    DsScreen(title = "Notificações", onBack = onBack) {
-        NotificationRow("Lembrete de doação", "Receber aviso antes do agendamento", true)
-        NotificationRow("Rotina de doações", "Avisar quando chegar o próximo período", true)
-        NotificationRow("Campanhas", "Novas campanhas e estoques críticos", true)
-        NotificationRow("Atualizações do app", "Novidades importantes do Doe Sangue", false)
-    }
-}
-
-@Composable
-private fun NotificationRow(title: String, subtitle: String, checked: Boolean) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = InkSecondary)
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = null,
-            colors = SwitchDefaults.colors(checkedTrackColor = BloodRed, checkedThumbColor = Color.White),
-        )
-    }
-    Box(Modifier.fillMaxWidth().height(1.dp).background(Border))
 }
 
 @Composable

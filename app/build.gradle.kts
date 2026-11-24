@@ -110,6 +110,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.google.identity.googleid)
+    implementation(libs.androidx.work.runtime)
 
     // Comunicação pela rede.
     implementation(libs.ktor.client.okhttp)
